@@ -1,0 +1,60 @@
+export const MINING_NODES = {
+  copper_node: {
+    id: 'copper_node',
+    name: 'Copper Vein',
+    zone: 'forest',
+    requiredLevel: 1,
+    cycleDuration: 10000,
+    extractChance: 0.90,
+    maxExtractions: 10,
+    respawnTime: 60000,
+    yields: [
+      { id: 'copper_ore', weight: 60 },
+      { id: 'rough_stone', weight: 30 },
+      { id: 'copper_nugget', weight: 10 },
+    ],
+  },
+  iron_node: {
+    id: 'iron_node',
+    name: 'Iron Deposit',
+    zone: 'forest',
+    requiredLevel: 2,
+    cycleDuration: 14000,
+    extractChance: 0.80,
+    maxExtractions: 8,
+    respawnTime: 90000,
+    yields: [
+      { id: 'iron_ore', weight: 55 },
+      { id: 'rough_stone', weight: 25 },
+      { id: 'iron_nugget', weight: 15 },
+      { id: 'gemstone_shard', weight: 5 },
+    ],
+  },
+  crystal_node: {
+    id: 'crystal_node',
+    name: 'Crystal Formation',
+    zone: 'caves',
+    requiredLevel: 3,
+    cycleDuration: 18000,
+    extractChance: 0.70,
+    maxExtractions: 6,
+    respawnTime: 120000,
+    yields: [
+      { id: 'crystal_ore', weight: 45 },
+      { id: 'iron_ore', weight: 20 },
+      { id: 'gemstone_shard', weight: 20 },
+      { id: 'void_crystal', weight: 10 },
+      { id: 'ancient_coin', weight: 5 },
+    ],
+  },
+};
+
+export const MINING_NODE_PLACEMENTS = [
+  { nodeType: 'copper_node', tileX: 12, tileY: 22 },
+  { nodeType: 'copper_node', tileX: 28, tileY: 24 },
+  { nodeType: 'copper_node', tileX: 8, tileY: 18 },
+  { nodeType: 'iron_node', tileX: 6, tileY: 14 },
+  { nodeType: 'iron_node', tileX: 32, tileY: 16 },
+  { nodeType: 'crystal_node', tileX: 10, tileY: 5 },
+  { nodeType: 'crystal_node', tileX: 30, tileY: 3 },
+];

@@ -1,4 +1,11 @@
 import { MAP_WIDTH, MAP_HEIGHT } from '../config/constants.js';
+import { MINING_NODE_PLACEMENTS } from '../config/oreData.js';
+
+// Build a set of mining node positions for quick lookup
+const miningNodeSet = new Map();
+MINING_NODE_PLACEMENTS.forEach(p => {
+  miningNodeSet.set(`${p.tileX},${p.tileY}`, p.nodeType);
+});
 
 export function generateMap() {
   const map = [];
@@ -15,6 +22,25 @@ export function generateMap() {
 }
 
 function getTile(x, y) {
+  // Check mining nodes first (they override zone tiles)
+  const nodeKey = `${x},${y}`;
+  if (miningNodeSet.has(nodeKey)) {
+    const nodeType = miningNodeSet.get(nodeKey);
+    const zone = y < 10 ? 'caves' : 'forest';
+    const textureMap = {
+      copper_node: 'tile_mining_node_copper',
+      iron_node: 'tile_mining_node_iron',
+      crystal_node: 'tile_mining_node_crystal',
+    };
+    return {
+      type: 'mining_node',
+      zone,
+      walkable: false,
+      nodeType,
+      textureKey: textureMap[nodeType] || 'tile_mining_node_copper',
+    };
+  }
+
   // Town zone: center of map, rows 15-24, cols 15-24
   const inTown = x >= 15 && x <= 24 && y >= 15 && y <= 24;
   // Caves zone: top 10 rows
@@ -31,6 +57,14 @@ function getTile(x, y) {
 }
 
 function getTownTile(x, y) {
+  // Fishing pond (water tiles): 3x3 at (23,21)-(25,23)
+  if (x >= 23 && x <= 25 && y >= 21 && y <= 23) {
+    if (x === 23 && y === 23) {
+      return { type: 'fishing_dock', zone: 'town', walkable: false, textureKey: 'tile_fishing_dock' };
+    }
+    return { type: 'water', zone: 'town', walkable: false, textureKey: 'tile_water' };
+  }
+
   // Town paths
   if (x === 19 || x === 20) {
     return { type: 'path', zone: 'town', walkable: true, textureKey: 'tile_town_path' };
@@ -122,7 +156,9 @@ function getTreePositions() {
   ];
   seeds.forEach(([x, y]) => {
     if (!(x >= 15 && x <= 24 && y >= 15 && y <= 24) && y >= 10) {
-      positions.add(`${x},${y}`);
+      if (!miningNodeSet.has(`${x},${y}`)) {
+        positions.add(`${x},${y}`);
+      }
     }
   });
   return positions;
@@ -137,7 +173,11 @@ function getCaveWallPositions() {
     [7, 8], [8, 8], [15, 4], [16, 4], [22, 6], [23, 6],
     [30, 3], [31, 3], [36, 8], [37, 8],
   ];
-  walls.forEach(([x, y]) => positions.add(`${x},${y}`));
+  walls.forEach(([x, y]) => {
+    if (!miningNodeSet.has(`${x},${y}`)) {
+      positions.add(`${x},${y}`);
+    }
+  });
   return positions;
 }
 

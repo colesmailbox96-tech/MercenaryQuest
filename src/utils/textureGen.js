@@ -139,6 +139,73 @@ function generateTileTextures(scene) {
   cr.fillRect(7, 3, 2, 3);
   cr.generateTexture('tile_crystal', 16, 16);
   cr.destroy();
+
+  // Fishing dock
+  const dock = scene.make.graphics({ x: 0, y: 0, add: false });
+  for (let row = 0; row < 16; row += 2) {
+    dock.fillStyle(row % 4 === 0 ? 0x8B6914 : 0x6B4226);
+    dock.fillRect(0, row, 16, 2);
+  }
+  dock.fillStyle(0x5A3A1A);
+  dock.fillRect(0, 0, 16, 1);
+  dock.fillRect(0, 15, 16, 1);
+  dock.generateTexture('tile_fishing_dock', 16, 16);
+  dock.destroy();
+
+  // Mining node - Copper
+  const mnC = scene.make.graphics({ x: 0, y: 0, add: false });
+  mnC.fillStyle(0x7A7A7A);
+  mnC.fillRect(3, 5, 10, 8);
+  mnC.fillRect(5, 3, 6, 2);
+  mnC.fillRect(4, 13, 8, 2);
+  mnC.fillStyle(0xB87333);
+  mnC.fillRect(5, 7, 2, 2);
+  mnC.fillRect(9, 9, 2, 2);
+  mnC.fillRect(7, 11, 1, 1);
+  mnC.fillRect(4, 6, 1, 1);
+  mnC.generateTexture('tile_mining_node_copper', 16, 16);
+  mnC.destroy();
+
+  // Mining node - Iron
+  const mnI = scene.make.graphics({ x: 0, y: 0, add: false });
+  mnI.fillStyle(0x7A7A7A);
+  mnI.fillRect(3, 5, 10, 8);
+  mnI.fillRect(5, 3, 6, 2);
+  mnI.fillRect(4, 13, 8, 2);
+  mnI.fillStyle(0xC0C0C0);
+  mnI.fillRect(5, 7, 2, 2);
+  mnI.fillRect(9, 9, 2, 2);
+  mnI.fillRect(7, 11, 1, 1);
+  mnI.fillRect(4, 6, 1, 1);
+  mnI.generateTexture('tile_mining_node_iron', 16, 16);
+  mnI.destroy();
+
+  // Mining node - Crystal
+  const mnCr = scene.make.graphics({ x: 0, y: 0, add: false });
+  mnCr.fillStyle(0x4A4458);
+  mnCr.fillRect(3, 5, 10, 8);
+  mnCr.fillRect(5, 3, 6, 2);
+  mnCr.fillRect(4, 13, 8, 2);
+  mnCr.fillStyle(0x5B8FA8);
+  mnCr.fillRect(5, 7, 2, 2);
+  mnCr.fillRect(9, 9, 2, 2);
+  mnCr.fillStyle(0x9C27B0);
+  mnCr.fillRect(7, 11, 1, 1);
+  mnCr.fillRect(4, 6, 1, 1);
+  mnCr.generateTexture('tile_mining_node_crystal', 16, 16);
+  mnCr.destroy();
+
+  // Mining node - Depleted
+  const mnD = scene.make.graphics({ x: 0, y: 0, add: false });
+  mnD.fillStyle(0x4A4A4A);
+  mnD.fillRect(3, 5, 10, 8);
+  mnD.fillRect(5, 3, 6, 2);
+  mnD.fillRect(4, 13, 8, 2);
+  mnD.fillStyle(0x333333);
+  mnD.fillRect(6, 7, 1, 3);
+  mnD.fillRect(9, 8, 1, 2);
+  mnD.generateTexture('tile_mining_node_depleted', 16, 16);
+  mnD.destroy();
 }
 
 function generateEntityTextures(scene) {
