@@ -16,6 +16,10 @@ import { CookingSystem } from '../systems/CookingSystem.js';
 import { TapMoveSystem } from '../systems/TapMoveSystem.js';
 import { ITEMS } from '../config/itemData.js';
 import { distance } from '../utils/helpers.js';
+import { DayNightSystem } from '../systems/DayNightSystem.js';
+import { WanderingMerchant } from '../systems/WanderingMerchant.js';
+import { CompanionSystem } from '../systems/CompanionSystem.js';
+import { EGG_HATCH_CONFIG } from '../config/companionData.js';
 
 const DISPLAY_TILE = TILE_SIZE * TILE_SCALE;
 const TAP_DRAG_THRESHOLD = 10;
@@ -40,6 +44,9 @@ export class GameScene extends Phaser.Scene {
     this.farmingSystem = new FarmingSystem(this, this.skillSystem);
     this.cookingSystem = new CookingSystem(this, this.skillSystem);
     this.tapMoveSystem = new TapMoveSystem(this);
+    this.dayNightSystem = new DayNightSystem(this);
+    this.wanderingMerchant = new WanderingMerchant(this);
+    this.companionSystem = new CompanionSystem(this);
     this.agent = null;
     this.viewTarget = 'player';
     this.activeBuffs = [];
@@ -249,6 +256,19 @@ export class GameScene extends Phaser.Scene {
         this.scene.launch('FarmingPanel');
         return;
       }
+      // Companion nest interaction
+      if (pos.x === EGG_HATCH_CONFIG.nestPosition.tileX && pos.y === EGG_HATCH_CONFIG.nestPosition.tileY) {
+        this.scene.launch('CompanionPanel');
+        return;
+      }
+    }
+
+    // Check merchant interaction
+    if (this.wanderingMerchant && this.wanderingMerchant.isActive && this.wanderingMerchant.entity) {
+      if (this.wanderingMerchant.entity.isPlayerInRange(this.player)) {
+        this.scene.launch('MerchantPanel');
+        return;
+      }
     }
   }
 
@@ -306,6 +326,10 @@ export class GameScene extends Phaser.Scene {
 
     // Ambient animations
     this.updateAmbientAnimations(time);
+
+    // Update Phase 7 systems
+    if (this.dayNightSystem) this.dayNightSystem.update(delta);
+    if (this.companionSystem) this.companionSystem.update(delta);
 
     // Keyboard shortcuts
     if (Phaser.Input.Keyboard.JustDown(this.eKey)) {
@@ -404,6 +428,18 @@ export class GameScene extends Phaser.Scene {
       if (tile && tile.type === 'farm_plot') {
         contextAction = { type: 'farming', name: 'Farm', icon: '🌾' };
         break;
+      }
+      // Companion nest check
+      if (pos.x === EGG_HATCH_CONFIG.nestPosition.tileX && pos.y === EGG_HATCH_CONFIG.nestPosition.tileY) {
+        contextAction = { type: 'nest', name: 'Companion Nest', icon: '🥚' };
+        break;
+      }
+    }
+
+    // Check merchant proximity
+    if (!contextAction && this.wanderingMerchant && this.wanderingMerchant.isActive && this.wanderingMerchant.entity) {
+      if (this.wanderingMerchant.entity.isPlayerInRange(this.player)) {
+        contextAction = { type: 'merchant', name: 'Merchant', icon: '🛒' };
       }
     }
 

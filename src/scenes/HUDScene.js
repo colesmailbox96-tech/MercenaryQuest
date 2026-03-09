@@ -6,6 +6,9 @@ import { MiniNotifications } from '../ui/MiniNotifications.js';
 import { LootToast } from '../ui/LootToast.js';
 import { ActivityHUD } from '../ui/ActivityHUD.js';
 import { BuffBar } from '../ui/BuffBar.js';
+import { DayNightHUD } from '../ui/DayNightHUD.js';
+import { CompanionHUD } from '../ui/CompanionHUD.js';
+import { MerchantAlert } from '../ui/MerchantAlert.js';
 
 export class HUDScene extends Phaser.Scene {
   constructor() {
@@ -43,6 +46,16 @@ export class HUDScene extends Phaser.Scene {
     const buffBarW = this.scale.width - 30;
     this.buffBar = new BuffBar(this);
     this.buffBar.create(15, buffBarY, buffBarW);
+
+    // Phase 7 HUD components
+    this.dayNightHUD = new DayNightHUD(this);
+    this.dayNightHUD.create(w - 15, 42);
+
+    this.companionHUD = new CompanionHUD(this);
+    this.companionHUD.create(15, 110);
+
+    this.merchantAlert = new MerchantAlert(this);
+    this.merchantAlert.create();
 
     this.viewTarget = 'player';
     this.currentContext = null;
@@ -257,6 +270,28 @@ export class HUDScene extends Phaser.Scene {
     this.skillsBtn.on('pointerup', () => {
       this.skillsBtn.setScale(1);
     });
+
+    // Companion button
+    this.companionBtn = this.add.image(w - 250, h - 160, 'ui_btn_small');
+    this.companionBtn.setScrollFactor(0);
+    this.companionBtn.setDepth(200);
+    this.companionBtn.setInteractive({ useHandCursor: true });
+    this.companionBtn.setAlpha(0.8);
+
+    this.companionBtnLabel = this.add.text(w - 250, h - 160, '🐾', {
+      fontSize: '18px',
+    });
+    this.companionBtnLabel.setOrigin(0.5);
+    this.companionBtnLabel.setScrollFactor(0);
+    this.companionBtnLabel.setDepth(201);
+
+    this.companionBtn.on('pointerdown', () => {
+      this.companionBtn.setScale(0.9);
+      this.scene.launch('CompanionPanel');
+    });
+    this.companionBtn.on('pointerup', () => {
+      this.companionBtn.setScale(1);
+    });
   }
 
   createContextPrompt(w, h) {
@@ -330,6 +365,12 @@ export class HUDScene extends Phaser.Scene {
         } else if (action.type === 'farming') {
           this.contextPrompt.setText('Tap ⚔️ to farm 🌾');
           this.actionBtnLabel.setText('🌾');
+        } else if (action.type === 'merchant') {
+          this.contextPrompt.setText('Tap ⚔️ to trade 🛒');
+          this.actionBtnLabel.setText('🛒');
+        } else if (action.type === 'nest') {
+          this.contextPrompt.setText('Tap ⚔️ to check nest 🥚');
+          this.actionBtnLabel.setText('🥚');
         } else if (action.type === 'building' && action.icon === '🍳') {
           this.contextPrompt.setText('Tap ⚔️ to cook 🍳');
           this.actionBtnLabel.setText('🍳');
@@ -469,5 +510,8 @@ export class HUDScene extends Phaser.Scene {
     if (this.buffBar && this.gameScene) {
       this.buffBar.update(this.gameScene.activeBuffs || []);
     }
+    if (this.dayNightHUD) this.dayNightHUD.update();
+    if (this.companionHUD) this.companionHUD.update();
+    if (this.merchantAlert) this.merchantAlert.update();
   }
 }
