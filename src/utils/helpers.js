@@ -6,10 +6,6 @@ export function distance(x1, y1, x2, y2) {
   return Math.abs(x1 - x2) + Math.abs(y1 - y2);
 }
 
-export function manhattanDist(x1, y1, x2, y2) {
-  return Math.abs(x1 - x2) + Math.abs(y1 - y2);
-}
-
 export function weightedRandom(table) {
   const total = table.reduce((sum, entry) => sum + entry.weight, 0);
   let roll = Math.random() * total;
