@@ -51,4 +51,41 @@ export const ITEMS = {
   moonberry_tart:  { id: 'moonberry_tart',  name: 'Moonberry Tart',  emoji: '🥧', sellValue: 30, category: 'food', duration: 120000, buff: { stats: { atk: 8, def: 5, maxHp: 20 } } },
   abyssal_broth:   { id: 'abyssal_broth',   name: 'Abyssal Broth',   emoji: '🍵', sellValue: 30, category: 'food', duration: 120000, buff: { stats: { atk: 10 }, skillEffects: { farming: { growthSpeedBonus: 0.25 } } } },
   starfruit_elixir:{ id: 'starfruit_elixir',name: 'Starfruit Elixir',emoji: '🧪', sellValue: 50, category: 'food', duration: 180000, buff: { stats: { atk: 12, def: 8, maxHp: 30 }, skillEffects: { fishing: { cycleSpeedBonus: 0.15 }, mining: { cycleSpeedBonus: 0.15 }, farming: { growthSpeedBonus: 0.15 } } } },
+  // === Phase 7: Night Materials ===
+  shadow_essence:      { id: 'shadow_essence',      name: 'Shadow Essence',      emoji: '🌑', sellValue: 6,  category: 'material' },
+  wisp_core:           { id: 'wisp_core',           name: 'Wisp Core',           emoji: '💠', sellValue: 14, category: 'material' },
+  stalker_fang:        { id: 'stalker_fang',        name: 'Stalker Fang',        emoji: '🦷', sellValue: 12, category: 'material' },
+  midnight_dew:        { id: 'midnight_dew',        name: 'Midnight Dew',        emoji: '💧', sellValue: 8,  category: 'material' },
+  moonshell_fragment:  { id: 'moonshell_fragment',  name: 'Moonshell Fragment',  emoji: '🐚', sellValue: 10, category: 'material' },
+  luminous_chitin:     { id: 'luminous_chitin',     name: 'Luminous Chitin',     emoji: '✨', sellValue: 16, category: 'material' },
+  wraith_ember:        { id: 'wraith_ember',        name: 'Wraith Ember',        emoji: '🔥', sellValue: 18, category: 'material' },
+  infernal_dust:       { id: 'infernal_dust',       name: 'Infernal Dust',       emoji: '💨', sellValue: 14, category: 'material' },
+  // Companion Eggs (not sellable)
+  companion_egg_fox:   { id: 'companion_egg_fox',   name: 'Fox Egg',   emoji: '🥚', sellValue: 0, category: 'companion_egg' },
+  companion_egg_owl:   { id: 'companion_egg_owl',   name: 'Owl Egg',   emoji: '🥚', sellValue: 0, category: 'companion_egg' },
+  companion_egg_frog:  { id: 'companion_egg_frog',  name: 'Frog Egg',  emoji: '🥚', sellValue: 0, category: 'companion_egg' },
+  companion_egg_mole:  { id: 'companion_egg_mole',  name: 'Mole Egg',  emoji: '🥚', sellValue: 0, category: 'companion_egg' },
+  companion_egg_wolf:  { id: 'companion_egg_wolf',  name: 'Wolf Egg',  emoji: '🥚', sellValue: 0, category: 'companion_egg' },
+  companion_egg_toad:  { id: 'companion_egg_toad',  name: 'Toad Egg',  emoji: '🥚', sellValue: 0, category: 'companion_egg' },
+  // Merchant items
+  merchant_mystery_seed: { id: 'merchant_mystery_seed', name: 'Mystery Seed',    emoji: '🌱', sellValue: 15, category: 'seed' },
+  golden_treat:          { id: 'golden_treat',          name: 'Golden Treat',     emoji: '🦴', sellValue: 20, category: 'companion' },
+  merchants_tonic:       { id: 'merchants_tonic',       name: "Merchant's Tonic", emoji: '🧴', sellValue: 18, category: 'food', duration: 120000, buff: { stats: {}, skillEffects: { sellValueBonus: 0.50 } } },
+  wanderers_brew:        { id: 'wanderers_brew',        name: "Wanderer's Brew",  emoji: '🍶', sellValue: 25, category: 'food', duration: 180000, buff: { stats: {}, skillEffects: { moveSpeedBonus: 0.20 } } },
+  scouts_map:            { id: 'scouts_map',            name: "Scout's Map",      emoji: '🗺️', sellValue: 30, category: 'consumable' },
+  agent_morale_scroll:   { id: 'agent_morale_scroll',   name: 'Morale Scroll',   emoji: '📜', sellValue: 12, category: 'consumable' },
+  stardust:              { id: 'stardust',              name: 'Stardust',         emoji: '✨', sellValue: 50, category: 'material' },
+  exotic_feast:          { id: 'exotic_feast',          name: 'Exotic Feast',     emoji: '🍱', sellValue: 40, category: 'food', duration: 180000, buff: { stats: { atk: 10, def: 10, maxHp: 25 }, skillEffects: {} } },
+  // Night fish
+  moonfish:              { id: 'moonfish',     name: 'Moonfish',     emoji: '🐟', sellValue: 15, category: 'fish' },
+  shadowfin:             { id: 'shadowfin',    name: 'Shadowfin',    emoji: '🐠', sellValue: 25, category: 'fish' },
+  // Night crops
+  ember_pepper:          { id: 'ember_pepper', name: 'Ember Pepper', emoji: '🌶️', sellValue: 28, category: 'crop' },
+  frost_lily:            { id: 'frost_lily',   name: 'Frost Lily',   emoji: '❄️', sellValue: 35, category: 'crop' },
+  // Night cooking
+  midnight_broth:        { id: 'midnight_broth', name: 'Midnight Broth', emoji: '🍲', sellValue: 20, category: 'food', duration: 120000, buff: { stats: { atk: 5 }, skillEffects: { nightMobXpBonus: 0.20 } } },
+  shadow_stew:           { id: 'shadow_stew',   name: 'Shadow Stew',   emoji: '🍲', sellValue: 30, category: 'food', duration: 90000,  buff: { stats: { atk: 8, def: 8 }, skillEffects: {} } },
+  // Merchant-exclusive cooking
+  inferno_stew:          { id: 'inferno_stew',   name: 'Inferno Stew',    emoji: '🔥', sellValue: 25, category: 'food', duration: 90000,  buff: { stats: { atk: 15 }, skillEffects: {} } },
+  frostguard_soup:       { id: 'frostguard_soup', name: 'Frostguard Soup', emoji: '❄️', sellValue: 25, category: 'food', duration: 90000,  buff: { stats: { def: 15 }, skillEffects: {} } },
 };

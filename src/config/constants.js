@@ -84,3 +84,7 @@ export const ACTIVITY = {
   FISHING_MAX_PENDING: 20,
   MINING_MAX_PENDING: 15,
 };
+
+export const NEST_TILE = { x: 12, y: 35 };
+
+export const COMPANION_FOLLOW_DISTANCE = 1.5;

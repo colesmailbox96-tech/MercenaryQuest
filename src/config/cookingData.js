@@ -124,4 +124,54 @@ export const COOKING_RECIPES = {
     ],
     output: { id: 'starfruit_elixir', quantity: 1 },
   },
+  // ===== NIGHT-EXCLUSIVE (Phase 7) =====
+  midnight_broth: {
+    id: 'midnight_broth',
+    name: 'Midnight Broth',
+    tier: 3,
+    requiredCookingLevel: 4,
+    ingredients: [
+      { id: 'midnight_dew', quantity: 2 },
+      { id: 'carrot',       quantity: 1 },
+      { id: 'wheat',        quantity: 1 },
+    ],
+    output: { id: 'midnight_broth', quantity: 1 },
+  },
+  shadow_stew: {
+    id: 'shadow_stew',
+    name: 'Shadow Stew',
+    tier: 4,
+    requiredCookingLevel: 6,
+    ingredients: [
+      { id: 'shadow_essence', quantity: 1 },
+      { id: 'tomato',         quantity: 2 },
+      { id: 'moonberry',      quantity: 1 },
+    ],
+    output: { id: 'shadow_stew', quantity: 1 },
+  },
+  // Merchant-exclusive crops cooking
+  inferno_stew: {
+    id: 'inferno_stew',
+    name: 'Inferno Stew',
+    tier: 3,
+    requiredCookingLevel: 4,
+    ingredients: [
+      { id: 'ember_pepper', quantity: 2 },
+      { id: 'tomato',       quantity: 1 },
+      { id: 'wheat',        quantity: 1 },
+    ],
+    output: { id: 'inferno_stew', quantity: 1 },
+  },
+  frostguard_soup: {
+    id: 'frostguard_soup',
+    name: 'Frostguard Soup',
+    tier: 4,
+    requiredCookingLevel: 5,
+    ingredients: [
+      { id: 'frost_lily', quantity: 2 },
+      { id: 'carrot',     quantity: 2 },
+      { id: 'wheat',      quantity: 1 },
+    ],
+    output: { id: 'frostguard_soup', quantity: 1 },
+  },
 };
