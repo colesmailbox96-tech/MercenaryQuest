@@ -72,6 +72,21 @@ export class Agent extends Phaser.GameObjects.Container {
     const mobs = this.scene.spawner.getMobs();
     if (mobs.length === 0) return;
 
+    // Night morale check — retreat earlier without Lantern
+    if (this.scene.dayNightSystem && this.scene.dayNightSystem.isNight) {
+      const hasLantern = this.equipment.accessory &&
+        this.equipment.accessory.perk === 'night_vision';
+      if (!hasLantern) {
+        // Retreat at 40% HP instead of on death
+        if (this.stats.hp < this.stats.maxHp * 0.40) {
+          this.state = 'RETREATING';
+          this.currentPath = [];
+          this.scene.events.emit('agentStateChanged', this.state);
+          return;
+        }
+      }
+    }
+
     // Find nearest mob
     if (!this.targetMob || !this.targetMob.active || this.pathTimer > 2000) {
       let nearest = null;
@@ -163,6 +178,15 @@ export class Agent extends Phaser.GameObjects.Container {
 
   followPath(speed) {
     if (this.isMoving || this.currentPath.length === 0) return;
+
+    // Night debuff: 25% slower without Lantern
+    if (this.scene.dayNightSystem && this.scene.dayNightSystem.isNight) {
+      const hasLantern = this.equipment.accessory &&
+        this.equipment.accessory.perk === 'night_vision';
+      if (!hasLantern) {
+        speed = Math.floor(speed * 1.25); // Higher duration = slower movement
+      }
+    }
 
     const next = this.currentPath.shift();
     if (!next) return;

@@ -133,6 +133,28 @@ export const GEAR_DEFS = {
     dropLevel: 3,
     dropSources: ['caveBat'],
   },
+  moonstone_ring: {
+    id: 'moonstone_ring',
+    name: 'Moonstone Ring',
+    slot: 'accessory',
+    icon: '💍',
+    textureKey: 'gear_moonstone_ring',
+    baseStats: { atk: 5, def: 5 },
+    dropLevel: 1,
+    dropSources: [],
+    nightOnly: true,
+  },
+  agent_lantern: {
+    id: 'agent_lantern',
+    name: 'Lantern',
+    slot: 'accessory',
+    icon: '🏮',
+    textureKey: 'gear_lantern',
+    baseStats: { def: 2 },
+    dropLevel: 1,
+    dropSources: [],
+    perk: 'night_vision',
+  },
 };
 
 function weightedRandomRarity() {

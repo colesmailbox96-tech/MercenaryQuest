@@ -37,4 +37,18 @@ export const FISHING_POOLS = {
       { id: 'ancient_coin', weight: 8 },
     ],
   },
+  night: {
+    name: 'Night Waters',
+    requiredSkillLevel: 4,
+    cycleDuration: 14000,
+    catchChance: 0.70,
+    nightOnly: true,
+    catches: [
+      { id: 'moonfish',         weight: 40 },
+      { id: 'shadowfin',        weight: 25 },
+      { id: 'large_fish',       weight: 20 },
+      { id: 'crystal_shell',    weight: 10 },
+      { id: 'companion_egg_frog', weight: 3 },
+    ],
+  },
 };

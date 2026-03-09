@@ -63,7 +63,12 @@ export class FishingSystem {
     const catchBonus = this.skillSystem
       ? this.skillSystem.getBonus('fishing', 'catchChanceBonus')
       : 0;
-    const adjustedChance = Math.min(0.99, this.selectedPool.catchChance + catchBonus);
+    // Frog companion perk: fishing catch bonus
+    let companionCatchBonus = 0;
+    if (this.scene.companionSystem) {
+      companionCatchBonus = this.scene.companionSystem.getEffectivePerkValue('fishingCatchBonus');
+    }
+    const adjustedChance = Math.min(0.99, this.selectedPool.catchChance + catchBonus + companionCatchBonus);
 
     if (Math.random() <= adjustedChance) {
       let catches = [...this.selectedPool.catches];
@@ -83,7 +88,11 @@ export class FishingSystem {
         ? this.skillSystem.getBonus('fishing', 'doubleCatchChance')
         : 0;
       const buffDouble = this._getBuffDoubleCatch();
-      if (Math.random() < doubleChance + buffDouble) {
+      let companionDoubleBonus = 0;
+      if (this.scene.companionSystem) {
+        companionDoubleBonus = this.scene.companionSystem.getEffectivePerkValue('fishingDoubleBonus');
+      }
+      if (Math.random() < doubleChance + buffDouble + companionDoubleBonus) {
         this.addToPending(catchItem.id);
         this.scene.events.emit('fishingDoubleCatch', { itemId: catchItem.id });
       }

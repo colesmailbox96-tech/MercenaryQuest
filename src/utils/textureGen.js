@@ -7,6 +7,7 @@ export function generateTextures(scene) {
   generateUITextures(scene);
   generateGearTextures(scene);
   generateItemTextures(scene);
+  generatePhase7Textures(scene);
 }
 
 function generateTileTextures(scene) {
@@ -828,4 +829,274 @@ function generateItemTextures(scene) {
   is10.fillRect(7, 7, 1, 1);
   is10.generateTexture('food_starfruit_elixir', 16, 16);
   is10.destroy();
+}
+
+function generatePhase7Textures(scene) {
+  // === Nocturnal Mob Sprites ===
+
+  // Shadow Wisp - flickering dark purple-blue orb
+  const sw = scene.make.graphics({ x: 0, y: 0, add: false });
+  sw.fillStyle(0x8866CC);
+  sw.fillCircle(8, 8, 5);
+  sw.fillStyle(0x6644AA);
+  sw.fillCircle(8, 8, 3);
+  sw.fillStyle(0xAA88EE);
+  sw.fillRect(7, 7, 2, 2);
+  sw.fillStyle(0x4422AA, 0.6);
+  sw.fillRect(5, 12, 6, 2);
+  sw.generateTexture('mob_shadow_wisp', 16, 16);
+  sw.destroy();
+
+  // Night Stalker - crouching dark shape with yellow eyes
+  const ns = scene.make.graphics({ x: 0, y: 0, add: false });
+  ns.fillStyle(0x1A1A1A);
+  ns.fillRect(3, 8, 10, 5);
+  ns.fillRect(5, 6, 6, 3);
+  ns.fillStyle(0x2A2A2A);
+  ns.fillRect(4, 7, 8, 4);
+  ns.fillStyle(0xFFCC00);
+  ns.fillRect(6, 7, 2, 2);
+  ns.fillRect(10, 7, 2, 2);
+  ns.fillStyle(0x1A1A1A);
+  ns.fillRect(4, 5, 2, 2);
+  ns.fillRect(10, 5, 2, 2);
+  ns.generateTexture('mob_night_stalker', 16, 16);
+  ns.destroy();
+
+  // Moon Beetle - round armored bug with glowing spots
+  const mb = scene.make.graphics({ x: 0, y: 0, add: false });
+  mb.fillStyle(0x2A3A5A);
+  mb.fillCircle(8, 9, 5);
+  mb.fillStyle(0x1A2A4A);
+  mb.fillCircle(8, 9, 3);
+  mb.fillStyle(0x88BBFF);
+  mb.fillRect(5, 7, 2, 2);
+  mb.fillRect(9, 7, 2, 2);
+  mb.fillRect(7, 10, 2, 2);
+  mb.fillStyle(0x2A3A5A);
+  mb.fillRect(6, 4, 1, 3);
+  mb.fillRect(9, 4, 1, 3);
+  mb.generateTexture('mob_moon_beetle', 16, 16);
+  mb.destroy();
+
+  // Ember Wraith - ghostly fire figure
+  const ew = scene.make.graphics({ x: 0, y: 0, add: false });
+  ew.fillStyle(0xCC4400);
+  ew.fillRect(5, 3, 6, 8);
+  ew.fillStyle(0xFFAA00);
+  ew.fillRect(6, 5, 4, 4);
+  ew.fillStyle(0xFF6600);
+  ew.fillRect(7, 4, 2, 2);
+  ew.fillStyle(0xCC4400, 0.6);
+  ew.fillRect(4, 11, 8, 3);
+  ew.fillRect(5, 13, 6, 2);
+  ew.fillStyle(0xFFDD00);
+  ew.fillRect(7, 6, 2, 2);
+  ew.generateTexture('mob_ember_wraith', 16, 16);
+  ew.destroy();
+
+  // === Merchant NPC Sprite ===
+  const mn = scene.make.graphics({ x: 0, y: 0, add: false });
+  mn.fillStyle(0x5A4020);
+  mn.fillRect(4, 2, 8, 12);
+  mn.fillStyle(0x4A3018);
+  mn.fillRect(5, 3, 6, 4);
+  mn.fillStyle(0xDAA520);
+  mn.fillRect(4, 2, 8, 1);
+  mn.fillStyle(0x6B5030);
+  mn.fillRect(10, 7, 4, 5);
+  mn.fillStyle(0xFFDD44);
+  mn.fillRect(2, 10, 2, 2);
+  mn.fillStyle(0xDDCCBB);
+  mn.fillRect(6, 5, 1, 1);
+  mn.fillRect(7, 6, 2, 1);
+  mn.generateTexture('npc_merchant', 16, 16);
+  mn.destroy();
+
+  // === Companion Sprites ===
+
+  // Fox - orange-red with white belly
+  const cf = scene.make.graphics({ x: 0, y: 0, add: false });
+  cf.fillStyle(0xCC5500);
+  cf.fillRect(3, 6, 10, 6);
+  cf.fillStyle(0xFFFFFF);
+  cf.fillRect(5, 9, 6, 3);
+  cf.fillStyle(0xCC5500);
+  cf.fillRect(4, 4, 3, 3);
+  cf.fillRect(9, 4, 3, 3);
+  cf.fillStyle(0x1A1A1A);
+  cf.fillRect(5, 5, 1, 1);
+  cf.fillRect(10, 5, 1, 1);
+  cf.fillRect(7, 7, 2, 1);
+  cf.fillStyle(0xCC5500);
+  cf.fillRect(12, 8, 3, 2);
+  cf.generateTexture('companion_fox', 16, 16);
+  cf.destroy();
+
+  // Owl - round brown with big yellow eyes
+  const co = scene.make.graphics({ x: 0, y: 0, add: false });
+  co.fillStyle(0x7A5A30);
+  co.fillCircle(8, 8, 5);
+  co.fillStyle(0xAA8850);
+  co.fillRect(5, 8, 6, 4);
+  co.fillStyle(0xFFD700);
+  co.fillCircle(6, 6, 2);
+  co.fillCircle(10, 6, 2);
+  co.fillStyle(0x000000);
+  co.fillRect(6, 6, 1, 1);
+  co.fillRect(10, 6, 1, 1);
+  co.fillStyle(0xCC8800);
+  co.fillRect(7, 8, 2, 1);
+  co.fillStyle(0x7A5A30);
+  co.fillRect(5, 3, 2, 2);
+  co.fillRect(9, 3, 2, 2);
+  co.generateTexture('companion_owl', 16, 16);
+  co.destroy();
+
+  // Frog - green with bulging eyes
+  const cg = scene.make.graphics({ x: 0, y: 0, add: false });
+  cg.fillStyle(0x3A7A3A);
+  cg.fillRect(3, 7, 10, 6);
+  cg.fillStyle(0x55AA55);
+  cg.fillRect(4, 9, 8, 3);
+  cg.fillStyle(0x3A7A3A);
+  cg.fillRect(4, 4, 3, 3);
+  cg.fillRect(9, 4, 3, 3);
+  cg.fillStyle(0xFFFFFF);
+  cg.fillRect(5, 4, 2, 2);
+  cg.fillRect(10, 4, 2, 2);
+  cg.fillStyle(0x000000);
+  cg.fillRect(5, 5, 1, 1);
+  cg.fillRect(10, 5, 1, 1);
+  cg.fillStyle(0x55AA55);
+  cg.fillRect(6, 8, 4, 1);
+  cg.generateTexture('companion_frog', 16, 16);
+  cg.destroy();
+
+  // Mole - small brown with big claws
+  const cm = scene.make.graphics({ x: 0, y: 0, add: false });
+  cm.fillStyle(0x5A4030);
+  cm.fillCircle(8, 9, 5);
+  cm.fillStyle(0x4A3020);
+  cm.fillCircle(8, 9, 3);
+  cm.fillStyle(0x000000);
+  cm.fillRect(6, 7, 1, 1);
+  cm.fillRect(10, 7, 1, 1);
+  cm.fillStyle(0xFFAAAA);
+  cm.fillRect(8, 8, 1, 1);
+  cm.fillStyle(0xFFCCCC);
+  cm.fillRect(3, 11, 2, 2);
+  cm.fillRect(11, 11, 2, 2);
+  cm.fillStyle(0x5A4030);
+  cm.fillRect(12, 9, 2, 1);
+  cm.generateTexture('companion_mole', 16, 16);
+  cm.destroy();
+
+  // Wolf - dark gray with yellow eyes
+  const cw = scene.make.graphics({ x: 0, y: 0, add: false });
+  cw.fillStyle(0x4A4A5A);
+  cw.fillRect(3, 6, 10, 7);
+  cw.fillStyle(0x6A6A7A);
+  cw.fillRect(4, 8, 4, 3);
+  cw.fillStyle(0x4A4A5A);
+  cw.fillRect(3, 4, 4, 3);
+  cw.fillRect(3, 3, 2, 2);
+  cw.fillRect(8, 3, 2, 2);
+  cw.fillStyle(0xFFCC00);
+  cw.fillRect(4, 5, 1, 1);
+  cw.fillRect(7, 5, 1, 1);
+  cw.fillStyle(0x4A4A5A);
+  cw.fillRect(12, 8, 3, 2);
+  cw.fillRect(13, 7, 2, 1);
+  cw.generateTexture('companion_wolf', 16, 16);
+  cw.destroy();
+
+  // Toad - warty green-brown
+  const ct = scene.make.graphics({ x: 0, y: 0, add: false });
+  ct.fillStyle(0x4A5A2A);
+  ct.fillRect(2, 7, 12, 6);
+  ct.fillStyle(0x5A6A3A);
+  ct.fillRect(3, 9, 10, 3);
+  ct.fillStyle(0x3A4A1A);
+  ct.fillRect(4, 8, 2, 2);
+  ct.fillRect(8, 8, 2, 2);
+  ct.fillRect(6, 11, 2, 2);
+  ct.fillStyle(0xFFDD00);
+  ct.fillRect(4, 5, 2, 2);
+  ct.fillRect(10, 5, 2, 2);
+  ct.fillStyle(0x000000);
+  ct.fillRect(5, 5, 1, 1);
+  ct.fillRect(11, 5, 1, 1);
+  ct.fillStyle(0x4A5A2A);
+  ct.fillRect(3, 12, 4, 1);
+  ct.fillRect(9, 12, 4, 1);
+  ct.generateTexture('companion_toad', 16, 16);
+  ct.destroy();
+
+  // === Companion Eggs (6 with tinted colors) ===
+  const eggColors = [
+    { key: 'egg_fox',  color: 0xCC7733 },
+    { key: 'egg_owl',  color: 0x8B7355 },
+    { key: 'egg_frog', color: 0x55AA55 },
+    { key: 'egg_mole', color: 0x8B7355 },
+    { key: 'egg_wolf', color: 0x6A6A7A },
+    { key: 'egg_toad', color: 0x5A6A3A },
+  ];
+  for (const { key, color } of eggColors) {
+    const eg = scene.make.graphics({ x: 0, y: 0, add: false });
+    eg.fillStyle(color);
+    eg.fillRect(5, 3, 6, 10);
+    eg.fillRect(6, 2, 4, 1);
+    eg.fillRect(6, 13, 4, 1);
+    eg.fillStyle(0xFFFFFF, 0.3);
+    eg.fillRect(7, 4, 2, 3);
+    eg.fillStyle(0x000000, 0.2);
+    eg.fillRect(6, 8, 4, 1);
+    eg.generateTexture(key, 16, 16);
+    eg.destroy();
+  }
+
+  // Companion Nest tile
+  const nest = scene.make.graphics({ x: 0, y: 0, add: false });
+  nest.fillStyle(0x6B4226);
+  nest.fillCircle(8, 10, 6);
+  nest.fillStyle(0x8B6226);
+  nest.fillCircle(8, 10, 4);
+  nest.fillStyle(0xFFEEDD);
+  nest.fillCircle(8, 10, 3);
+  nest.fillStyle(0x6B4226);
+  nest.fillRect(2, 12, 12, 2);
+  nest.generateTexture('tile_companion_nest', 16, 16);
+  nest.destroy();
+
+  // === Gear textures ===
+
+  // Moonstone Ring
+  const mr = scene.make.graphics({ x: 0, y: 0, add: false });
+  mr.fillStyle(0xC0C0C0);
+  mr.fillCircle(8, 8, 5);
+  mr.fillStyle(0x1A1A2E);
+  mr.fillCircle(8, 8, 3);
+  mr.fillStyle(0xB0C4DE);
+  mr.fillRect(7, 3, 2, 3);
+  mr.fillStyle(0xE0E8FF);
+  mr.fillRect(7, 4, 2, 1);
+  mr.generateTexture('gear_moonstone_ring', 16, 16);
+  mr.destroy();
+
+  // Lantern
+  const lt = scene.make.graphics({ x: 0, y: 0, add: false });
+  lt.fillStyle(0xDAA520);
+  lt.fillRect(5, 2, 6, 1);
+  lt.fillRect(4, 3, 1, 10);
+  lt.fillRect(11, 3, 1, 10);
+  lt.fillRect(5, 12, 6, 1);
+  lt.fillStyle(0xFFAA00);
+  lt.fillRect(5, 3, 6, 9);
+  lt.fillStyle(0xFFDD00);
+  lt.fillRect(6, 5, 4, 5);
+  lt.fillStyle(0xFFFFAA);
+  lt.fillRect(7, 6, 2, 3);
+  lt.generateTexture('gear_lantern', 16, 16);
+  lt.destroy();
 }

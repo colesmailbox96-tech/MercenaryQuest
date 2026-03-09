@@ -95,7 +95,12 @@ export class MiningSystem {
       ? this.skillSystem.getBonus('mining', 'extractChanceBonus')
       : 0;
     const buffExtract = this._getBuffExtractBonus();
-    const adjustedChance = Math.min(0.99, this.activeNodeDef.extractChance + extractBonus + buffExtract);
+    // Mole companion perk: mining extract bonus
+    let companionExtractBonus = 0;
+    if (this.scene.companionSystem) {
+      companionExtractBonus = this.scene.companionSystem.getEffectivePerkValue('miningExtractBonus');
+    }
+    const adjustedChance = Math.min(0.99, this.activeNodeDef.extractChance + extractBonus + buffExtract + companionExtractBonus);
 
     if (Math.random() <= adjustedChance) {
       const ore = weightedRandom(this.activeNodeDef.yields);
@@ -163,7 +168,13 @@ export class MiningSystem {
       respawnTime: this.activeNodeDef.respawnTime,
     });
     const depletedKey = this.activeNodeKey;
-    this.scene.time.delayedCall(this.activeNodeDef.respawnTime, () => {
+    // Mole companion perk: node respawn bonus
+    let respawnBonus = 0;
+    if (this.scene.companionSystem) {
+      respawnBonus = this.scene.companionSystem.getEffectivePerkValue('nodeRespawnBonus');
+    }
+    const adjustedRespawn = Math.floor(this.activeNodeDef.respawnTime * (1 - respawnBonus));
+    this.scene.time.delayedCall(adjustedRespawn, () => {
       const rns = this.getNodeState(depletedKey);
       rns.state = 'available';
       rns.extractionsUsed = 0;
