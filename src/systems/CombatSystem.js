@@ -1,4 +1,5 @@
 import { COMBAT_TICK } from '../config/constants.js';
+import { getEffectiveStats } from '../systems/StatCalculator.js';
 
 export class CombatSystem {
   constructor(scene) {
@@ -35,7 +36,9 @@ export class CombatSystem {
     }
 
     // Attacker hits defender
-    const dmgToDefender = Math.max(1, attacker.stats.atk - defender.stats.def);
+    const attackerStats = getEffectiveStats(attacker);
+    const defenderStats = getEffectiveStats(defender);
+    const dmgToDefender = Math.max(1, attackerStats.atk - defenderStats.def);
     defender.takeDamage(dmgToDefender);
     this.showDamageNumber(defender, dmgToDefender);
 
@@ -47,7 +50,7 @@ export class CombatSystem {
     }
 
     // Defender hits attacker
-    const dmgToAttacker = Math.max(1, defender.stats.atk - attacker.stats.def);
+    const dmgToAttacker = Math.max(1, defenderStats.atk - attackerStats.def);
     attacker.takeDamage(dmgToAttacker);
     this.showDamageNumber(attacker, dmgToAttacker);
 

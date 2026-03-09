@@ -3,6 +3,7 @@ import { COLORS } from '../config/constants.js';
 import { Joystick } from '../ui/Joystick.js';
 import { createHPBar, updateHPBar, createXPBar, updateXPBar } from '../ui/HUDComponents.js';
 import { MiniNotifications } from '../ui/MiniNotifications.js';
+import { LootToast } from '../ui/LootToast.js';
 
 export class HUDScene extends Phaser.Scene {
   constructor() {
@@ -22,6 +23,7 @@ export class HUDScene extends Phaser.Scene {
     this.safeBottom = parseInt(computedStyle.getPropertyValue('--sab'), 10) || 0;
 
     this.notifications = new MiniNotifications(this);
+    this.lootToast = new LootToast(this);
 
     this.createTopBar(w);
     this.createStatsBars(w);
@@ -200,6 +202,28 @@ export class HUDScene extends Phaser.Scene {
     this.viewBtn.on('pointerup', () => {
       this.viewBtn.setScale(1);
     });
+
+    // Equip button
+    this.equipBtn = this.add.image(w - 190, h - 95, 'ui_btn_small');
+    this.equipBtn.setScrollFactor(0);
+    this.equipBtn.setDepth(200);
+    this.equipBtn.setInteractive({ useHandCursor: true });
+    this.equipBtn.setAlpha(0.8);
+
+    this.equipBtnLabel = this.add.text(w - 190, h - 95, '🛡️', {
+      fontSize: '18px',
+    });
+    this.equipBtnLabel.setOrigin(0.5);
+    this.equipBtnLabel.setScrollFactor(0);
+    this.equipBtnLabel.setDepth(201);
+
+    this.equipBtn.on('pointerdown', () => {
+      this.equipBtn.setScale(0.9);
+      this.gameScene.events.emit('openEquipment');
+    });
+    this.equipBtn.on('pointerup', () => {
+      this.equipBtn.setScale(1);
+    });
   }
 
   createContextPrompt(w, h) {
@@ -285,8 +309,16 @@ export class HUDScene extends Phaser.Scene {
     });
 
     this.gameScene.events.on('lootReceived', ({ item }) => {
-      this.notifications.showLoot(item);
+      this.lootToast.showMaterial(item);
       this.updateMiniInventory();
+    });
+
+    this.gameScene.events.on('gearReceived', ({ item }) => {
+      this.lootToast.showGear(item);
+    });
+
+    this.gameScene.events.on('gearAutoSold', ({ item }) => {
+      this.lootToast.showMaterial({ name: `Auto-sold ${item.name}`, emoji: '🪙' });
     });
 
     this.gameScene.events.on('levelUp', (stats) => {
@@ -300,9 +332,15 @@ export class HUDScene extends Phaser.Scene {
 
   updateStats(stats) {
     if (!stats) return;
-    const hpRatio = stats.hp / stats.maxHp;
+    const maxHp = stats.maxHp;
+    const hpRatio = stats.hp / maxHp;
     updateHPBar(this.hpBar, hpRatio);
-    this.hpText.setText(`HP ${stats.hp}/${stats.maxHp}`);
+
+    const bonusHp = stats.bonusMaxHp || 0;
+    const hpLabel = bonusHp > 0
+      ? `HP ${stats.hp}/${maxHp} (+${bonusHp})`
+      : `HP ${stats.hp}/${maxHp}`;
+    this.hpText.setText(hpLabel);
 
     if (stats.xpToNext !== undefined) {
       const xpRatio = stats.xp / stats.xpToNext;

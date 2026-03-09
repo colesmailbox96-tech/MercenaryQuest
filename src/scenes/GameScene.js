@@ -94,6 +94,7 @@ export class GameScene extends Phaser.Scene {
     this.events.on('actionButtonPressed', () => this.handleAction());
     this.events.on('toggleView', () => this.toggleView());
     this.events.on('openInventory', () => this.events.emit('showInventory'));
+    this.events.on('openEquipment', () => this.scene.launch('EquipmentPanel'));
 
     // Tap-to-interact on game viewport
     this.input.on('pointerdown', (pointer) => {
@@ -122,17 +123,18 @@ export class GameScene extends Phaser.Scene {
           killer.gainXP(deadEntity.xpReward);
         }
 
-        // Roll loot
-        const item = this.lootSystem.rollDrop(deadEntity.typeKey);
-        if (item) {
+        // Roll loot (material + gear)
+        const killerLevel = killer.stats ? killer.stats.level : 1;
+        const drops = this.lootSystem.rollLoot(deadEntity.typeKey, killerLevel);
+        for (const drop of drops) {
           if (killer.entityType === 'player') {
-            this.lootSystem.addToStash(item);
+            this.lootSystem.addToStash(drop.item);
           } else if (killer.entityType === 'agent') {
-            if (!killer.addItem(item)) {
-              this.lootSystem.addToStash(item);
+            if (!killer.addItem(drop.item)) {
+              this.lootSystem.addToStash(drop.item);
             }
           }
-          this.showLootPickup(deadEntity.x, deadEntity.y, item);
+          this.showLootPickup(deadEntity.x, deadEntity.y, drop.item);
         }
 
         // Kill mob
@@ -157,7 +159,8 @@ export class GameScene extends Phaser.Scene {
   }
 
   showLootPickup(x, y, item) {
-    const text = this.add.text(x, y, item.emoji, {
+    const emoji = item.icon || item.emoji || '?';
+    const text = this.add.text(x, y, emoji, {
       fontSize: '16px',
     });
     text.setOrigin(0.5);

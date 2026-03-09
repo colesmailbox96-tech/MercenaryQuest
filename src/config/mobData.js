@@ -11,6 +11,7 @@ export const MOB_TYPES = {
     wanderMin: 2000,
     wanderMax: 4000,
     textureKey: 'mob_slime',
+    gearDropChance: 0.08,
   },
   wolf: {
     name: 'Wolf',
@@ -24,6 +25,7 @@ export const MOB_TYPES = {
     wanderMin: 2000,
     wanderMax: 4000,
     textureKey: 'mob_wolf',
+    gearDropChance: 0.12,
   },
   caveBat: {
     name: 'Cave Bat',
@@ -37,6 +39,7 @@ export const MOB_TYPES = {
     wanderMin: 2000,
     wanderMax: 4000,
     textureKey: 'mob_bat',
+    gearDropChance: 0.15,
   },
 };
 
