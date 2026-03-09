@@ -32,6 +32,7 @@ export class GameScene extends Phaser.Scene {
     this.setupCamera();
     this.setupInput();
     this.setupCombatHandlers();
+    this.setupAmbientAnimations();
 
     this.scene.launch('HUDScene');
 
@@ -40,6 +41,10 @@ export class GameScene extends Phaser.Scene {
   }
 
   createTilemap() {
+    this.treeSprites = [];
+    this.waterSprites = [];
+    this.lanternSprites = [];
+
     for (let y = 0; y < MAP_HEIGHT; y++) {
       for (let x = 0; x < MAP_WIDTH; x++) {
         const tile = this.mapData[y][x];
@@ -50,6 +55,13 @@ export class GameScene extends Phaser.Scene {
         );
         img.setDisplaySize(DISPLAY_TILE, DISPLAY_TILE);
         img.setDepth(0);
+
+        if (tile.type === 'tree') {
+          img._baseY = img.y;
+          this.treeSprites.push(img);
+        } else if (tile.type === 'water') {
+          this.waterSprites.push(img);
+        }
       }
     }
 
@@ -82,6 +94,22 @@ export class GameScene extends Phaser.Scene {
     this.events.on('actionButtonPressed', () => this.handleAction());
     this.events.on('toggleView', () => this.toggleView());
     this.events.on('openInventory', () => this.events.emit('showInventory'));
+
+    // Tap-to-interact on game viewport
+    this.input.on('pointerdown', (pointer) => {
+      if (this.player.inCombat) return;
+      const worldX = pointer.worldX;
+      const worldY = pointer.worldY;
+      const tapTileX = Math.floor(worldX / DISPLAY_TILE);
+      const tapTileY = Math.floor(worldY / DISPLAY_TILE);
+      const dist = distance(this.player.tileX, this.player.tileY, tapTileX, tapTileY);
+      if (dist <= 2) {
+        const tile = getTileAt(this.mapData, tapTileX, tapTileY);
+        if (tile && tile.type === 'building') {
+          this.interactWithBuilding(tile.buildingType);
+        }
+      }
+    });
   }
 
   setupCombatHandlers() {
@@ -137,7 +165,7 @@ export class GameScene extends Phaser.Scene {
 
     this.tweens.add({
       targets: text,
-      y: y - 30,
+      y: y + 40,
       alpha: 0,
       duration: 800,
       onComplete: () => text.destroy(),
@@ -205,9 +233,15 @@ export class GameScene extends Phaser.Scene {
     // Check context actions
     this.updateContextAction();
 
+    // Ambient animations
+    this.updateAmbientAnimations(time);
+
     // Keyboard shortcuts
     if (Phaser.Input.Keyboard.JustDown(this.eKey)) {
       this.handleAction();
+    }
+    if (Phaser.Input.Keyboard.JustDown(this.iKey)) {
+      this.scene.launch('ShopScene');
     }
     if (Phaser.Input.Keyboard.JustDown(this.tabKey)) {
       this.toggleView();
@@ -277,5 +311,25 @@ export class GameScene extends Phaser.Scene {
     }
 
     this.events.emit('contextAction', contextAction);
+  }
+
+  setupAmbientAnimations() {
+    // Water shimmer: shift tint every 500ms
+    this.time.addEvent({
+      delay: 500,
+      loop: true,
+      callback: () => {
+        for (const water of this.waterSprites) {
+          water.setTint(Math.random() > 0.5 ? 0x3D6FC4 : 0x2856A6);
+        }
+      },
+    });
+  }
+
+  updateAmbientAnimations(time) {
+    // Tree sway: subtle Y-offset oscillation (±1px, 2s cycle)
+    for (const tree of this.treeSprites) {
+      tree.y = tree._baseY + Math.sin(time / 1000 * Math.PI) * 1;
+    }
   }
 }

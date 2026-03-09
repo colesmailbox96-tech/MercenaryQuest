@@ -16,6 +16,11 @@ export class HUDScene extends Phaser.Scene {
     const w = this.scale.width;
     const h = this.scale.height;
 
+    // Read safe area insets for iOS notched phones
+    const computedStyle = getComputedStyle(document.documentElement);
+    this.safeTop = parseInt(computedStyle.getPropertyValue('env(safe-area-inset-top)'), 10) || 0;
+    this.safeBottom = parseInt(computedStyle.getPropertyValue('env(safe-area-inset-bottom)'), 10) || 0;
+
     this.notifications = new MiniNotifications(this);
 
     this.createTopBar(w);
@@ -28,6 +33,11 @@ export class HUDScene extends Phaser.Scene {
 
     this.viewTarget = 'player';
     this.currentContext = null;
+
+    // Listen for resize events (iOS Safari address bar collapse)
+    this.scale.on('resize', (gameSize) => {
+      this.onResize(gameSize.width, gameSize.height);
+    });
   }
 
   createTopBar(w) {
@@ -255,10 +265,21 @@ export class HUDScene extends Phaser.Scene {
     this.gameScene.events.on('contextAction', (action) => {
       if (action) {
         this.contextPrompt.setText(`Tap ⚔️ to enter ${action.name}`);
-        this.contextPrompt.setVisible(true);
+        if (!this.contextPrompt.visible) {
+          this.contextPrompt.setVisible(true);
+          this.contextPrompt.setAlpha(0);
+          this.tweens.add({ targets: this.contextPrompt, alpha: 1, duration: 200 });
+        }
         this.actionBtnLabel.setText('🏠');
       } else {
-        this.contextPrompt.setVisible(false);
+        if (this.contextPrompt.visible) {
+          this.tweens.add({
+            targets: this.contextPrompt,
+            alpha: 0,
+            duration: 200,
+            onComplete: () => this.contextPrompt.setVisible(false),
+          });
+        }
         this.actionBtnLabel.setText('⚔️');
       }
     });
@@ -320,8 +341,35 @@ export class HUDScene extends Phaser.Scene {
       });
       txt.setScrollFactor(0);
       txt.setDepth(201);
+
+      // Pop animation: scale 0 → 1.1 → 1.0
+      txt.setScale(0);
+      this.tweens.add({
+        targets: txt,
+        scaleX: 1.1,
+        scaleY: 1.1,
+        duration: 150,
+        ease: 'Power2',
+        onComplete: () => {
+          this.tweens.add({
+            targets: txt,
+            scaleX: 1,
+            scaleY: 1,
+            duration: 100,
+            ease: 'Power2',
+          });
+        },
+      });
+
       this.miniInvItems.push(txt);
       xOff += txt.width + 15;
     }
+  }
+
+  onResize(w, h) {
+    // Reposition key HUD elements when viewport resizes (iOS Safari address bar)
+    if (this.topPanel) this.topPanel.setPosition(w / 2, 30 + this.safeTop);
+    if (this.goldLabel) this.goldLabel.setPosition(w - 15, 20 + this.safeTop);
+    if (this.miniInvBg) this.miniInvBg.setPosition(w / 2, h - 40 - this.safeBottom);
   }
 }
