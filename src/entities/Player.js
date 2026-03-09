@@ -38,7 +38,7 @@ export class Player extends Phaser.GameObjects.Container {
     this.setDepth(10);
   }
 
-  moveTo(tileX, tileY, map) {
+  moveTo(tileX, tileY, map, onComplete) {
     if (this.isMoving || this.inCombat) return false;
     if (!isWalkable(map, tileX, tileY)) return false;
 
@@ -57,6 +57,7 @@ export class Player extends Phaser.GameObjects.Container {
       ease: 'Linear',
       onComplete: () => {
         this.isMoving = false;
+        if (onComplete) onComplete();
       },
     });
 
