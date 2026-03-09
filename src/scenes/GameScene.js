@@ -7,6 +7,8 @@ import { Pathfinding } from '../systems/Pathfinding.js';
 import { CombatSystem } from '../systems/CombatSystem.js';
 import { LootSystem } from '../systems/LootSystem.js';
 import { Spawner } from '../systems/Spawner.js';
+import { FishingSystem } from '../systems/FishingSystem.js';
+import { MiningSystem } from '../systems/MiningSystem.js';
 import { distance } from '../utils/helpers.js';
 
 const DISPLAY_TILE = TILE_SIZE * TILE_SCALE;
@@ -22,8 +24,13 @@ export class GameScene extends Phaser.Scene {
     this.combatSystem = new CombatSystem(this);
     this.lootSystem = new LootSystem(this);
     this.spawner = new Spawner(this, this.mapData);
+    this.fishingSystem = new FishingSystem(this);
+    this.miningSystem = new MiningSystem(this);
+    this.miningSystem.initNodeStates();
     this.agent = null;
     this.viewTarget = 'player';
+
+    this.miningNodeSprites = {};
 
     this.createTilemap();
     this.createPlayer();
@@ -33,6 +40,7 @@ export class GameScene extends Phaser.Scene {
     this.setupInput();
     this.setupCombatHandlers();
     this.setupAmbientAnimations();
+    this.setupMiningNodeVisuals();
 
     this.scene.launch('HUDScene');
 
@@ -61,6 +69,8 @@ export class GameScene extends Phaser.Scene {
           this.treeSprites.push(img);
         } else if (tile.type === 'water') {
           this.waterSprites.push(img);
+        } else if (tile.type === 'mining_node') {
+          this.miningNodeSprites[`${x},${y}`] = img;
         }
       }
     }
@@ -108,6 +118,10 @@ export class GameScene extends Phaser.Scene {
         const tile = getTileAt(this.mapData, tapTileX, tapTileY);
         if (tile && tile.type === 'building') {
           this.interactWithBuilding(tile.buildingType);
+        } else if (tile && tile.type === 'fishing_dock') {
+          this.scene.launch('FishingPanel');
+        } else if (tile && tile.type === 'mining_node') {
+          this.scene.launch('MiningPanel', { nodeKey: tile.nodeType });
         }
       }
     });
@@ -178,12 +192,20 @@ export class GameScene extends Phaser.Scene {
   handleAction() {
     if (this.player.inCombat) return;
 
-    // Check adjacent buildings
+    // Check adjacent tiles for buildings, fishing dock, mining nodes
     const adjacent = this.player.getAdjacentTiles();
     for (const pos of adjacent) {
       const tile = getTileAt(this.mapData, pos.x, pos.y);
       if (tile && tile.type === 'building') {
         this.interactWithBuilding(tile.buildingType);
+        return;
+      }
+      if (tile && tile.type === 'fishing_dock') {
+        this.scene.launch('FishingPanel');
+        return;
+      }
+      if (tile && tile.type === 'mining_node') {
+        this.scene.launch('MiningPanel', { nodeKey: tile.nodeType });
         return;
       }
     }
@@ -311,6 +333,14 @@ export class GameScene extends Phaser.Scene {
         contextAction = { type: 'building', name: BUILDINGS[tile.buildingType]?.name || tile.buildingType };
         break;
       }
+      if (tile && tile.type === 'fishing_dock') {
+        contextAction = { type: 'fishing', name: 'Fishing Spot', icon: '🎣' };
+        break;
+      }
+      if (tile && tile.type === 'mining_node') {
+        contextAction = { type: 'mining', name: 'Mining Node', icon: '⛏️', nodeKey: tile.nodeType };
+        break;
+      }
     }
 
     this.events.emit('contextAction', contextAction);
@@ -334,5 +364,26 @@ export class GameScene extends Phaser.Scene {
     for (const tree of this.treeSprites) {
       tree.y = tree._baseY + Math.sin(time / 1000 * Math.PI) * 1;
     }
+  }
+
+  setupMiningNodeVisuals() {
+    this.events.on('miningNodeStateChanged', ({ nodeKey, state }) => {
+      const textureMap = {
+        copper_node: 'tile_mining_node_copper',
+        iron_node: 'tile_mining_node_iron',
+        crystal_node: 'tile_mining_node_crystal',
+      };
+      for (const [posKey, sprite] of Object.entries(this.miningNodeSprites)) {
+        const [sx, sy] = posKey.split(',').map(Number);
+        const tile = this.mapData[sy]?.[sx];
+        if (tile && tile.nodeType === nodeKey) {
+          if (state === 'depleted') {
+            sprite.setTexture('tile_mining_node_depleted');
+          } else {
+            sprite.setTexture(textureMap[nodeKey] || 'tile_mining_node_copper');
+          }
+        }
+      }
+    });
   }
 }

@@ -4,6 +4,7 @@ import { Joystick } from '../ui/Joystick.js';
 import { createHPBar, updateHPBar, createXPBar, updateXPBar } from '../ui/HUDComponents.js';
 import { MiniNotifications } from '../ui/MiniNotifications.js';
 import { LootToast } from '../ui/LootToast.js';
+import { ActivityHUD } from '../ui/ActivityHUD.js';
 
 export class HUDScene extends Phaser.Scene {
   constructor() {
@@ -32,6 +33,9 @@ export class HUDScene extends Phaser.Scene {
     this.createMiniInventory(w, h);
 
     this.setupListeners();
+
+    this.activityHUD = new ActivityHUD(this);
+    this.activityHUD.create();
 
     this.viewTarget = 'player';
     this.currentContext = null;
@@ -288,13 +292,21 @@ export class HUDScene extends Phaser.Scene {
 
     this.gameScene.events.on('contextAction', (action) => {
       if (action) {
-        this.contextPrompt.setText(`Tap ⚔️ to enter ${action.name}`);
+        if (action.type === 'fishing') {
+          this.contextPrompt.setText('Tap ⚔️ to fish 🎣');
+          this.actionBtnLabel.setText('🎣');
+        } else if (action.type === 'mining') {
+          this.contextPrompt.setText('Tap ⚔️ to mine ⛏️');
+          this.actionBtnLabel.setText('⛏️');
+        } else {
+          this.contextPrompt.setText(`Tap ⚔️ to enter ${action.name}`);
+          this.actionBtnLabel.setText('🏠');
+        }
         if (!this.contextPrompt.visible) {
           this.contextPrompt.setVisible(true);
           this.contextPrompt.setAlpha(0);
           this.tweens.add({ targets: this.contextPrompt, alpha: 1, duration: 200 });
         }
-        this.actionBtnLabel.setText('🏠');
       } else {
         if (this.contextPrompt.visible) {
           this.tweens.add({
@@ -409,5 +421,11 @@ export class HUDScene extends Phaser.Scene {
     if (this.topPanel) this.topPanel.setPosition(w / 2, 30 + this.safeTop);
     if (this.goldLabel) this.goldLabel.setPosition(w - 15, 20 + this.safeTop);
     if (this.miniInvBg) this.miniInvBg.setPosition(w / 2, h - 40 - this.safeBottom);
+  }
+
+  update() {
+    if (this.activityHUD) {
+      this.activityHUD.update();
+    }
   }
 }

@@ -56,6 +56,9 @@ export const COLORS = {
   UI_BUTTON_ACTIVE: 0x3A3A5E,
 
   WATER: 0x2856A6,
+
+  ACTIVITY_FISH: 0x2856A6,
+  ACTIVITY_MINE: 0xB87333,
 };
 
 export const PLAYER_SPEED = 170;
@@ -66,4 +69,9 @@ export const COMBAT_TICK = 800;
 export const BUILDINGS = {
   tavern: { name: 'Tavern', hireCost: 10 },
   shop: { name: 'Shop' },
+};
+
+export const ACTIVITY = {
+  FISHING_MAX_PENDING: 20,
+  MINING_MAX_PENDING: 15,
 };
