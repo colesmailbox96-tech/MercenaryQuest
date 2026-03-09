@@ -63,11 +63,13 @@ export class Companion extends Phaser.GameObjects.Container {
   playIdleAnimation() {
     switch (this.def.idleAnimation) {
       case 'sit':
+      case 'sit_alert':
         this.scene.tweens.add({
           targets: this.sprite, scaleY: 0.85, duration: 300, yoyo: false,
         });
         break;
       case 'hop':
+      case 'croak':
         this.hopLoop = this.scene.time.addEvent({
           delay: 2500,
           loop: true,
@@ -79,7 +81,21 @@ export class Companion extends Phaser.GameObjects.Container {
           },
         });
         break;
+      case 'dig':
+        this.hopLoop = this.scene.time.addEvent({
+          delay: 2000,
+          loop: true,
+          callback: () => {
+            this.scene.tweens.add({
+              targets: this.sprite, angle: 5, duration: 100,
+              yoyo: true, repeat: 3,
+            });
+          },
+        });
+        break;
       case 'perch':
+        break;
+      default:
         break;
     }
   }

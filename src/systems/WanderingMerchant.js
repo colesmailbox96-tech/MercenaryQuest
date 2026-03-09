@@ -157,17 +157,14 @@ export class WanderingMerchant {
   buyItem(itemIndex, gameState) {
     const item = this.inventory[itemIndex];
     if (!item || item.remaining <= 0) return { success: false, reason: 'Sold out' };
-    if (gameState.gold < item.cost) return { success: false, reason: 'Not enough gold' };
 
-    gameState.gold -= item.cost;
+    const lootSystem = this.scene.lootSystem;
+    if (!lootSystem || lootSystem.gold < item.cost) return { success: false, reason: 'Not enough gold' };
+
+    lootSystem.gold -= item.cost;
     item.remaining -= 1;
 
-    // Add item to player inventory
-    const lootSystem = this.scene.lootSystem;
-    if (lootSystem) {
-      lootSystem.gold = gameState.gold;
-      this.scene.events.emit('goldChanged', lootSystem.gold);
-    }
+    this.scene.events.emit('goldChanged', lootSystem.gold);
 
     addToMaterials(this.scene.gameState.materials, {
       id: item.id,

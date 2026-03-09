@@ -106,8 +106,7 @@ export class MerchantPanel extends Phaser.Scene {
     const merchant = this.gameScene.wanderingMerchant;
     if (!merchant) return;
 
-    const gold = this.gameScene.lootSystem.gold;
-    const result = merchant.buyItem(index, { gold, materials: this.gameScene.gameState.materials });
+    const result = merchant.buyItem(index, this.gameScene.gameState);
 
     if (result.success) {
       const item = merchant.inventory[index];

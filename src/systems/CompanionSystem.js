@@ -96,6 +96,10 @@ export class CompanionSystem {
     if (this.activeCompanion && this.scene.player) {
       this.activeCompanion.follow(this.scene.player, delta);
     }
+    // Clean up expired treat
+    if (this.treatActive && Date.now() >= this.treatExpiresAt) {
+      this.treatActive = false;
+    }
   }
 
   getPerkEffect(effectKey) {
@@ -113,8 +117,6 @@ export class CompanionSystem {
     let base = this.getPerkEffect(effectKey);
     if (this.treatActive && Date.now() < this.treatExpiresAt) {
       base *= 2;
-    } else if (this.treatActive) {
-      this.treatActive = false;
     }
     return base;
   }
