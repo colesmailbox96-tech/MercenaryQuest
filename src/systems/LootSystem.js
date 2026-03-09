@@ -2,6 +2,7 @@ import { LOOT_TABLES, MOB_TYPES } from '../config/mobData.js';
 import { ITEMS } from '../config/itemData.js';
 import { weightedRandom } from '../utils/helpers.js';
 import { GEAR_DEFS, rollGearInstance } from '../config/gearData.js';
+import { NOCTURNAL_MOBS } from '../config/nightData.js';
 
 const MAX_GEAR = 30;
 
@@ -14,6 +15,12 @@ export class LootSystem {
   }
 
   rollDrop(mobType) {
+    // Check nocturnal mob loot tables
+    const nocturnalDef = NOCTURNAL_MOBS[mobType];
+    if (nocturnalDef) {
+      return this.rollNocturnalDrop(nocturnalDef);
+    }
+
     const table = LOOT_TABLES[mobType];
     if (!table) return null;
 
@@ -21,6 +28,35 @@ export class LootSystem {
     if (!result.item) return null;
 
     return { ...ITEMS[result.item] };
+  }
+
+  rollNocturnalDrop(mobDef) {
+    let lootTable = [...mobDef.lootTable];
+
+    // Fox companion perk: increase rare loot weights
+    if (this.scene.companionSystem) {
+      const foxBonus = this.scene.companionSystem.getEffectivePerkValue('rareLootBonus');
+      if (foxBonus > 0) {
+        lootTable = lootTable.map(entry => {
+          if (entry.weight <= 20) {
+            return { ...entry, weight: entry.weight * (1 + foxBonus) };
+          }
+          return entry;
+        });
+      }
+    }
+
+    const total = lootTable.reduce((sum, e) => sum + e.weight, 0);
+    let roll = Math.random() * total;
+    for (const entry of lootTable) {
+      roll -= entry.weight;
+      if (roll <= 0) {
+        const item = ITEMS[entry.id];
+        if (!item) return null;
+        return { ...item };
+      }
+    }
+    return null;
   }
 
   rollLoot(mobType, killerLevel) {

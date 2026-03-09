@@ -68,7 +68,17 @@ export class FarmingSystem {
 
     const speedBonus = this.skillSystem.getBonus('farming', 'growthSpeedBonus');
     const masterBonus = this.skillSystem.hasPerk('farming', 'master_farmer') ? 0.25 : 0;
-    const totalSpeedReduction = Math.min(0.70, speedBonus + masterBonus);
+    // Night moonlight bonus: 15% faster growth
+    let nightBonus = 0;
+    if (this.scene.dayNightSystem && this.scene.dayNightSystem.isNight) {
+      nightBonus = 0.15;
+    }
+    // Toad companion perk: farming growth bonus
+    let companionGrowthBonus = 0;
+    if (this.scene.companionSystem) {
+      companionGrowthBonus = this.scene.companionSystem.getEffectivePerkValue('farmGrowthBonus');
+    }
+    const totalSpeedReduction = Math.min(0.70, speedBonus + masterBonus + nightBonus + companionGrowthBonus);
     const adjustedGrowth = Math.floor(seedDef.growthTime * (1 - totalSpeedReduction));
 
     plot.state = 'planted';
@@ -99,11 +109,21 @@ export class FarmingSystem {
     if (!plot || plot.state !== 'ready') return { success: false, reason: 'Not ready' };
 
     const seedDef = SEEDS[plot.seedId];
-    const cropDef = CROPS[seedDef.crop];
+    let cropKey = seedDef.crop;
+    // Mystery seed: resolve to random crop at harvest
+    if (cropKey === 'mystery') {
+      const allCrops = Object.keys(CROPS);
+      cropKey = allCrops[Math.floor(Math.random() * allCrops.length)];
+    }
+    const cropDef = CROPS[cropKey];
 
     let quantity = randomInt(seedDef.cropYield.min, seedDef.cropYield.max);
 
-    const bonusChance = this.skillSystem.getBonus('farming', 'harvestBonusChance');
+    let bonusChance = this.skillSystem.getBonus('farming', 'harvestBonusChance');
+    // Toad companion perk: bonus crop harvest chance
+    if (this.scene.companionSystem) {
+      bonusChance += this.scene.companionSystem.getEffectivePerkValue('farmBonusCropBonus');
+    }
     if (Math.random() < bonusChance) {
       quantity += 1;
       this.scene.events.emit('farmingBonusCrop', { crop: cropDef.name });

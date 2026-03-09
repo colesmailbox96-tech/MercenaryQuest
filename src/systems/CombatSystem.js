@@ -41,7 +41,12 @@ export class CombatSystem {
     const defenderBuffs = defender.entityType === 'player' ? activeBuffs : [];
     const attackerStats = getEffectiveStats(attacker, attackerBuffs);
     const defenderStats = getEffectiveStats(defender, defenderBuffs);
-    const dmgToDefender = Math.max(1, attackerStats.atk - defenderStats.def);
+    let dmgToDefender = Math.max(1, attackerStats.atk - defenderStats.def);
+    // Wolf companion perk: +10% damage dealt by player
+    if (attacker.entityType === 'player' && this.scene.companionSystem) {
+      const dmgBonus = this.scene.companionSystem.getEffectivePerkValue('damageBonus');
+      if (dmgBonus > 0) dmgToDefender = Math.ceil(dmgToDefender * (1 + dmgBonus));
+    }
     defender.takeDamage(dmgToDefender);
     this.showDamageNumber(defender, dmgToDefender);
 
@@ -53,7 +58,12 @@ export class CombatSystem {
     }
 
     // Defender hits attacker
-    const dmgToAttacker = Math.max(1, defenderStats.atk - attackerStats.def);
+    let dmgToAttacker = Math.max(1, defenderStats.atk - attackerStats.def);
+    // Wolf companion perk: -5% damage taken by player
+    if (attacker.entityType === 'player' && this.scene.companionSystem) {
+      const dmgReduce = this.scene.companionSystem.getEffectivePerkValue('damageReduction');
+      if (dmgReduce > 0) dmgToAttacker = Math.max(1, Math.ceil(dmgToAttacker * (1 - dmgReduce)));
+    }
     attacker.takeDamage(dmgToAttacker);
     this.showDamageNumber(attacker, dmgToAttacker);
 
