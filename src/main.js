@@ -6,6 +6,9 @@ import { ShopScene } from './scenes/ShopScene.js';
 import { EquipmentPanel } from './ui/EquipmentPanel.js';
 import { FishingPanel } from './ui/FishingPanel.js';
 import { MiningPanel } from './ui/MiningPanel.js';
+import { SkillsPanel } from './ui/SkillsPanel.js';
+import { FarmingPanel } from './ui/FarmingPanel.js';
+import { CookingPanel } from './ui/CookingPanel.js';
 
 const config = {
   type: Phaser.AUTO,
@@ -24,7 +27,7 @@ const config = {
       debug: false,
     },
   },
-  scene: [BootScene, GameScene, HUDScene, ShopScene, EquipmentPanel, FishingPanel, MiningPanel],
+  scene: [BootScene, GameScene, HUDScene, ShopScene, EquipmentPanel, FishingPanel, MiningPanel, SkillsPanel, FarmingPanel, CookingPanel],
   backgroundColor: '#0a0a14',
 };
 

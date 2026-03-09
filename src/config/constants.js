@@ -69,7 +69,16 @@ export const COMBAT_TICK = 800;
 export const BUILDINGS = {
   tavern: { name: 'Tavern', hireCost: 10 },
   shop: { name: 'Shop' },
+  kitchen: { name: 'Kitchen' },
 };
+
+export const FARM = {
+  ORIGIN_X: 14,
+  ORIGIN_Y: 20,
+  COLS: 3,
+};
+
+export const KITCHEN_TILE = { x: 16, y: 23 };
 
 export const ACTIVITY = {
   FISHING_MAX_PENDING: 20,

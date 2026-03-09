@@ -1,7 +1,7 @@
 export const FISHING_POOLS = {
   shallow: {
     name: 'Shallow Waters',
-    requiredLevel: 1,
+    requiredSkillLevel: 1,
     cycleDuration: 8000,
     catchChance: 0.85,
     catches: [
@@ -13,7 +13,7 @@ export const FISHING_POOLS = {
   },
   deep: {
     name: 'Deep Waters',
-    requiredLevel: 3,
+    requiredSkillLevel: 3,
     cycleDuration: 12000,
     catchChance: 0.75,
     catches: [
@@ -26,7 +26,7 @@ export const FISHING_POOLS = {
   },
   abyssal: {
     name: 'Abyssal Depths',
-    requiredLevel: 5,
+    requiredSkillLevel: 5,
     cycleDuration: 18000,
     catchChance: 0.65,
     catches: [

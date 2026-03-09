@@ -1,6 +1,8 @@
 import Phaser from 'phaser';
 import { COLORS } from '../config/constants.js';
 import { RARITY } from '../config/gearData.js';
+import { SEEDS } from '../config/farmData.js';
+import { ITEMS } from '../config/itemData.js';
 
 export class ShopScene extends Phaser.Scene {
   constructor() {
@@ -9,11 +11,11 @@ export class ShopScene extends Phaser.Scene {
 
   create() {
     this.gameScene = this.scene.get('GameScene');
-    this.activeTab = 'materials'; // 'materials' | 'gear'
+    this.activeTab = 'materials'; // 'materials' | 'gear' | 'seeds' | 'food'
     const w = this.scale.width;
     const h = this.scale.height;
     const panelW = w * 0.9;
-    const panelH = h * 0.75;
+    const panelH = h * 0.78;
     const panelX = (w - panelW) / 2;
     const panelY = (h - panelH) / 2;
     this.panelX = panelX;
@@ -30,16 +32,9 @@ export class ShopScene extends Phaser.Scene {
     this.panel = this.add.rectangle(w / 2, h / 2, panelW, panelH, COLORS.UI_PANEL, 0.95);
     this.panel.setInteractive();
 
-    // Slide in
     this.panel.setAlpha(0);
     this.panel.y = h;
-    this.tweens.add({
-      targets: this.panel,
-      y: h / 2,
-      alpha: 1,
-      duration: 300,
-      ease: 'Power2',
-    });
+    this.tweens.add({ targets: this.panel, y: h / 2, alpha: 1, duration: 300, ease: 'Power2' });
 
     // Title
     this.titleText = this.add.text(w / 2, panelY + 12, '🏪 Shop', {
@@ -61,22 +56,28 @@ export class ShopScene extends Phaser.Scene {
     });
     this.goldText.setOrigin(0.5, 0);
 
-    // Tabs
-    const tabY = panelY + 56;
-    const tabW = panelW * 0.44;
-    this.tabMaterials = this.add.rectangle(panelX + panelW * 0.25, tabY, tabW, 24, COLORS.UI_BUTTON_ACTIVE, 1);
-    this.tabMaterialsLabel = this.add.text(panelX + panelW * 0.25, tabY, 'Materials', {
-      fontSize: '12px', fontFamily: 'monospace', color: '#F5E6C8',
-    }).setOrigin(0.5);
-    this.tabMaterials.setInteractive({ useHandCursor: true });
-    this.tabMaterials.on('pointerdown', () => this._switchTab('materials'));
-
-    this.tabGear = this.add.rectangle(panelX + panelW * 0.75, tabY, tabW, 24, COLORS.UI_BUTTON_BG, 1);
-    this.tabGearLabel = this.add.text(panelX + panelW * 0.75, tabY, 'Gear', {
-      fontSize: '12px', fontFamily: 'monospace', color: '#F5E6C8',
-    }).setOrigin(0.5);
-    this.tabGear.setInteractive({ useHandCursor: true });
-    this.tabGear.on('pointerdown', () => this._switchTab('gear'));
+    // Tabs — 4 tabs
+    const tabY = panelY + 57;
+    const tabW = panelW * 0.23;
+    const tabPositions = [0.125, 0.375, 0.625, 0.875];
+    const tabDefs = [
+      { id: 'materials', label: 'Materials' },
+      { id: 'gear',      label: 'Gear' },
+      { id: 'seeds',     label: 'Seeds' },
+      { id: 'food',      label: 'Food' },
+    ];
+    this.tabObjects = {};
+    tabDefs.forEach((tabDef, i) => {
+      const tx = panelX + panelW * tabPositions[i];
+      const isActive = this.activeTab === tabDef.id;
+      const rect = this.add.rectangle(tx, tabY, tabW, 22, isActive ? COLORS.UI_BUTTON_ACTIVE : COLORS.UI_BUTTON_BG, 1);
+      const label = this.add.text(tx, tabY, tabDef.label, {
+        fontSize: '11px', fontFamily: 'monospace', color: '#F5E6C8',
+      }).setOrigin(0.5);
+      rect.setInteractive({ useHandCursor: true });
+      rect.on('pointerdown', () => this._switchTab(tabDef.id));
+      this.tabObjects[tabDef.id] = { rect, label };
+    });
 
     this.itemRows = [];
     this._renderContent();
@@ -84,8 +85,9 @@ export class ShopScene extends Phaser.Scene {
 
   _switchTab(tab) {
     this.activeTab = tab;
-    this.tabMaterials.fillColor = tab === 'materials' ? COLORS.UI_BUTTON_ACTIVE : COLORS.UI_BUTTON_BG;
-    this.tabGear.fillColor = tab === 'gear' ? COLORS.UI_BUTTON_ACTIVE : COLORS.UI_BUTTON_BG;
+    for (const [id, obj] of Object.entries(this.tabObjects)) {
+      obj.rect.fillColor = id === tab ? COLORS.UI_BUTTON_ACTIVE : COLORS.UI_BUTTON_BG;
+    }
     this._renderContent();
   }
 
@@ -93,29 +95,36 @@ export class ShopScene extends Phaser.Scene {
     this.itemRows.forEach(r => {
       if (r.text && r.text.active) r.text.destroy();
       if (r.btn && r.btn.active) r.btn.destroy();
+      if (r.btn2 && r.btn2.active) r.btn2.destroy();
     });
     this.itemRows = [];
 
     if (this.activeTab === 'materials') {
       this.renderItems(this.panelX, this.panelY, this.panelW);
-    } else {
+    } else if (this.activeTab === 'gear') {
       this.renderGear(this.panelX, this.panelY, this.panelW);
+    } else if (this.activeTab === 'seeds') {
+      this.renderSeeds(this.panelX, this.panelY, this.panelW);
+    } else if (this.activeTab === 'food') {
+      this.renderFood(this.panelX, this.panelY, this.panelW);
     }
     this.goldText.setText(`🪙 ${this.gameScene.lootSystem.gold}`);
   }
 
   renderItems(panelX, panelY, panelW) {
     const stash = this.gameScene.lootSystem.sharedStash;
-    let yOffset = panelY + 80;
+    // Show all non-food, non-seed non-gear items
+    const items = stash.filter(i => i.category !== 'food' && i.category !== 'seed');
+    let yOffset = panelY + 82;
 
-    if (stash.length === 0) {
+    if (items.length === 0) {
       const empty = this.add.text(this.scale.width / 2, yOffset, 'No materials to sell', {
         fontSize: '13px', fontFamily: 'monospace', color: '#888888',
       });
       empty.setOrigin(0.5, 0);
       this.itemRows.push({ text: empty, btn: null });
     } else {
-      stash.forEach(item => {
+      items.forEach(item => {
         const rowText = this.add.text(panelX + 16, yOffset,
           `${item.emoji} ${item.name} ×${item.quantity}  —  ${item.sellValue}g`, {
           fontSize: '12px', fontFamily: 'monospace', color: '#F5E6C8',
@@ -132,7 +141,6 @@ export class ShopScene extends Phaser.Scene {
             this._renderContent();
           });
         }
-
         this.itemRows.push({ text: rowText, btn: sellBtn });
         yOffset += 26;
       });
@@ -142,7 +150,7 @@ export class ShopScene extends Phaser.Scene {
   renderGear(panelX, panelY, panelW) {
     const gearStash = this.gameScene.lootSystem.gearStash;
     const unequipped = gearStash.filter(g => !g.equippedBy);
-    let yOffset = panelY + 80;
+    let yOffset = panelY + 82;
 
     if (unequipped.length === 0) {
       const empty = this.add.text(this.scale.width / 2, yOffset, 'No gear to sell', {
@@ -173,7 +181,6 @@ export class ShopScene extends Phaser.Scene {
         yOffset += 24;
       });
 
-      // Sell All Common button
       const commonCount = unequipped.filter(g => g.rarity === 'COMMON').length;
       if (commonCount > 0) {
         const sellAllBtn = this.add.text(this.scale.width / 2, yOffset + 8, `[SELL ALL COMMON (${commonCount})]`, {
@@ -183,11 +190,117 @@ export class ShopScene extends Phaser.Scene {
         sellAllBtn.setOrigin(0.5, 0);
         sellAllBtn.setInteractive({ useHandCursor: true });
         sellAllBtn.on('pointerdown', () => {
-          const earned = this.gameScene.lootSystem.sellAllCommonGear();
+          this.gameScene.lootSystem.sellAllCommonGear();
           this._renderContent();
         });
         this.itemRows.push({ text: sellAllBtn, btn: null });
       }
+    }
+  }
+
+  renderSeeds(panelX, panelY, panelW) {
+    const w = this.scale.width;
+    const farmLevel = this.gameScene.skillSystem.getLevel('farming');
+    let yOffset = panelY + 82;
+
+    this.add.text(w / 2, yOffset - 18, '🌱 Buy seeds to plant on your farm', {
+      fontSize: '11px', fontFamily: 'monospace', color: '#888888',
+    }).setOrigin(0.5, 0);
+
+    for (const seedDef of Object.values(SEEDS)) {
+      const locked = farmLevel < seedDef.requiredFarmingLevel;
+      const color = locked ? '#555555' : '#F5E6C8';
+      const nameStr = locked
+        ? `🔒 ${seedDef.name}  Farm Lv.${seedDef.requiredFarmingLevel}`
+        : `${seedDef.icon} ${seedDef.name}  ${seedDef.cost}g`;
+
+      const rowText = this.add.text(panelX + 16, yOffset, nameStr, {
+        fontSize: '12px', fontFamily: 'monospace', color,
+      });
+      this.itemRows.push({ text: rowText, btn: null });
+
+      if (!locked) {
+        const buy1 = this.add.text(panelX + panelW - 110, yOffset, '[×1]', {
+          fontSize: '12px', fontFamily: 'monospace', color: '#DAA520',
+        });
+        buy1.setInteractive({ useHandCursor: true });
+        buy1.on('pointerdown', () => this._buySeed(seedDef, 1));
+
+        const buy5 = this.add.text(panelX + panelW - 55, yOffset, '[×5]', {
+          fontSize: '12px', fontFamily: 'monospace', color: '#DAA520',
+        });
+        buy5.setInteractive({ useHandCursor: true });
+        buy5.on('pointerdown', () => this._buySeed(seedDef, 5));
+
+        this.itemRows.push({ text: buy1, btn: null });
+        this.itemRows.push({ text: buy5, btn: null });
+      }
+
+      yOffset += 26;
+    }
+  }
+
+  _buySeed(seedDef, qty) {
+    const totalCost = seedDef.cost * qty;
+    const lootSystem = this.gameScene.lootSystem;
+    if (lootSystem.gold < totalCost) return;
+
+    lootSystem.gold -= totalCost;
+    lootSystem.scene.events.emit('goldChanged', lootSystem.gold);
+
+    const materials = this.gameScene.gameState.materials;
+    const existing = materials.find(m => m.id === seedDef.id);
+    if (existing) {
+      existing.quantity += qty;
+    } else {
+      const itemDef = ITEMS[seedDef.id];
+      materials.push({
+        id: seedDef.id,
+        name: seedDef.name,
+        emoji: seedDef.icon,
+        quantity: qty,
+        sellValue: itemDef?.sellValue || 2,
+        category: 'seed',
+      });
+    }
+    lootSystem.scene.events.emit('inventoryChanged', materials);
+    this._renderContent();
+  }
+
+  renderFood(panelX, panelY, panelW) {
+    const stash = this.gameScene.lootSystem.sharedStash;
+    const foods = stash.filter(i => i.category === 'food');
+    let yOffset = panelY + 82;
+
+    if (foods.length === 0) {
+      const empty = this.add.text(this.scale.width / 2, yOffset, 'No food to sell', {
+        fontSize: '13px', fontFamily: 'monospace', color: '#888888',
+      });
+      empty.setOrigin(0.5, 0);
+      this.itemRows.push({ text: empty, btn: null });
+    } else {
+      foods.forEach(item => {
+        const foodDef = ITEMS[item.id];
+        const buffStr = foodDef?.buff?.stats
+          ? Object.entries(foodDef.buff.stats).map(([k, v]) => `+${v}${k}`).join(' ')
+          : 'skill buff';
+        const rowText = this.add.text(panelX + 16, yOffset,
+          `${item.emoji} ${item.name} ×${item.quantity}  [${buffStr}]  —  ${item.sellValue}g`, {
+          fontSize: '11px', fontFamily: 'monospace', color: '#F5E6C8',
+        });
+
+        const sellBtn = this.add.text(panelX + panelW - 55, yOffset, '[SELL]', {
+          fontSize: '12px', fontFamily: 'monospace', color: '#DAA520',
+        });
+        sellBtn.setInteractive({ useHandCursor: true });
+        sellBtn.on('pointerdown', () => {
+          this.gameScene.lootSystem.sellItem(item.id);
+          this._renderContent();
+        });
+
+        this.itemRows.push({ text: rowText, btn: sellBtn });
+        yOffset += 26;
+      });
     }
   }
 

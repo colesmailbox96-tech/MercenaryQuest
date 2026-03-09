@@ -2,9 +2,11 @@ import { COLORS } from '../config/constants.js';
 
 export function generateTextures(scene) {
   generateTileTextures(scene);
+  generateFarmTextures(scene);
   generateEntityTextures(scene);
   generateUITextures(scene);
   generateGearTextures(scene);
+  generateItemTextures(scene);
 }
 
 function generateTileTextures(scene) {
@@ -206,6 +208,26 @@ function generateTileTextures(scene) {
   mnD.fillRect(9, 8, 1, 2);
   mnD.generateTexture('tile_mining_node_depleted', 16, 16);
   mnD.destroy();
+
+  // Building - Kitchen (warm stone with orange-lit window)
+  const kit = scene.make.graphics({ x: 0, y: 0, add: false });
+  kit.fillStyle(0x7A6548);
+  kit.fillRect(2, 4, 12, 10);
+  kit.fillStyle(0x5C4A33);
+  kit.fillRect(1, 2, 14, 3);
+  // Window with orange fire glow
+  kit.fillStyle(0xFF8C00);
+  kit.fillRect(5, 6, 4, 4);
+  kit.fillStyle(0xFFCC44);
+  kit.fillRect(6, 7, 2, 2);
+  // Door
+  kit.fillStyle(0x3E2723);
+  kit.fillRect(7, 10, 3, 4);
+  // Chimney smoke (white pixel)
+  kit.fillStyle(0xFFFFFF);
+  kit.fillRect(11, 1, 2, 2);
+  kit.generateTexture('tile_building_kitchen', 16, 16);
+  kit.destroy();
 }
 
 function generateEntityTextures(scene) {
@@ -549,4 +571,261 @@ function generateGearTextures(scene) {
   emptySlot.strokeRect(1, 1, 46, 46);
   emptySlot.generateTexture('ui_gear_slot_empty', 48, 48);
   emptySlot.destroy();
+}
+
+function generateFarmTextures(scene) {
+  // Shared soil base helper
+  function makeSoil(g) {
+    g.fillStyle(0x5A3A1A);
+    g.fillRect(0, 0, 16, 16);
+    // Furrow lines
+    g.fillStyle(0x4A2A10);
+    for (let row = 2; row < 16; row += 4) {
+      g.fillRect(0, row, 16, 1);
+    }
+  }
+
+  // tile_farm_empty
+  const fe = scene.make.graphics({ x: 0, y: 0, add: false });
+  makeSoil(fe);
+  fe.generateTexture('tile_farm_empty', 16, 16);
+  fe.destroy();
+
+  // tile_farm_planted (soil + 2x2 green seedling dot)
+  const fp = scene.make.graphics({ x: 0, y: 0, add: false });
+  makeSoil(fp);
+  fp.fillStyle(0x4CAF50);
+  fp.fillRect(7, 7, 2, 2);
+  fp.generateTexture('tile_farm_planted', 16, 16);
+  fp.destroy();
+
+  // tile_farm_growing (soil + sprout)
+  const fg = scene.make.graphics({ x: 0, y: 0, add: false });
+  makeSoil(fg);
+  fg.fillStyle(0x4CAF50);
+  fg.fillRect(7, 6, 2, 6); // stem
+  fg.fillStyle(0x66BB6A);
+  fg.fillRect(5, 7, 2, 2); // left leaf
+  fg.fillRect(9, 8, 2, 2); // right leaf
+  fg.generateTexture('tile_farm_growing', 16, 16);
+  fg.destroy();
+
+  // tile_farm_ready_wheat
+  const frw = scene.make.graphics({ x: 0, y: 0, add: false });
+  makeSoil(frw);
+  frw.fillStyle(0x8B6914);
+  frw.fillRect(5, 4, 2, 8);
+  frw.fillRect(8, 4, 2, 8);
+  frw.fillRect(11, 4, 2, 8);
+  frw.fillStyle(0xDAA520);
+  frw.fillRect(5, 2, 2, 3);
+  frw.fillRect(8, 3, 2, 3);
+  frw.fillRect(11, 2, 2, 3);
+  frw.generateTexture('tile_farm_ready_wheat', 16, 16);
+  frw.destroy();
+
+  // tile_farm_ready_carrot
+  const frc = scene.make.graphics({ x: 0, y: 0, add: false });
+  makeSoil(frc);
+  frc.fillStyle(0xFF7043);
+  frc.fillRect(6, 8, 4, 5);
+  frc.fillStyle(0x4CAF50);
+  frc.fillRect(6, 5, 2, 4);
+  frc.fillRect(8, 4, 2, 4);
+  frc.fillRect(10, 5, 2, 4);
+  frc.generateTexture('tile_farm_ready_carrot', 16, 16);
+  frc.destroy();
+
+  // tile_farm_ready_tomato
+  const frt = scene.make.graphics({ x: 0, y: 0, add: false });
+  makeSoil(frt);
+  frt.fillStyle(0x2E7D32);
+  frt.fillRect(6, 4, 4, 6); // vine
+  frt.fillStyle(0xE53935);
+  frt.fillRect(4, 6, 3, 3);
+  frt.fillRect(9, 7, 3, 3);
+  frt.generateTexture('tile_farm_ready_tomato', 16, 16);
+  frt.destroy();
+
+  // tile_farm_ready_golden_wheat (brighter gold + sparkle)
+  const frgw = scene.make.graphics({ x: 0, y: 0, add: false });
+  makeSoil(frgw);
+  frgw.fillStyle(0xBB8A00);
+  frgw.fillRect(5, 4, 2, 8);
+  frgw.fillRect(8, 4, 2, 8);
+  frgw.fillRect(11, 4, 2, 8);
+  frgw.fillStyle(0xFFD700);
+  frgw.fillRect(5, 2, 2, 3);
+  frgw.fillRect(8, 3, 2, 3);
+  frgw.fillRect(11, 2, 2, 3);
+  frgw.fillStyle(0xFFFFFF);
+  frgw.fillRect(4, 1, 1, 1);
+  frgw.fillRect(13, 3, 1, 1);
+  frgw.generateTexture('tile_farm_ready_golden_wheat', 16, 16);
+  frgw.destroy();
+
+  // tile_farm_ready_moonberry (purple-blue berries)
+  const frmb = scene.make.graphics({ x: 0, y: 0, add: false });
+  makeSoil(frmb);
+  frmb.fillStyle(0x4A148C);
+  frmb.fillRect(6, 5, 4, 7);
+  frmb.fillStyle(0x7B1FA2);
+  frmb.fillRect(4, 7, 3, 3);
+  frmb.fillRect(9, 6, 3, 3);
+  frmb.fillStyle(0xCE93D8);
+  frmb.fillRect(5, 7, 1, 1);
+  frmb.fillRect(10, 7, 1, 1);
+  frmb.generateTexture('tile_farm_ready_moonberry', 16, 16);
+  frmb.destroy();
+
+  // tile_farm_ready_starfruit (yellow star shape)
+  const frsf = scene.make.graphics({ x: 0, y: 0, add: false });
+  makeSoil(frsf);
+  frsf.fillStyle(0x4CAF50);
+  frsf.fillRect(7, 8, 2, 5);
+  frsf.fillStyle(0xFFEB3B);
+  frsf.fillRect(7, 3, 2, 5);   // top
+  frsf.fillRect(5, 5, 6, 2);   // horizontal
+  frsf.fillRect(5, 4, 2, 1);   // upper-left
+  frsf.fillRect(9, 4, 2, 1);   // upper-right
+  frsf.generateTexture('tile_farm_ready_starfruit', 16, 16);
+  frsf.destroy();
+}
+
+function generateItemTextures(scene) {
+  // Food item icons (16x16)
+  // basic_stew - brown bowl with steam
+  const is1 = scene.make.graphics({ x: 0, y: 0, add: false });
+  is1.fillStyle(0x5D4037);
+  is1.fillRect(4, 8, 8, 5);
+  is1.fillRect(3, 9, 10, 3);
+  is1.fillStyle(0x795548);
+  is1.fillRect(5, 7, 6, 2);
+  is1.fillStyle(0xFFFFFF);
+  is1.fillRect(6, 4, 1, 2);
+  is1.fillRect(9, 3, 1, 3);
+  is1.generateTexture('food_basic_stew', 16, 16);
+  is1.destroy();
+
+  // carrot_soup - orange bowl
+  const is2 = scene.make.graphics({ x: 0, y: 0, add: false });
+  is2.fillStyle(0xFF8F00);
+  is2.fillRect(4, 8, 8, 5);
+  is2.fillRect(3, 9, 10, 3);
+  is2.fillStyle(0xFFCC02);
+  is2.fillRect(5, 7, 6, 2);
+  is2.fillStyle(0xFFFFFF);
+  is2.fillRect(7, 4, 1, 2);
+  is2.fillRect(10, 3, 1, 3);
+  is2.generateTexture('food_carrot_soup', 16, 16);
+  is2.destroy();
+
+  // grilled_fish - fish shape on plate
+  const is3 = scene.make.graphics({ x: 0, y: 0, add: false });
+  is3.fillStyle(0xBDBDBD);
+  is3.fillRect(3, 11, 10, 2);
+  is3.fillStyle(0xFF8A65);
+  is3.fillRect(4, 7, 8, 4);
+  is3.fillRect(4, 8, 2, 2);
+  is3.fillStyle(0x6D4C41);
+  is3.fillRect(4, 9, 8, 1);
+  is3.generateTexture('food_grilled_fish', 16, 16);
+  is3.destroy();
+
+  // hearty_chowder - large yellow bowl
+  const is4 = scene.make.graphics({ x: 0, y: 0, add: false });
+  is4.fillStyle(0x5D4037);
+  is4.fillRect(3, 8, 10, 5);
+  is4.fillRect(2, 9, 12, 3);
+  is4.fillStyle(0xFFD54F);
+  is4.fillRect(4, 7, 8, 3);
+  is4.fillStyle(0xFFFFFF);
+  is4.fillRect(6, 4, 1, 2);
+  is4.fillRect(9, 3, 1, 3);
+  is4.generateTexture('food_hearty_chowder', 16, 16);
+  is4.destroy();
+
+  // miners_meal - brown plate
+  const is5 = scene.make.graphics({ x: 0, y: 0, add: false });
+  is5.fillStyle(0xBDBDBD);
+  is5.fillRect(3, 11, 10, 2);
+  is5.fillStyle(0xBF360C);
+  is5.fillRect(4, 7, 8, 5);
+  is5.fillStyle(0xFF8A65);
+  is5.fillRect(5, 8, 3, 2);
+  is5.fillRect(9, 9, 2, 2);
+  is5.generateTexture('food_miners_meal', 16, 16);
+  is5.destroy();
+
+  // golden_bread - golden loaf
+  const is6 = scene.make.graphics({ x: 0, y: 0, add: false });
+  is6.fillStyle(0xE65100);
+  is6.fillRect(3, 9, 10, 4);
+  is6.fillStyle(0xFFB300);
+  is6.fillRect(4, 6, 8, 5);
+  is6.fillRect(3, 8, 10, 2);
+  is6.fillStyle(0xFFD54F);
+  is6.fillRect(5, 6, 6, 2);
+  is6.generateTexture('food_golden_bread', 16, 16);
+  is6.destroy();
+
+  // anglers_feast - fancy fish plate
+  const is7 = scene.make.graphics({ x: 0, y: 0, add: false });
+  is7.fillStyle(0xE0E0E0);
+  is7.fillRect(3, 11, 10, 2);
+  is7.fillStyle(0x4CAF50);
+  is7.fillRect(4, 10, 1, 1);
+  is7.fillRect(11, 10, 1, 1);
+  is7.fillStyle(0xFF8A65);
+  is7.fillRect(4, 7, 8, 4);
+  is7.fillStyle(0x795548);
+  is7.fillRect(5, 8, 6, 1);
+  is7.fillStyle(0xFFFFFF);
+  is7.fillRect(11, 7, 1, 1);
+  is7.generateTexture('food_anglers_feast', 16, 16);
+  is7.destroy();
+
+  // moonberry_tart - purple pie
+  const is8 = scene.make.graphics({ x: 0, y: 0, add: false });
+  is8.fillStyle(0x8D6E63);
+  is8.fillRect(3, 10, 10, 3);
+  is8.fillStyle(0x6A1B9A);
+  is8.fillRect(4, 6, 8, 6);
+  is8.fillStyle(0xCE93D8);
+  is8.fillRect(5, 7, 2, 2);
+  is8.fillRect(9, 8, 2, 2);
+  is8.generateTexture('food_moonberry_tart', 16, 16);
+  is8.destroy();
+
+  // abyssal_broth - dark bowl with blue-green steam
+  const is9 = scene.make.graphics({ x: 0, y: 0, add: false });
+  is9.fillStyle(0x212121);
+  is9.fillRect(3, 8, 10, 5);
+  is9.fillRect(2, 9, 12, 3);
+  is9.fillStyle(0x00897B);
+  is9.fillRect(5, 7, 2, 2);
+  is9.fillRect(9, 6, 2, 3);
+  is9.fillStyle(0x00BCD4);
+  is9.fillRect(6, 5, 1, 2);
+  is9.fillRect(10, 4, 1, 2);
+  is9.generateTexture('food_abyssal_broth', 16, 16);
+  is9.destroy();
+
+  // starfruit_elixir - yellow potion bottle
+  const is10 = scene.make.graphics({ x: 0, y: 0, add: false });
+  is10.fillStyle(0x7B1FA2);
+  is10.fillRect(7, 1, 2, 2); // neck top
+  is10.fillStyle(0x555577);
+  is10.fillRect(6, 3, 4, 1);  // stopper
+  is10.fillStyle(0xFFEB3B);
+  is10.fillRect(4, 4, 8, 9);
+  is10.fillStyle(0xFFD700);
+  is10.fillRect(5, 5, 2, 2);
+  is10.fillStyle(0xFFFFFF);
+  is10.fillRect(6, 5, 1, 3);
+  // star
+  is10.fillStyle(0xFFFFFF);
+  is10.fillRect(7, 7, 1, 1);
+  is10.generateTexture('food_starfruit_elixir', 16, 16);
+  is10.destroy();
 }

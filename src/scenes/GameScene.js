@@ -1,15 +1,20 @@
 import Phaser from 'phaser';
-import { TILE_SIZE, TILE_SCALE, MAP_WIDTH, MAP_HEIGHT, BUILDINGS } from '../config/constants.js';
+import { TILE_SIZE, TILE_SCALE, MAP_WIDTH, MAP_HEIGHT, BUILDINGS, KITCHEN_TILE } from '../config/constants.js';
 import { generateMap, getTileAt } from '../utils/mapGenerator.js';
 import { Player } from '../entities/Player.js';
 import { Agent } from '../entities/Agent.js';
+import { FarmPlot } from '../entities/FarmPlot.js';
 import { Pathfinding } from '../systems/Pathfinding.js';
 import { CombatSystem } from '../systems/CombatSystem.js';
 import { LootSystem } from '../systems/LootSystem.js';
 import { Spawner } from '../systems/Spawner.js';
 import { FishingSystem } from '../systems/FishingSystem.js';
 import { MiningSystem } from '../systems/MiningSystem.js';
+import { SkillSystem } from '../systems/SkillSystem.js';
+import { FarmingSystem } from '../systems/FarmingSystem.js';
+import { CookingSystem } from '../systems/CookingSystem.js';
 import { TapMoveSystem } from '../systems/TapMoveSystem.js';
+import { ITEMS } from '../config/itemData.js';
 import { distance } from '../utils/helpers.js';
 
 const DISPLAY_TILE = TILE_SIZE * TILE_SCALE;
@@ -28,14 +33,22 @@ export class GameScene extends Phaser.Scene {
     this.combatSystem = new CombatSystem(this);
     this.lootSystem = new LootSystem(this);
     this.spawner = new Spawner(this, this.mapData);
+    this.skillSystem = new SkillSystem(this);
     this.fishingSystem = new FishingSystem(this);
     this.miningSystem = new MiningSystem(this);
     this.miningSystem.initNodeStates();
+    this.farmingSystem = new FarmingSystem(this, this.skillSystem);
+    this.cookingSystem = new CookingSystem(this, this.skillSystem);
     this.tapMoveSystem = new TapMoveSystem(this);
     this.agent = null;
     this.viewTarget = 'player';
+    this.activeBuffs = [];
+
+    // Shared game state for inventory (materials)
+    this.gameState = { materials: this.lootSystem.sharedStash };
 
     this.miningNodeSprites = {};
+    this.farmPlotEntities = [];
 
     this.createTilemap();
     this.createPlayer();
@@ -46,6 +59,7 @@ export class GameScene extends Phaser.Scene {
     this.setupCombatHandlers();
     this.setupAmbientAnimations();
     this.setupMiningNodeVisuals();
+    this.setupSkillHandlers();
 
     this.scene.launch('HUDScene');
 
@@ -76,6 +90,11 @@ export class GameScene extends Phaser.Scene {
           this.waterSprites.push(img);
         } else if (tile.type === 'mining_node') {
           this.miningNodeSprites[`${x},${y}`] = img;
+        } else if (tile.type === 'farm_plot') {
+          // Replace plain image with FarmPlot entity for dynamic rendering
+          img.destroy();
+          const farmPlot = new FarmPlot(this, x, y, tile.plotIndex);
+          this.farmPlotEntities.push(farmPlot);
         }
       }
     }
@@ -210,7 +229,7 @@ export class GameScene extends Phaser.Scene {
   handleAction() {
     if (this.player.inCombat) return;
 
-    // Check adjacent tiles for buildings, fishing dock, mining nodes
+    // Check adjacent tiles for buildings, fishing dock, mining nodes, farm plots
     const adjacent = this.player.getAdjacentTiles();
     for (const pos of adjacent) {
       const tile = getTileAt(this.mapData, pos.x, pos.y);
@@ -226,6 +245,10 @@ export class GameScene extends Phaser.Scene {
         this.scene.launch('MiningPanel', { nodeKey: tile.nodeType });
         return;
       }
+      if (tile && tile.type === 'farm_plot') {
+        this.scene.launch('FarmingPanel');
+        return;
+      }
     }
   }
 
@@ -238,6 +261,8 @@ export class GameScene extends Phaser.Scene {
       }
     } else if (buildingType === 'shop') {
       this.scene.launch('ShopScene');
+    } else if (buildingType === 'kitchen') {
+      this.scene.launch('CookingPanel');
     }
   }
 
@@ -363,7 +388,9 @@ export class GameScene extends Phaser.Scene {
     for (const pos of adjacent) {
       const tile = getTileAt(this.mapData, pos.x, pos.y);
       if (tile && tile.type === 'building') {
-        contextAction = { type: 'building', name: BUILDINGS[tile.buildingType]?.name || tile.buildingType };
+        const name = BUILDINGS[tile.buildingType]?.name || tile.buildingType;
+        const icon = tile.buildingType === 'kitchen' ? '🍳' : '🏠';
+        contextAction = { type: 'building', name, icon };
         break;
       }
       if (tile && tile.type === 'fishing_dock') {
@@ -372,6 +399,10 @@ export class GameScene extends Phaser.Scene {
       }
       if (tile && tile.type === 'mining_node') {
         contextAction = { type: 'mining', name: 'Mining Node', icon: '⛏️', nodeKey: tile.nodeType };
+        break;
+      }
+      if (tile && tile.type === 'farm_plot') {
+        contextAction = { type: 'farming', name: 'Farm', icon: '🌾' };
         break;
       }
     }
@@ -418,5 +449,136 @@ export class GameScene extends Phaser.Scene {
         }
       }
     });
+  }
+
+  setupSkillHandlers() {
+    // Skill level-up banner
+    this.events.on('skillLevelUp', ({ skillId, newLevel, unlock }) => {
+      const skillIcons = { fishing: '🎣', mining: '⛏', farming: '🌾', cooking: '🍳' };
+      const skillNames = { fishing: 'Fishing', mining: 'Mining', farming: 'Farming', cooking: 'Cooking' };
+      const icon = skillIcons[skillId] || '📊';
+      const name = skillNames[skillId] || skillId;
+      let msg = `${icon} ${name} Level ${newLevel}!`;
+      if (unlock) msg += `\n${unlock.description}`;
+
+      const w = this.scale.width;
+      const banner = this.add.text(w / 2, 150, msg, {
+        fontSize: '14px',
+        fontFamily: 'monospace',
+        color: '#00E5FF',
+        backgroundColor: '#003344EE',
+        padding: { x: 14, y: 8 },
+        align: 'center',
+      });
+      banner.setOrigin(0.5).setDepth(500).setScrollFactor(0);
+      banner.setAlpha(0);
+      this.tweens.add({
+        targets: banner,
+        alpha: 1,
+        duration: 300,
+        hold: 3000,
+        yoyo: true,
+        onComplete: () => banner.destroy(),
+      });
+    });
+
+    // Skill XP toasts
+    this.events.on('skillXPGained', ({ skillId, amount }) => {
+      const hudScene = this.scene.get('HUDScene');
+      if (hudScene && hudScene.notifications) {
+        const icons = { fishing: '🎣', mining: '⛏', farming: '🌾', cooking: '🍳' };
+        hudScene.notifications.showLoot({
+          name: `+${amount} ${skillId} XP`,
+          emoji: icons[skillId] || '📊',
+        });
+      }
+    });
+
+    // Food buff expiry check
+    this.time.addEvent({
+      delay: 1000,
+      loop: true,
+      callback: () => {
+        const now = Date.now();
+        const prev = this.activeBuffs.length;
+        this.activeBuffs = this.activeBuffs.filter(b => b.expiresAt > now);
+        if (this.activeBuffs.length < prev) {
+          this.events.emit('activeBuffsChanged', this.activeBuffs);
+          const hudScene = this.scene.get('HUDScene');
+          if (hudScene && hudScene.notifications) {
+            hudScene.notifications.showLoot({ name: 'Food buff expired', emoji: '🍽' });
+          }
+        }
+      },
+    });
+
+    // Cooking complete → offer to eat
+    this.events.on('cookingComplete', ({ item, quantity }) => {
+      const hudScene = this.scene.get('HUDScene');
+      if (hudScene && hudScene.lootToast) {
+        const foodDef = ITEMS[item];
+        hudScene.lootToast.showMaterial({
+          name: `${foodDef?.name || item} ×${quantity} cooked!`,
+          emoji: foodDef?.emoji || '🍽',
+        });
+      }
+    });
+  }
+
+  eatFood(itemId) {
+    const foodDef = ITEMS[itemId];
+    if (!foodDef || foodDef.category !== 'food') return false;
+
+    const mat = this.gameState.materials.find(m => m.id === itemId);
+    if (!mat || mat.quantity < 1) return false;
+
+    // Check if buff active already — replace it
+    if (this.activeBuffs.length > 0) {
+      // Just replace silently (confirmation handled in UI)
+      this.activeBuffs = [];
+    }
+
+    // Remove item from materials
+    mat.quantity--;
+    if (mat.quantity <= 0) {
+      const idx = this.gameState.materials.indexOf(mat);
+      if (idx !== -1) this.gameState.materials.splice(idx, 1);
+    }
+
+    // Compute duration with cooking skill bonuses
+    const baseDuration = foodDef.duration || 60000;
+    const durationBonus = this.skillSystem.getBonus('cooking', 'buffDurationBonus');
+    const masterBonus = this.skillSystem.hasPerk('cooking', 'master_chef') ? 0.50 : 0;
+    const actualDuration = Math.floor(baseDuration * (1 + durationBonus + masterBonus));
+
+    const buff = {
+      id: itemId,
+      name: foodDef.name,
+      icon: foodDef.emoji,
+      stats: foodDef.buff?.stats || null,
+      skillEffects: foodDef.buff?.skillEffects || null,
+      heal: foodDef.buff?.heal || 0,
+      expiresAt: Date.now() + actualDuration,
+      duration: actualDuration,
+    };
+    this.activeBuffs = [buff];
+
+    // Apply HP heal
+    if (buff.heal > 0) {
+      this.player.stats.hp = Math.min(this.player.stats.maxHp, this.player.stats.hp + buff.heal);
+      this.player.updateHPBar?.();
+    }
+
+    this.events.emit('activeBuffsChanged', this.activeBuffs);
+    this.events.emit('inventoryChanged', this.gameState.materials);
+
+    const hudScene = this.scene.get('HUDScene');
+    if (hudScene && hudScene.lootToast) {
+      hudScene.lootToast.showMaterial({
+        name: `${foodDef.name} buff active!`,
+        emoji: foodDef.emoji,
+      });
+    }
+    return true;
   }
 }

@@ -36,8 +36,11 @@ export class CombatSystem {
     }
 
     // Attacker hits defender
-    const attackerStats = getEffectiveStats(attacker);
-    const defenderStats = getEffectiveStats(defender);
+    const activeBuffs = this.scene.activeBuffs || [];
+    const attackerBuffs = attacker.entityType === 'player' ? activeBuffs : [];
+    const defenderBuffs = defender.entityType === 'player' ? activeBuffs : [];
+    const attackerStats = getEffectiveStats(attacker, attackerBuffs);
+    const defenderStats = getEffectiveStats(defender, defenderBuffs);
     const dmgToDefender = Math.max(1, attackerStats.atk - defenderStats.def);
     defender.takeDamage(dmgToDefender);
     this.showDamageNumber(defender, dmgToDefender);

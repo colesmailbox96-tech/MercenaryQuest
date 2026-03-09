@@ -5,6 +5,7 @@ import { createHPBar, updateHPBar, createXPBar, updateXPBar } from '../ui/HUDCom
 import { MiniNotifications } from '../ui/MiniNotifications.js';
 import { LootToast } from '../ui/LootToast.js';
 import { ActivityHUD } from '../ui/ActivityHUD.js';
+import { BuffBar } from '../ui/BuffBar.js';
 
 export class HUDScene extends Phaser.Scene {
   constructor() {
@@ -36,6 +37,12 @@ export class HUDScene extends Phaser.Scene {
 
     this.activityHUD = new ActivityHUD(this);
     this.activityHUD.create();
+
+    // Buff bar (below stats bars)
+    const buffBarY = 98;
+    const buffBarW = this.scale.width - 30;
+    this.buffBar = new BuffBar(this);
+    this.buffBar.create(15, buffBarY, buffBarW);
 
     this.viewTarget = 'player';
     this.currentContext = null;
@@ -228,6 +235,28 @@ export class HUDScene extends Phaser.Scene {
     this.equipBtn.on('pointerup', () => {
       this.equipBtn.setScale(1);
     });
+
+    // Skills button
+    this.skillsBtn = this.add.image(w - 250, h - 95, 'ui_btn_small');
+    this.skillsBtn.setScrollFactor(0);
+    this.skillsBtn.setDepth(200);
+    this.skillsBtn.setInteractive({ useHandCursor: true });
+    this.skillsBtn.setAlpha(0.8);
+
+    this.skillsBtnLabel = this.add.text(w - 250, h - 95, '📊', {
+      fontSize: '18px',
+    });
+    this.skillsBtnLabel.setOrigin(0.5);
+    this.skillsBtnLabel.setScrollFactor(0);
+    this.skillsBtnLabel.setDepth(201);
+
+    this.skillsBtn.on('pointerdown', () => {
+      this.skillsBtn.setScale(0.9);
+      this.scene.launch('SkillsPanel');
+    });
+    this.skillsBtn.on('pointerup', () => {
+      this.skillsBtn.setScale(1);
+    });
   }
 
   createContextPrompt(w, h) {
@@ -298,6 +327,12 @@ export class HUDScene extends Phaser.Scene {
         } else if (action.type === 'mining') {
           this.contextPrompt.setText('Tap ⚔️ to mine ⛏️');
           this.actionBtnLabel.setText('⛏️');
+        } else if (action.type === 'farming') {
+          this.contextPrompt.setText('Tap ⚔️ to farm 🌾');
+          this.actionBtnLabel.setText('🌾');
+        } else if (action.type === 'building' && action.icon === '🍳') {
+          this.contextPrompt.setText('Tap ⚔️ to cook 🍳');
+          this.actionBtnLabel.setText('🍳');
         } else {
           this.contextPrompt.setText(`Tap ⚔️ to enter ${action.name}`);
           this.actionBtnLabel.setText('🏠');
@@ -318,6 +353,10 @@ export class HUDScene extends Phaser.Scene {
         }
         this.actionBtnLabel.setText('⚔️');
       }
+    });
+
+    this.gameScene.events.on('activeBuffsChanged', (buffs) => {
+      if (this.buffBar) this.buffBar.update(buffs);
     });
 
     this.gameScene.events.on('lootReceived', ({ item }) => {
@@ -426,6 +465,9 @@ export class HUDScene extends Phaser.Scene {
   update() {
     if (this.activityHUD) {
       this.activityHUD.update();
+    }
+    if (this.buffBar && this.gameScene) {
+      this.buffBar.update(this.gameScene.activeBuffs || []);
     }
   }
 }
