@@ -9,6 +9,7 @@ import { LootSystem } from '../systems/LootSystem.js';
 import { Spawner } from '../systems/Spawner.js';
 import { FishingSystem } from '../systems/FishingSystem.js';
 import { MiningSystem } from '../systems/MiningSystem.js';
+import { TapMoveSystem } from '../systems/TapMoveSystem.js';
 import { distance } from '../utils/helpers.js';
 
 const DISPLAY_TILE = TILE_SIZE * TILE_SCALE;
@@ -27,6 +28,7 @@ export class GameScene extends Phaser.Scene {
     this.fishingSystem = new FishingSystem(this);
     this.miningSystem = new MiningSystem(this);
     this.miningSystem.initNodeStates();
+    this.tapMoveSystem = new TapMoveSystem(this);
     this.agent = null;
     this.viewTarget = 'player';
 
@@ -101,29 +103,42 @@ export class GameScene extends Phaser.Scene {
     this.tabKey = this.input.keyboard.addKey('TAB');
 
     // Action button from HUD
-    this.events.on('actionButtonPressed', () => this.handleAction());
+    this.events.on('actionButtonPressed', () => {
+      if (this.tapMoveSystem.isFollowingPath) {
+        this.tapMoveSystem.cancelPath('action');
+      }
+      this.handleAction();
+    });
     this.events.on('toggleView', () => this.toggleView());
     this.events.on('openInventory', () => this.events.emit('showInventory'));
     this.events.on('openEquipment', () => this.scene.launch('EquipmentPanel'));
 
-    // Tap-to-interact on game viewport
-    this.input.on('pointerdown', (pointer) => {
+    // Tap-to-move / tap-to-interact on game viewport
+    this.input.on('pointerup', (pointer) => {
       if (this.player.inCombat) return;
-      const worldX = pointer.worldX;
-      const worldY = pointer.worldY;
-      const tapTileX = Math.floor(worldX / DISPLAY_TILE);
-      const tapTileY = Math.floor(worldY / DISPLAY_TILE);
-      const dist = distance(this.player.tileX, this.player.tileY, tapTileX, tapTileY);
-      if (dist <= 2) {
-        const tile = getTileAt(this.mapData, tapTileX, tapTileY);
-        if (tile && tile.type === 'building') {
-          this.interactWithBuilding(tile.buildingType);
-        } else if (tile && tile.type === 'fishing_dock') {
-          this.scene.launch('FishingPanel');
-        } else if (tile && tile.type === 'mining_node') {
-          this.scene.launch('MiningPanel', { nodeKey: tile.nodeType });
-        }
-      }
+
+      // Ignore if pointer traveled too far (was a drag, not a tap)
+      const dist = Phaser.Math.Distance.Between(
+        pointer.downX, pointer.downY, pointer.upX, pointer.upY
+      );
+      if (dist > 10) return;
+
+      // Ignore if the joystick is currently active
+      const hudScene = this.scene.get('HUDScene');
+      if (hudScene && hudScene.joystick && hudScene.joystick.isActive) return;
+
+      // Ignore if tap is in the HUD zone (bottom 25% of screen or top 100px)
+      const screenH = this.scale.height;
+      if (pointer.upY > screenH * 0.75) return;  // Bottom controls area
+      if (pointer.upY < 100) return;              // Top HUD bar
+
+      // Convert to world coordinates
+      const worldPoint = this.cameras.main.getWorldPoint(pointer.upX, pointer.upY);
+      const tileX = Math.floor(worldPoint.x / DISPLAY_TILE);
+      const tileY = Math.floor(worldPoint.y / DISPLAY_TILE);
+
+      // Pass to tap move system
+      this.tapMoveSystem.handleTap(tileX, tileY);
     });
   }
 
@@ -242,6 +257,9 @@ export class GameScene extends Phaser.Scene {
   update(time, delta) {
     this.handleMovement();
 
+    // Update tap-to-move system
+    this.tapMoveSystem.update();
+
     // Update agent
     if (this.agent && this.agent.active) {
       this.agent.update(time, delta);
@@ -263,6 +281,9 @@ export class GameScene extends Phaser.Scene {
 
     // Keyboard shortcuts
     if (Phaser.Input.Keyboard.JustDown(this.eKey)) {
+      if (this.tapMoveSystem.isFollowingPath) {
+        this.tapMoveSystem.cancelPath('action');
+      }
       this.handleAction();
     }
     if (Phaser.Input.Keyboard.JustDown(this.iKey)) {
@@ -294,6 +315,11 @@ export class GameScene extends Phaser.Scene {
 
     if (!dir) return;
 
+    // Cancel any active tap-to-move path when joystick or keyboard is used
+    if (this.tapMoveSystem.isFollowingPath) {
+      this.tapMoveSystem.cancelPath('joystick');
+    }
+
     let dx = 0, dy = 0;
     if (dir === 'up') dy = -1;
     else if (dir === 'down') dy = 1;
@@ -316,6 +342,10 @@ export class GameScene extends Phaser.Scene {
       for (const mob of this.spawner.getMobs()) {
         if (mob.inCombat || !mob.active) continue;
         if (entity.tileX === mob.tileX && entity.tileY === mob.tileY) {
+          // Cancel tap path if player enters combat
+          if (entity === this.player && this.tapMoveSystem.isFollowingPath) {
+            this.tapMoveSystem.cancelPath('combat');
+          }
           this.combatSystem.startCombat(entity, mob);
           break;
         }
