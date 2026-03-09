@@ -1,0 +1,61 @@
+export const MOB_TYPES = {
+  slime: {
+    name: 'Slime',
+    zone: 'forest',
+    hp: 15,
+    atk: 3,
+    def: 1,
+    xp: 5,
+    speed: 2000,
+    aggroRange: 3,
+    wanderMin: 2000,
+    wanderMax: 4000,
+    textureKey: 'mob_slime',
+  },
+  wolf: {
+    name: 'Wolf',
+    zone: 'forest',
+    hp: 25,
+    atk: 5,
+    def: 2,
+    xp: 10,
+    speed: 1000,
+    aggroRange: 5,
+    wanderMin: 2000,
+    wanderMax: 4000,
+    textureKey: 'mob_wolf',
+  },
+  caveBat: {
+    name: 'Cave Bat',
+    zone: 'caves',
+    hp: 20,
+    atk: 6,
+    def: 1,
+    xp: 12,
+    speed: 800,
+    aggroRange: 4,
+    wanderMin: 2000,
+    wanderMax: 4000,
+    textureKey: 'mob_bat',
+  },
+};
+
+export const LOOT_TABLES = {
+  slime: [
+    { item: 'slimeGel', weight: 60 },
+    { item: 'goldCoin', weight: 30 },
+    { item: null, weight: 10 },
+  ],
+  wolf: [
+    { item: 'wolfPelt', weight: 50 },
+    { item: 'fang', weight: 25 },
+    { item: 'goldCoin', weight: 20 },
+    { item: null, weight: 5 },
+  ],
+  caveBat: [
+    { item: 'batWing', weight: 55 },
+    { item: 'echoStone', weight: 15 },
+    { item: 'goldCoin', weight: 25 },
+    { item: null, weight: 5 },
+  ],
+};
