@@ -1,4 +1,4 @@
-import { MAP_WIDTH, MAP_HEIGHT } from '../config/constants.js';
+import { MAP_WIDTH, MAP_HEIGHT, FARM, KITCHEN_TILE } from '../config/constants.js';
 import { MINING_NODE_PLACEMENTS } from '../config/oreData.js';
 
 // Build a set of mining node positions for quick lookup
@@ -6,6 +6,16 @@ const miningNodeSet = new Map();
 MINING_NODE_PLACEMENTS.forEach(p => {
   miningNodeSet.set(`${p.tileX},${p.tileY}`, p.nodeType);
 });
+
+// Build farm plot positions (3×3 grid; first 4 are active initially, rest unlock via skill)
+export const FARM_PLOT_POSITIONS = [];
+for (let row = 0; row < 3; row++) {
+  for (let col = 0; col < FARM.COLS; col++) {
+    FARM_PLOT_POSITIONS.push({ tileX: FARM.ORIGIN_X + col, tileY: FARM.ORIGIN_Y + row, plotIndex: row * FARM.COLS + col });
+  }
+}
+
+const farmSet = new Set(FARM_PLOT_POSITIONS.map(p => `${p.tileX},${p.tileY}`));
 
 export function generateMap() {
   const map = [];
@@ -39,6 +49,23 @@ function getTile(x, y) {
       nodeType,
       textureKey: textureMap[nodeType] || 'tile_mining_node_copper',
     };
+  }
+
+  // Farm plots in town
+  if (farmSet.has(nodeKey)) {
+    const plotDef = FARM_PLOT_POSITIONS.find(p => `${p.tileX},${p.tileY}` === nodeKey);
+    return {
+      type: 'farm_plot',
+      zone: 'town',
+      walkable: false,
+      plotIndex: plotDef.plotIndex,
+      textureKey: 'tile_farm_empty',
+    };
+  }
+
+  // Kitchen building
+  if (x === KITCHEN_TILE.x && y === KITCHEN_TILE.y) {
+    return { type: 'building', zone: 'town', walkable: false, buildingType: 'kitchen', textureKey: 'tile_building_kitchen' };
   }
 
   // Town zone: center of map, rows 15-24, cols 15-24

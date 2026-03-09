@@ -143,23 +143,29 @@ export class MiningPanel extends Phaser.Scene {
       }).setOrigin(0.5, 0);
       this.contentElements.push(msgText);
       yOff += 36;
-    } else if (playerLevel < nodeDef.requiredLevel) {
-      const lvlText = this.add.text(w / 2, yOff, `Requires Level ${nodeDef.requiredLevel}`, {
-        fontSize: '13px', fontFamily: 'monospace', color: '#FF6666',
-      }).setOrigin(0.5, 0);
-      this.contentElements.push(lvlText);
-      yOff += 28;
     } else {
-      const startBtn = this.add.text(w / 2, yOff, '[ ⛏️ Start Mining ]', {
-        fontSize: '14px', fontFamily: 'monospace', color: '#FFBB66',
-        backgroundColor: '#2A2A3E', padding: { x: 12, y: 6 },
-      }).setOrigin(0.5, 0).setInteractive({ useHandCursor: true });
-      startBtn.on('pointerdown', () => {
-        this.miningSystem.start(this.nodeKey);
-        this.closePanel();
-      });
-      this.contentElements.push(startBtn);
-      yOff += 36;
+      const miningLevel = this.gameScene.skillSystem
+        ? this.gameScene.skillSystem.getLevel('mining')
+        : 1;
+      const requiredSkillLevel = nodeDef.requiredSkillLevel || nodeDef.requiredLevel || 1;
+      if (miningLevel < requiredSkillLevel) {
+        const lvlText = this.add.text(w / 2, yOff, `Requires Mining Lv.${requiredSkillLevel}`, {
+          fontSize: '13px', fontFamily: 'monospace', color: '#FF6666',
+        }).setOrigin(0.5, 0);
+        this.contentElements.push(lvlText);
+        yOff += 28;
+      } else {
+        const startBtn = this.add.text(w / 2, yOff, '[ ⛏️ Start Mining ]', {
+          fontSize: '14px', fontFamily: 'monospace', color: '#FFBB66',
+          backgroundColor: '#2A2A3E', padding: { x: 12, y: 6 },
+        }).setOrigin(0.5, 0).setInteractive({ useHandCursor: true });
+        startBtn.on('pointerdown', () => {
+          this.miningSystem.start(this.nodeKey);
+          this.closePanel();
+        });
+        this.contentElements.push(startBtn);
+        yOff += 36;
+      }
     }
 
     const pending = this.miningSystem.pendingOres;

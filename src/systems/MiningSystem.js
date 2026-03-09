@@ -3,6 +3,9 @@ import { ITEMS } from '../config/itemData.js';
 import { ACTIVITY } from '../config/constants.js';
 import { weightedRandom } from '../utils/helpers.js';
 
+const RARE_ORES = ['gemstone_shard', 'void_crystal', 'ancient_coin'];
+const MAX_SPEED_BONUS = 0.80;
+
 export class MiningSystem {
   constructor(scene) {
     this.scene = scene;
@@ -14,6 +17,10 @@ export class MiningSystem {
     this.maxPending = ACTIVITY.MINING_MAX_PENDING;
     this.extractionCount = 0;
     this.nodeStates = {};
+  }
+
+  get skillSystem() {
+    return this.scene.skillSystem || null;
   }
 
   initNodeStates() {
@@ -45,35 +52,104 @@ export class MiningSystem {
   scheduleCycle() {
     if (!this.active) return;
     if (this.pendingOres.length >= this.maxPending) {
-      this.active = false;
-      this.scene.events.emit('miningPaused', 'Ore bag full! Collect your ores.');
-      return;
+      if (this.skillSystem && this.skillSystem.hasPerk('mining', 'auto_collect_ore')) {
+        this.autoCollect();
+      } else {
+        this.active = false;
+        this.scene.events.emit('miningPaused', 'Ore bag full! Collect your ores.');
+        return;
+      }
     }
+
+    const speedBonus = this.skillSystem
+      ? this.skillSystem.getBonus('mining', 'cycleSpeedBonus')
+      : 0;
+    const buffSpeed = this._getBuffSpeedBonus();
+    const totalSpeed = Math.min(MAX_SPEED_BONUS, speedBonus + buffSpeed);
+    const maxExtBonus = this.skillSystem && this.skillSystem.hasPerk('mining', 'master_miner') ? 0.50 : 0;
+    const adjustedDuration = Math.floor(this.activeNodeDef.cycleDuration * (1 - totalSpeed));
+
     this.timer = this.scene.time.delayedCall(
-      this.activeNodeDef.cycleDuration,
+      adjustedDuration,
       () => this.completeCycle()
     );
     this.scene.events.emit('miningCycleStarted', {
       node: this.activeNodeDef.name,
-      duration: this.activeNodeDef.cycleDuration,
+      duration: adjustedDuration,
     });
   }
 
+  _getBuffSpeedBonus() {
+    const buffs = this.scene.activeBuffs || [];
+    let bonus = 0;
+    for (const buff of buffs) {
+      if (buff.skillEffects && buff.skillEffects.mining && buff.skillEffects.mining.cycleSpeedBonus) {
+        bonus += buff.skillEffects.mining.cycleSpeedBonus;
+      }
+    }
+    return bonus;
+  }
+
   completeCycle() {
-    if (Math.random() <= this.activeNodeDef.extractChance) {
+    const extractBonus = this.skillSystem
+      ? this.skillSystem.getBonus('mining', 'extractChanceBonus')
+      : 0;
+    const buffExtract = this._getBuffExtractBonus();
+    const adjustedChance = Math.min(0.99, this.activeNodeDef.extractChance + extractBonus + buffExtract);
+
+    if (Math.random() <= adjustedChance) {
       const ore = weightedRandom(this.activeNodeDef.yields);
       this.addToPending(ore.id);
+
+      // Double yield chance
+      const doubleChance = this.skillSystem
+        ? this.skillSystem.getBonus('mining', 'doubleYieldChance')
+        : 0;
+      if (Math.random() < doubleChance) {
+        this.addToPending(ore.id);
+        this.scene.events.emit('miningDoubleYield', { itemId: ore.id });
+      }
+
       this.extractionCount++;
+
+      // XP
+      if (this.skillSystem) {
+        const isRare = RARE_ORES.includes(ore.id);
+        this.skillSystem.addXP('mining', isRare ? 6 : 4);
+      }
+
       this.scene.events.emit('miningExtract', { itemId: ore.id });
 
-      if (this.extractionCount >= this.activeNodeDef.maxExtractions) {
+      // Depletion check (master_miner adds 50% more extractions)
+      const masterBonus = this.skillSystem && this.skillSystem.hasPerk('mining', 'master_miner') ? 1.5 : 1;
+      const maxEx = Math.floor(this.activeNodeDef.maxExtractions * masterBonus);
+      if (this.extractionCount >= maxEx) {
         this.depleteNode();
         return;
       }
     } else {
+      if (this.skillSystem) this.skillSystem.addXP('mining', 1);
       this.scene.events.emit('miningMiss');
     }
     this.scheduleCycle();
+  }
+
+  _getBuffExtractBonus() {
+    const buffs = this.scene.activeBuffs || [];
+    let bonus = 0;
+    for (const buff of buffs) {
+      if (buff.skillEffects && buff.skillEffects.mining && buff.skillEffects.mining.extractChanceBonus) {
+        bonus += buff.skillEffects.mining.extractChanceBonus;
+      }
+    }
+    return bonus;
+  }
+
+  autoCollect() {
+    const lootSystem = this.scene.lootSystem;
+    if (!lootSystem) return;
+    this.collectAll(lootSystem);
+    this.active = true;
   }
 
   depleteNode() {
@@ -157,6 +233,12 @@ export class MiningSystem {
   }
 
   getStatus() {
+    const speedBonus = this.skillSystem
+      ? this.skillSystem.getBonus('mining', 'cycleSpeedBonus')
+      : 0;
+    const cycleDuration = this.activeNodeDef
+      ? Math.floor(this.activeNodeDef.cycleDuration * (1 - speedBonus))
+      : 0;
     return {
       active: this.active,
       node: this.activeNodeDef?.name || null,
@@ -166,7 +248,7 @@ export class MiningSystem {
         ? this.activeNodeDef.maxExtractions - this.extractionCount
         : 0,
       timerProgress: this.timer
-        ? 1 - (this.timer.getRemaining() / this.activeNodeDef.cycleDuration)
+        ? 1 - (this.timer.getRemaining() / cycleDuration)
         : 0,
     };
   }

@@ -92,11 +92,16 @@ export class FishingPanel extends Phaser.Scene {
       this.contentElements.push(poolLabel);
       yOff += 22;
 
+      const fishingLevel = this.gameScene.skillSystem
+        ? this.gameScene.skillSystem.getLevel('fishing')
+        : 1;
+
       for (const [key, pool] of Object.entries(FISHING_POOLS)) {
-        const meetsLevel = playerLevel >= pool.requiredLevel;
+        const meetsLevel = fishingLevel >= (pool.requiredSkillLevel || pool.requiredLevel || 1);
         const isSelected = this.selectedPoolKey === key;
         const color = !meetsLevel ? '#555555' : (isSelected ? '#88CCFF' : '#F5E6C8');
-        const levelNote = pool.requiredLevel > 1 ? ` (Lv.${pool.requiredLevel}+)` : '';
+        const levelNote = (pool.requiredSkillLevel || pool.requiredLevel || 0) > 1
+          ? ` (Fishing Lv.${pool.requiredSkillLevel || pool.requiredLevel}+)` : '';
         const timeStr = `~${pool.cycleDuration / 1000}s per catch · ${Math.round(pool.catchChance * 100)}% chance`;
 
         const poolBg = this.add.rectangle(w / 2, yOff + 18, panelW - 32, 38,
