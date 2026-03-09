@@ -16,10 +16,10 @@ export class HUDScene extends Phaser.Scene {
     const w = this.scale.width;
     const h = this.scale.height;
 
-    // Read safe area insets for iOS notched phones
+    // Read safe area insets for iOS notched phones via CSS custom properties
     const computedStyle = getComputedStyle(document.documentElement);
-    this.safeTop = parseInt(computedStyle.getPropertyValue('env(safe-area-inset-top)'), 10) || 0;
-    this.safeBottom = parseInt(computedStyle.getPropertyValue('env(safe-area-inset-bottom)'), 10) || 0;
+    this.safeTop = parseInt(computedStyle.getPropertyValue('--sat'), 10) || 0;
+    this.safeBottom = parseInt(computedStyle.getPropertyValue('--sab'), 10) || 0;
 
     this.notifications = new MiniNotifications(this);
 
