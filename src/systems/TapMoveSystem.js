@@ -1,4 +1,4 @@
-import { TILE_SIZE, TILE_SCALE, PLAYER_SPEED } from '../config/constants.js';
+import { TILE_SIZE, TILE_SCALE } from '../config/constants.js';
 import { getTileAt, isWalkable } from '../utils/mapGenerator.js';
 import { distance } from '../utils/helpers.js';
 
@@ -10,7 +10,6 @@ const MARKER_SIZE = 8;
 const MARKER_ALPHA = 0.5;
 const MARKER_INTERACTIVE_COLOR = 0xDAA520;
 const MARKER_DEFAULT_COLOR = 0xFFFFFF;
-const STEP_BUFFER_MS = 5; // Small buffer to ensure movement tween completes before next step
 const MOB_TRACKING_INTERVAL_MS = 1000;
 
 export class TapMoveSystem {
@@ -166,8 +165,10 @@ export class TapMoveSystem {
 
     player.setFacing(dir);
 
-    // Attempt to move
-    const moved = player.moveTo(nextTile.x, nextTile.y, this.scene.mapData);
+    // Attempt to move, using the tween's onComplete to drive the next step
+    const moved = player.moveTo(nextTile.x, nextTile.y, this.scene.mapData, () => {
+      this.onStepComplete();
+    });
     if (!moved) {
       // Path is blocked (something changed) — cancel
       this.cancelPath('blocked');
@@ -177,11 +178,6 @@ export class TapMoveSystem {
     // Remove the dot for this step
     this.removePathDot(this.pathIndex);
     this.pathIndex++;
-
-    // Schedule the next step when the tween completes
-    this.scene.time.delayedCall(PLAYER_SPEED + STEP_BUFFER_MS, () => {
-      this.onStepComplete();
-    });
   }
 
   /**
