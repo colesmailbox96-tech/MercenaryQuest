@@ -86,7 +86,9 @@ export class Spawner {
     for (const [typeKey, typeData] of Object.entries(NOCTURNAL_MOBS)) {
       const zone = typeData.zone;
       for (let i = 0; i < typeData.spawnCount; i++) {
-        const pos = this.findSpawnPosition(zone === 'volcanic' ? 'forest' : zone === 'swamp' ? 'forest' : zone);
+        const pos = this.findSpawnPosition(
+          zone === 'volcanic' || zone === 'swamp' ? 'forest' : zone
+        );
         if (pos) {
           const mob = new NocturnalMob(this.scene, pos.x, pos.y, typeKey, typeData);
           this.nocturnalMobs.push(mob);

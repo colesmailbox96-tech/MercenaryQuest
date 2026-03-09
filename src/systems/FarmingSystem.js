@@ -112,7 +112,7 @@ export class FarmingSystem {
     let cropKey = seedDef.crop;
     // Mystery seed: resolve to random crop at harvest
     if (cropKey === 'mystery') {
-      const allCrops = Object.keys(CROPS);
+      const allCrops = Object.keys(CROPS).filter(k => k !== 'mystery');
       cropKey = allCrops[Math.floor(Math.random() * allCrops.length)];
     }
     const cropDef = CROPS[cropKey];
