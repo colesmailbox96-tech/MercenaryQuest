@@ -4,6 +4,7 @@ export function generateTextures(scene) {
   generateTileTextures(scene);
   generateEntityTextures(scene);
   generateUITextures(scene);
+  generateGearTextures(scene);
 }
 
 function generateTileTextures(scene) {
@@ -325,4 +326,160 @@ function generateUITextures(scene) {
   slot.strokeRect(0, 0, 40, 40);
   slot.generateTexture('ui_inv_slot', 40, 40);
   slot.destroy();
+}
+
+function generateGearTextures(scene) {
+  // Wooden Sword (16x16): brown handle + gray blade
+  const ws = scene.make.graphics({ x: 0, y: 0, add: false });
+  ws.fillStyle(0x8B4513);
+  ws.fillRect(7, 9, 2, 6);   // handle
+  ws.fillStyle(0x888888);
+  ws.fillRect(7, 2, 2, 7);   // blade lower
+  ws.fillStyle(0xAAAAAA);
+  ws.fillRect(7, 1, 2, 1);   // blade tip
+  ws.fillStyle(0xC0A060);
+  ws.fillRect(6, 9, 4, 1);   // guard
+  ws.generateTexture('gear_wooden_sword', 16, 16);
+  ws.destroy();
+
+  // Iron Dagger (16x16): gray handle + silver blade
+  const id = scene.make.graphics({ x: 0, y: 0, add: false });
+  id.fillStyle(0x777777);
+  id.fillRect(7, 10, 2, 5);  // handle
+  id.fillStyle(0xC0C0C0);
+  id.fillRect(7, 4, 2, 6);   // blade
+  id.fillStyle(0xE8E8E8);
+  id.fillRect(7, 3, 2, 1);   // tip
+  id.fillStyle(0x999999);
+  id.fillRect(6, 10, 4, 1);  // guard
+  id.generateTexture('gear_iron_dagger', 16, 16);
+  id.destroy();
+
+  // Shadow Blade (16x16): dark purple + black blade with blue edge
+  const sb = scene.make.graphics({ x: 0, y: 0, add: false });
+  sb.fillStyle(0x4A1A6A);
+  sb.fillRect(7, 10, 2, 5);  // handle
+  sb.fillStyle(0x111122);
+  sb.fillRect(7, 2, 2, 8);   // blade
+  sb.fillStyle(0x2255AA);
+  sb.fillRect(7, 1, 1, 1);   // blue tip edge
+  sb.fillRect(8, 2, 1, 6);   // blue side edge
+  sb.generateTexture('gear_shadow_blade', 16, 16);
+  sb.destroy();
+
+  // Leather Cap (16x16): brown dome
+  const lc = scene.make.graphics({ x: 0, y: 0, add: false });
+  lc.fillStyle(0x8B6914);
+  lc.fillRect(4, 6, 8, 5);   // main dome
+  lc.fillRect(3, 7, 10, 3);  // wide brim area
+  lc.fillStyle(0x6B4A0A);
+  lc.fillRect(4, 10, 8, 1);  // brim shadow
+  lc.generateTexture('gear_leather_cap', 16, 16);
+  lc.destroy();
+
+  // Iron Helm (16x16): gray dome with darker visor
+  const ih = scene.make.graphics({ x: 0, y: 0, add: false });
+  ih.fillStyle(0x999999);
+  ih.fillRect(4, 5, 8, 6);   // dome
+  ih.fillRect(3, 6, 10, 4);  // wide
+  ih.fillStyle(0x666666);
+  ih.fillRect(4, 9, 8, 2);   // visor
+  ih.fillStyle(0xAAAAAA);
+  ih.fillRect(5, 6, 6, 2);   // highlight
+  ih.generateTexture('gear_iron_helm', 16, 16);
+  ih.destroy();
+
+  // Cloth Tunic (16x16): brown rectangle body
+  const ct = scene.make.graphics({ x: 0, y: 0, add: false });
+  ct.fillStyle(0xA0785A);
+  ct.fillRect(3, 3, 10, 10);
+  ct.fillStyle(0x886040);
+  ct.fillRect(3, 12, 10, 1);  // hem
+  ct.fillRect(7, 3, 2, 10);   // center seam
+  ct.generateTexture('gear_cloth_tunic', 16, 16);
+  ct.destroy();
+
+  // Chainmail (16x16): gray rectangle with crosshatch pixel pattern
+  const cm = scene.make.graphics({ x: 0, y: 0, add: false });
+  cm.fillStyle(0x888888);
+  cm.fillRect(3, 3, 10, 11);
+  cm.fillStyle(0x666666);
+  for (let y = 3; y < 14; y += 2) {
+    for (let x = 3; x < 13; x += 2) {
+      cm.fillRect(x, y, 1, 1);
+    }
+  }
+  cm.generateTexture('gear_chainmail', 16, 16);
+  cm.destroy();
+
+  // Sandals (16x16): two brown L-shapes
+  const snd = scene.make.graphics({ x: 0, y: 0, add: false });
+  snd.fillStyle(0x8B6914);
+  snd.fillRect(2, 10, 4, 3);   // left sandal base
+  snd.fillRect(2, 9, 1, 1);    // left strap
+  snd.fillRect(10, 10, 4, 3);  // right sandal base
+  snd.fillRect(13, 9, 1, 1);   // right strap
+  snd.generateTexture('gear_sandals', 16, 16);
+  snd.destroy();
+
+  // Iron Greaves (16x16): gray boot shapes with darker sole
+  const ig = scene.make.graphics({ x: 0, y: 0, add: false });
+  ig.fillStyle(0x888888);
+  ig.fillRect(2, 8, 4, 6);    // left boot
+  ig.fillRect(10, 8, 4, 6);   // right boot
+  ig.fillStyle(0x555555);
+  ig.fillRect(2, 13, 4, 1);   // left sole
+  ig.fillRect(10, 13, 4, 1);  // right sole
+  ig.fillStyle(0xAAAAAA);
+  ig.fillRect(3, 8, 2, 4);    // left highlight
+  ig.generateTexture('gear_iron_greaves', 16, 16);
+  ig.destroy();
+
+  // Bone Ring (16x16): white circle with gap
+  const br = scene.make.graphics({ x: 0, y: 0, add: false });
+  br.lineStyle(2, 0xEEEEEE);
+  br.strokeCircle(8, 8, 4);
+  br.fillStyle(0x000000, 0);   // transparent fill
+  br.fillRect(8, 4, 2, 2);     // gap at top
+  br.generateTexture('gear_bone_ring', 16, 16);
+  br.destroy();
+
+  // Echo Pendant (16x16): blue circle with chain above
+  const ep = scene.make.graphics({ x: 0, y: 0, add: false });
+  ep.fillStyle(0x2196F3);
+  ep.fillCircle(8, 10, 4);
+  ep.fillStyle(0x88CCFF);
+  ep.fillCircle(8, 10, 2);     // inner glow
+  ep.lineStyle(1, 0x888888);
+  ep.strokeRect(7, 2, 2, 4);   // chain link
+  ep.fillStyle(0x888888);
+  ep.fillRect(7, 6, 2, 2);     // chain bottom
+  ep.generateTexture('gear_echo_pendant', 16, 16);
+  ep.destroy();
+
+  // Equip slot backgrounds for each rarity (48x48)
+  const rarityColors = {
+    COMMON:   0xAAAAAA,
+    UNCOMMON: 0x4CAF50,
+    RARE:     0x2196F3,
+    EPIC:     0x9C27B0,
+  };
+  Object.entries(rarityColors).forEach(([rarity, color]) => {
+    const slotBg = scene.make.graphics({ x: 0, y: 0, add: false });
+    slotBg.fillStyle(0x1A1A2E, 1);
+    slotBg.fillRect(0, 0, 48, 48);
+    slotBg.lineStyle(2, color, 1);
+    slotBg.strokeRect(1, 1, 46, 46);
+    slotBg.generateTexture(`ui_gear_slot_${rarity.toLowerCase()}`, 48, 48);
+    slotBg.destroy();
+  });
+
+  // Empty gear slot (48x48)
+  const emptySlot = scene.make.graphics({ x: 0, y: 0, add: false });
+  emptySlot.fillStyle(0x1A1A2E, 1);
+  emptySlot.fillRect(0, 0, 48, 48);
+  emptySlot.lineStyle(1, 0x444466, 1);
+  emptySlot.strokeRect(1, 1, 46, 46);
+  emptySlot.generateTexture('ui_gear_slot_empty', 48, 48);
+  emptySlot.destroy();
 }

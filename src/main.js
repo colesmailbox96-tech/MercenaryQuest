@@ -3,6 +3,7 @@ import { BootScene } from './scenes/BootScene.js';
 import { GameScene } from './scenes/GameScene.js';
 import { HUDScene } from './scenes/HUDScene.js';
 import { ShopScene } from './scenes/ShopScene.js';
+import { EquipmentPanel } from './ui/EquipmentPanel.js';
 
 const config = {
   type: Phaser.AUTO,
@@ -21,7 +22,7 @@ const config = {
       debug: false,
     },
   },
-  scene: [BootScene, GameScene, HUDScene, ShopScene],
+  scene: [BootScene, GameScene, HUDScene, ShopScene, EquipmentPanel],
   backgroundColor: '#0a0a14',
 };
 

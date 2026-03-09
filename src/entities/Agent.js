@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { TILE_SIZE, TILE_SCALE, AGENT_SPEED, AGENT_RETREAT_SPEED } from '../config/constants.js';
 import { isWalkable } from '../utils/mapGenerator.js';
 import { distance } from '../utils/helpers.js';
+import { getEffectiveStats } from '../systems/StatCalculator.js';
 
 const DISPLAY_TILE = TILE_SIZE * TILE_SCALE;
 const AGENT_INV_MAX = 10;
@@ -13,6 +14,7 @@ export class Agent extends Phaser.GameObjects.Container {
     this.tileX = tileX;
     this.tileY = tileY;
     this.stats = { hp: 40, maxHp: 40, atk: 4, def: 2, level: 1, xp: 0, xpToNext: 25 };
+    this.equipment = { weapon: null, helmet: null, chest: null, boots: null, accessory: null };
     this.isMoving = false;
     this.facing = 'down';
     this.inCombat = false;
@@ -33,6 +35,10 @@ export class Agent extends Phaser.GameObjects.Container {
     this.hpFill = scene.add.image(-16, -14, 'ui_hp_fill');
     this.hpFill.setOrigin(0, 0.5);
     this.add(this.hpFill);
+
+    // Gear visual overlay graphics
+    this.gearOverlay = scene.make.graphics({ x: 0, y: 0, add: false });
+    this.add(this.gearOverlay);
 
     scene.add.existing(this);
     this.setDepth(10);
@@ -238,9 +244,69 @@ export class Agent extends Phaser.GameObjects.Container {
   }
 
   updateHPBar() {
-    const ratio = this.stats.hp / this.stats.maxHp;
+    const effective = getEffectiveStats(this);
+    const ratio = this.stats.hp / effective.maxHp;
     this.hpFill.setScale(ratio, 1);
-    this.scene.events.emit('agentStatsChanged', this.stats);
+    this.scene.events.emit('agentStatsChanged', { ...this.stats, ...effective });
+  }
+
+  equip(slot, gearItem) {
+    const existing = this.equipment[slot];
+    if (existing) {
+      existing.equippedBy = null;
+      this.scene.lootSystem.gearStash.push(existing);
+    }
+    this.equipment[slot] = gearItem;
+    gearItem.equippedBy = 'agent';
+    this.scene.lootSystem.gearStash = this.scene.lootSystem.gearStash.filter(g => g.uid !== gearItem.uid);
+    if (gearItem.stats.maxHp) {
+      this.stats.maxHp += gearItem.stats.maxHp;
+      this.stats.hp += gearItem.stats.maxHp;
+    }
+    this.updateVisuals();
+    this.scene.events.emit('equipmentChanged', { entity: 'agent' });
+    this.updateHPBar();
+  }
+
+  unequip(slot) {
+    const gearItem = this.equipment[slot];
+    if (!gearItem) return;
+    this.equipment[slot] = null;
+    gearItem.equippedBy = null;
+    if (gearItem.stats.maxHp) {
+      this.stats.maxHp -= gearItem.stats.maxHp;
+      this.stats.hp = Math.min(this.stats.hp, this.stats.maxHp);
+    }
+    this.scene.lootSystem.gearStash.push(gearItem);
+    this.updateVisuals();
+    this.scene.events.emit('equipmentChanged', { entity: 'agent' });
+    this.updateHPBar();
+  }
+
+  updateVisuals() {
+    const g = this.gearOverlay;
+    g.clear();
+    const eq = this.equipment;
+    if (eq.weapon) {
+      g.fillStyle(eq.weapon.rarityColor, 1);
+      g.fillRect(9, 5, 3, 3);
+    }
+    if (eq.helmet) {
+      g.fillStyle(eq.helmet.rarityColor, 1);
+      g.fillRect(5, 1, 6, 1);
+    }
+    if (eq.chest) {
+      g.fillStyle(eq.chest.rarityColor, 0.3);
+      g.fillRect(4, 6, 8, 5);
+    }
+    if (eq.boots) {
+      g.fillStyle(eq.boots.rarityColor, 1);
+      g.fillRect(4, 14, 8, 1);
+    }
+    if (eq.accessory) {
+      g.fillStyle(eq.accessory.rarityColor, 1);
+      g.fillRect(-10, -5, 2, 2);
+    }
   }
 
   onCombatEnd(killed) {

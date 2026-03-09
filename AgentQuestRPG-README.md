@@ -570,3 +570,45 @@ The game is complete when:
 10. Leveling works: XP accumulates, level-up banner appears, stats increase
 11. All runtime-generated pixel art is visually consistent — the game looks and feels like a cohesive dark fantasy pixel RPG
 12. The game runs at 60fps on a modern iPhone with no input lag on the joystick
+
+---
+
+## Phase 2: Equipment & Gear System
+
+> **DO NOT BUILD UNTIL PHASE 1 PASSES ALL SUCCESS CRITERIA.**
+> Phase 1 systems (player movement, agent FSM, mob spawning, combat, loot drops, inventory, shop, leveling) must all be working correctly before implementing anything below.
+
+### Phase 2 Overview
+
+This phase adds a complete equipment system — gear drops from mobs, players and agents equip items into slots, and equipped gear modifies combat stats. This transforms loot from sell fodder into meaningful progression choices.
+
+**New systems:**
+1. Equipment data model (slots, stats, rarity)
+2. Gear drop tables integrated into existing loot system
+3. Equipment UI (equip screen for player + agent)
+4. Stat calculation pipeline (base stats + gear bonuses)
+5. Visual feedback for equipped gear on entities
+6. Inventory upgrade (distinguish materials vs equipment)
+
+**NOT in this phase (Phase 3+):**
+- ❌ Crafting, fishing, mining
+- ❌ Set bonuses or gear synergies
+- ❌ Enchanting or upgrading gear
+- ❌ Multiple agents
+- ❌ New mobs or zones
+- ❌ Gear sockets or gems
+
+### Phase 2 Success Criteria
+
+1. Mobs drop gear alongside materials at defined rates
+2. Gear drops have visible rarity (Common through Epic) with correct stat scaling
+3. Loot toasts show gear with rarity-colored text; Epic drops trigger screen flash + camera shake
+4. Equipment Panel opens from 🛡️ button with player/agent tabs
+5. Tapping gear shows comparison tooltip with EQUIP and SELL options
+6. Equipping gear modifies effective stats (visible in HUD with base+bonus breakdown)
+7. Combat damage reflects equipped gear via StatCalculator
+8. Equipped gear shows rarity-colored visual accents on entity sprites
+9. Shop Gear tab lists unequipped gear with selling and bulk "Sell All Common"
+10. Gear stash respects 30-item limit with auto-sell overflow
+11. Agent-collected gear arrives in shared stash during deposit and can be equipped on either entity
+12. Getting a Rare or Epic drop feels like a moment — visual feedback makes rarity satisfying
