@@ -1,13 +1,7 @@
-import { LOOT_TABLES } from '../config/mobData.js';
+import { LOOT_TABLES, MOB_TYPES } from '../config/mobData.js';
 import { ITEMS } from '../config/itemData.js';
 import { weightedRandom } from '../utils/helpers.js';
 import { GEAR_DEFS, rollGearInstance } from '../config/gearData.js';
-
-const GEAR_DROP_CHANCE = {
-  slime: 0.08,
-  wolf: 0.12,
-  caveBat: 0.15,
-};
 
 const MAX_GEAR = 30;
 
@@ -44,7 +38,8 @@ export class LootSystem {
   }
 
   _rollGearDrop(mobType, killerLevel) {
-    const chance = GEAR_DROP_CHANCE[mobType];
+    const mobDef = MOB_TYPES[mobType];
+    const chance = mobDef ? mobDef.gearDropChance : 0;
     if (!chance || Math.random() > chance) return null;
 
     const eligible = Object.keys(GEAR_DEFS).filter(id => {

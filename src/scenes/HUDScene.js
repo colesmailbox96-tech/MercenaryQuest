@@ -332,7 +332,7 @@ export class HUDScene extends Phaser.Scene {
 
   updateStats(stats) {
     if (!stats) return;
-    const maxHp = stats.maxHp || stats.baseMaxHp || stats.maxHp;
+    const maxHp = stats.maxHp;
     const hpRatio = stats.hp / maxHp;
     updateHPBar(this.hpBar, hpRatio);
 

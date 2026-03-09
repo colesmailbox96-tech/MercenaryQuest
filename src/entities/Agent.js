@@ -254,13 +254,15 @@ export class Agent extends Phaser.GameObjects.Container {
     const existing = this.equipment[slot];
     if (existing) {
       existing.equippedBy = null;
-      this.scene.lootSystem.gearStash.push(existing);
+      if (!this.scene.lootSystem.gearStash.find(g => g.uid === existing.uid)) {
+        this.scene.lootSystem.gearStash.push(existing);
+      }
     }
     this.equipment[slot] = gearItem;
     gearItem.equippedBy = 'agent';
     this.scene.lootSystem.gearStash = this.scene.lootSystem.gearStash.filter(g => g.uid !== gearItem.uid);
+    // Increase current HP by gear's maxHp bonus (base stat unchanged; getEffectiveStats provides the cap)
     if (gearItem.stats.maxHp) {
-      this.stats.maxHp += gearItem.stats.maxHp;
       this.stats.hp += gearItem.stats.maxHp;
     }
     this.updateVisuals();
@@ -273,11 +275,14 @@ export class Agent extends Phaser.GameObjects.Container {
     if (!gearItem) return;
     this.equipment[slot] = null;
     gearItem.equippedBy = null;
+    // Clamp current HP to new effective maxHp (base stats, gear bonus now removed)
     if (gearItem.stats.maxHp) {
-      this.stats.maxHp -= gearItem.stats.maxHp;
-      this.stats.hp = Math.min(this.stats.hp, this.stats.maxHp);
+      const newEffectiveMax = getEffectiveStats(this).maxHp;
+      this.stats.hp = Math.min(this.stats.hp, newEffectiveMax);
     }
-    this.scene.lootSystem.gearStash.push(gearItem);
+    if (!this.scene.lootSystem.gearStash.find(g => g.uid === gearItem.uid)) {
+      this.scene.lootSystem.gearStash.push(gearItem);
+    }
     this.updateVisuals();
     this.scene.events.emit('equipmentChanged', { entity: 'agent' });
     this.updateHPBar();
