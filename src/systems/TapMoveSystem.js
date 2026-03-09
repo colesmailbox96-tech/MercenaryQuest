@@ -3,6 +3,15 @@ import { getTileAt, isWalkable } from '../utils/mapGenerator.js';
 import { distance } from '../utils/helpers.js';
 
 const DISPLAY_TILE = TILE_SIZE * TILE_SCALE;
+const PATH_DOT_SIZE = 2;
+const PATH_DOT_COLOR = 0x4488FF;
+const PATH_DOT_ALPHA = 0.4;
+const MARKER_SIZE = 8;
+const MARKER_ALPHA = 0.5;
+const MARKER_INTERACTIVE_COLOR = 0xDAA520;
+const MARKER_DEFAULT_COLOR = 0xFFFFFF;
+const STEP_BUFFER_MS = 5; // Small buffer to ensure movement tween completes before next step
+const MOB_TRACKING_INTERVAL_MS = 1000;
 
 export class TapMoveSystem {
   constructor(scene) {
@@ -170,7 +179,7 @@ export class TapMoveSystem {
     this.pathIndex++;
 
     // Schedule the next step when the tween completes
-    this.scene.time.delayedCall(PLAYER_SPEED + 5, () => {
+    this.scene.time.delayedCall(PLAYER_SPEED + STEP_BUFFER_MS, () => {
       this.onStepComplete();
     });
   }
@@ -242,7 +251,7 @@ export class TapMoveSystem {
       const worldX = tile.x * DISPLAY_TILE + DISPLAY_TILE / 2;
       const worldY = tile.y * DISPLAY_TILE + DISPLAY_TILE / 2;
 
-      const dot = this.scene.add.rectangle(worldX, worldY, 2, 2, 0x4488FF, 0.4);
+      const dot = this.scene.add.rectangle(worldX, worldY, PATH_DOT_SIZE, PATH_DOT_SIZE, PATH_DOT_COLOR, PATH_DOT_ALPHA);
       dot.setDepth(5);
       this.pathDots.push(dot);
     }
@@ -284,9 +293,9 @@ export class TapMoveSystem {
 
     const worldX = tileX * DISPLAY_TILE + DISPLAY_TILE / 2;
     const worldY = tileY * DISPLAY_TILE + DISPLAY_TILE / 2;
-    const color = interactive ? 0xDAA520 : 0xFFFFFF;
+    const color = interactive ? MARKER_INTERACTIVE_COLOR : MARKER_DEFAULT_COLOR;
 
-    this.destinationMarker = this.scene.add.rectangle(worldX, worldY, 8, 8, color, 0.5);
+    this.destinationMarker = this.scene.add.rectangle(worldX, worldY, MARKER_SIZE, MARKER_SIZE, color, MARKER_ALPHA);
     this.destinationMarker.setDepth(5);
 
     // Pulsing animation
@@ -364,7 +373,7 @@ export class TapMoveSystem {
   _startTrackingTimer() {
     this._stopTrackingTimer();
     this.trackingTimer = this.scene.time.addEvent({
-      delay: 1000,
+      delay: MOB_TRACKING_INTERVAL_MS,
       loop: true,
       callback: () => this._recalcMobPath(),
     });

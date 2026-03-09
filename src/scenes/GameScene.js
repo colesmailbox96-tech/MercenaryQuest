@@ -13,6 +13,9 @@ import { TapMoveSystem } from '../systems/TapMoveSystem.js';
 import { distance } from '../utils/helpers.js';
 
 const DISPLAY_TILE = TILE_SIZE * TILE_SCALE;
+const TAP_DRAG_THRESHOLD = 10;
+const HUD_TOP_ZONE_HEIGHT = 100;
+const HUD_BOTTOM_ZONE_RATIO = 0.75;
 
 export class GameScene extends Phaser.Scene {
   constructor() {
@@ -121,16 +124,16 @@ export class GameScene extends Phaser.Scene {
       const dist = Phaser.Math.Distance.Between(
         pointer.downX, pointer.downY, pointer.upX, pointer.upY
       );
-      if (dist > 10) return;
+      if (dist > TAP_DRAG_THRESHOLD) return;
 
       // Ignore if the joystick is currently active
       const hudScene = this.scene.get('HUDScene');
       if (hudScene && hudScene.joystick && hudScene.joystick.isActive) return;
 
-      // Ignore if tap is in the HUD zone (bottom 25% of screen or top 100px)
+      // Ignore if tap is in the HUD zone (bottom 25% of screen or top HUD bar)
       const screenH = this.scale.height;
-      if (pointer.upY > screenH * 0.75) return;  // Bottom controls area
-      if (pointer.upY < 100) return;              // Top HUD bar
+      if (pointer.upY > screenH * HUD_BOTTOM_ZONE_RATIO) return;
+      if (pointer.upY < HUD_TOP_ZONE_HEIGHT) return;
 
       // Convert to world coordinates
       const worldPoint = this.cameras.main.getWorldPoint(pointer.upX, pointer.upY);
