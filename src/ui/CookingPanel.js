@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { COLORS } from '../config/constants.js';
 import { COOKING_RECIPES } from '../config/cookingData.js';
 import { ITEMS } from '../config/itemData.js';
+import { COOKING_TIER_UNLOCK_LEVELS } from '../config/skillData.js';
 
 export class CookingPanel extends Phaser.Scene {
   constructor() {
@@ -99,11 +100,9 @@ export class CookingPanel extends Phaser.Scene {
       tierMap[recipe.tier].push(recipe);
     }
 
-    const TIER_UNLOCK_LEVELS = { 1: 1, 2: 2, 3: 4, 4: 6, 5: 8 };
-
     for (const [tierNum, recipes] of Object.entries(tierMap)) {
       const tier = parseInt(tierNum);
-      const unlockLevel = TIER_UNLOCK_LEVELS[tier] || 1;
+      const unlockLevel = COOKING_TIER_UNLOCK_LEVELS[tier] || 1;
       const tierUnlocked = cookLevel >= unlockLevel;
 
       const tierLabel = tierUnlocked

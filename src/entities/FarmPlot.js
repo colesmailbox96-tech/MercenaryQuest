@@ -58,8 +58,6 @@ export class FarmPlot {
 
     if (state === 'ready') {
       const farmSys = this.scene.farmingSystem;
-      const plotStatus = farmSys?.getPlotStatus(this.plotIndex);
-      const seedId = plotStatus?.crop ? null : farmSys?.plots[this.plotIndex]?.seedId;
       const actualSeedId = farmSys?.plots[this.plotIndex]?.seedId;
       const cropKey = actualSeedId ? SEEDS[actualSeedId]?.crop : null;
       const textureKey = cropKey ? CROP_READY_TEXTURES[cropKey] : 'tile_farm_ready_wheat';

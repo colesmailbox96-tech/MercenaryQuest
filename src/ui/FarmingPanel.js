@@ -107,13 +107,11 @@ export class FarmingPanel extends Phaser.Scene {
         }).setOrigin(0.5);
         this.elements.push(label);
 
-        if (status.state === 'empty') {
-          cell.setInteractive({ useHandCursor: true });
-          cell.on('pointerdown', () => {
-            this.selectedPlot = i;
-            this._render();
-          });
-        }
+        cell.setInteractive({ useHandCursor: true });
+        cell.on('pointerdown', () => {
+          this.selectedPlot = i;
+          this._render();
+        });
       } else if (status.state === 'ready') {
         const seedDef = SEEDS[farmSys.plots[i].seedId];
         const cropIcon = seedDef ? seedDef.icon : '🌾';

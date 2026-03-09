@@ -4,6 +4,7 @@ import { ACTIVITY } from '../config/constants.js';
 import { weightedRandom } from '../utils/helpers.js';
 
 const RARE_ORES = ['gemstone_shard', 'void_crystal', 'ancient_coin'];
+const MAX_SPEED_BONUS = 0.80;
 
 export class MiningSystem {
   constructor(scene) {
@@ -64,7 +65,7 @@ export class MiningSystem {
       ? this.skillSystem.getBonus('mining', 'cycleSpeedBonus')
       : 0;
     const buffSpeed = this._getBuffSpeedBonus();
-    const totalSpeed = Math.min(0.80, speedBonus + buffSpeed);
+    const totalSpeed = Math.min(MAX_SPEED_BONUS, speedBonus + buffSpeed);
     const maxExtBonus = this.skillSystem && this.skillSystem.hasPerk('mining', 'master_miner') ? 0.50 : 0;
     const adjustedDuration = Math.floor(this.activeNodeDef.cycleDuration * (1 - totalSpeed));
 

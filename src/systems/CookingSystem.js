@@ -1,26 +1,6 @@
 import { COOKING_RECIPES } from '../config/cookingData.js';
 import { ITEMS } from '../config/itemData.js';
-
-function getOwnedQuantity(materials, itemId) {
-  const entry = materials.find(m => m.id === itemId);
-  return entry ? entry.quantity : 0;
-}
-
-function removeFromMaterials(materials, itemId, qty) {
-  const idx = materials.findIndex(m => m.id === itemId);
-  if (idx === -1) return;
-  materials[idx].quantity -= qty;
-  if (materials[idx].quantity <= 0) materials.splice(idx, 1);
-}
-
-function addToMaterials(materials, item) {
-  const existing = materials.find(m => m.id === item.id);
-  if (existing) {
-    existing.quantity += item.quantity;
-  } else {
-    materials.push({ ...item });
-  }
-}
+import { getOwnedQuantity, removeFromMaterials, addToMaterials } from '../utils/helpers.js';
 
 export class CookingSystem {
   constructor(scene, skillSystem) {

@@ -86,3 +86,6 @@ export const SKILL_BONUSES = {
     },
   },
 };
+
+// Maps cooking recipe tier → required cooking skill level (used in UI)
+export const COOKING_TIER_UNLOCK_LEVELS = { 1: 1, 2: 2, 3: 4, 4: 6, 5: 8 };

@@ -31,3 +31,25 @@ export function tileToWorld(tileX, tileY, tileSize) {
 export function worldToTile(worldX, worldY, tileSize) {
   return { x: Math.floor(worldX / tileSize), y: Math.floor(worldY / tileSize) };
 }
+
+// ---- Inventory helpers ----
+export function getOwnedQuantity(materials, itemId) {
+  const entry = materials.find(m => m.id === itemId);
+  return entry ? entry.quantity : 0;
+}
+
+export function removeFromMaterials(materials, itemId, qty) {
+  const idx = materials.findIndex(m => m.id === itemId);
+  if (idx === -1) return;
+  materials[idx].quantity -= qty;
+  if (materials[idx].quantity <= 0) materials.splice(idx, 1);
+}
+
+export function addToMaterials(materials, item) {
+  const existing = materials.find(m => m.id === item.id);
+  if (existing) {
+    existing.quantity += item.quantity;
+  } else {
+    materials.push({ ...item });
+  }
+}

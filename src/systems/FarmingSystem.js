@@ -1,29 +1,5 @@
 import { SEEDS, CROPS } from '../config/farmData.js';
-
-function randomBetween(min, max) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
-function getOwnedQuantity(materials, itemId) {
-  const entry = materials.find(m => m.id === itemId);
-  return entry ? entry.quantity : 0;
-}
-
-function removeFromMaterials(materials, itemId, qty) {
-  const idx = materials.findIndex(m => m.id === itemId);
-  if (idx === -1) return;
-  materials[idx].quantity -= qty;
-  if (materials[idx].quantity <= 0) materials.splice(idx, 1);
-}
-
-function addToMaterials(materials, item) {
-  const existing = materials.find(m => m.id === item.id);
-  if (existing) {
-    existing.quantity += item.quantity;
-  } else {
-    materials.push({ ...item });
-  }
-}
+import { randomInt, getOwnedQuantity, removeFromMaterials, addToMaterials } from '../utils/helpers.js';
 
 export class FarmingSystem {
   constructor(scene, skillSystem) {
@@ -125,7 +101,7 @@ export class FarmingSystem {
     const seedDef = SEEDS[plot.seedId];
     const cropDef = CROPS[seedDef.crop];
 
-    let quantity = randomBetween(seedDef.cropYield.min, seedDef.cropYield.max);
+    let quantity = randomInt(seedDef.cropYield.min, seedDef.cropYield.max);
 
     const bonusChance = this.skillSystem.getBonus('farming', 'harvestBonusChance');
     if (Math.random() < bonusChance) {
