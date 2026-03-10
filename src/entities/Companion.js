@@ -1,4 +1,7 @@
 import Phaser from 'phaser';
+import { TILE_SIZE, TILE_SCALE } from '../config/constants.js';
+
+const DISPLAY_TILE = TILE_SIZE * TILE_SCALE;
 
 export class Companion extends Phaser.GameObjects.Container {
   constructor(scene, x, y, definition) {
@@ -28,7 +31,7 @@ export class Companion extends Phaser.GameObjects.Container {
 
   follow(player, delta) {
     const dist = Phaser.Math.Distance.Between(this.x, this.y, player.x, player.y);
-    const followDist = this.def.followDistance * 16;
+    const followDist = this.def.followDistance * DISPLAY_TILE;
 
     if (dist > followDist + 4) {
       const angle = Phaser.Math.Angle.Between(this.x, this.y, player.x, player.y);
@@ -51,7 +54,7 @@ export class Companion extends Phaser.GameObjects.Container {
       }
     }
 
-    if (dist > 8 * 16) {
+    if (dist > 8 * DISPLAY_TILE) {
       this.x = player.x - followDist;
       this.y = player.y;
     }

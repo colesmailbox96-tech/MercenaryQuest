@@ -1,5 +1,5 @@
-export const TILE_SIZE = 16;
-export const TILE_SCALE = 2;
+export const TILE_SIZE = 32;
+export const TILE_SCALE = 1;
 export const DISPLAY_TILE = TILE_SIZE * TILE_SCALE;
 export const MAP_WIDTH = 40;
 export const MAP_HEIGHT = 40;
