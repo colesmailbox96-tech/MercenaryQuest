@@ -1,6 +1,45 @@
 import { COMBAT_TICK } from '../config/constants.js';
 import { getEffectiveStats } from '../systems/StatCalculator.js';
 
+function getEntityName(entity) {
+  return entity.name || (entity.entityType === 'player' ? 'You' : entity.entityType === 'agent' ? 'Agent' : 'Enemy');
+}
+
+export function calculateDamage(attacker, defender, attackerBuffs = [], defenderBuffs = []) {
+  const atkStats = getEffectiveStats(attacker, attackerBuffs);
+  const defStats = getEffectiveStats(defender, defenderBuffs);
+  const baseDamage = Math.max(1, atkStats.atk - defStats.def);
+
+  // Dodge check: high defense relative to attack grants dodge chance
+  if (defStats.def > atkStats.atk) {
+    const dodgeChance = Math.min(0.30, (defStats.def - atkStats.atk) * 0.03);
+    if (Math.random() < dodgeChance) {
+      return { damage: 0, isCrit: false, isMiss: false, isDodge: true };
+    }
+  }
+
+  // Miss check: glancing blows can miss entirely
+  if (baseDamage <= 1 && Math.random() < 0.08) {
+    return { damage: 0, isCrit: false, isMiss: true, isDodge: false };
+  }
+
+  // Damage variance: 80%-120% of base
+  const variance = 0.80 + Math.random() * 0.40;
+  let finalDamage = Math.max(1, Math.round(baseDamage * variance));
+
+  // Critical hit check
+  const CRIT_CHANCE = 0.05;
+  const bonusCrit = atkStats.critChance || 0;
+  const totalCritChance = Math.min(0.25, CRIT_CHANCE + bonusCrit);
+  let isCrit = false;
+  if (Math.random() < totalCritChance) {
+    finalDamage = Math.round(finalDamage * 1.5);
+    isCrit = true;
+  }
+
+  return { damage: finalDamage, isCrit, isMiss: false, isDodge: false, variance };
+}
+
 export class CombatSystem {
   constructor(scene) {
     this.scene = scene;
@@ -8,7 +47,6 @@ export class CombatSystem {
   }
 
   startCombat(attacker, defender) {
-    // Check if already in combat
     if (attacker.inCombat || defender.inCombat) return;
 
     attacker.inCombat = true;
@@ -35,84 +73,108 @@ export class CombatSystem {
       return;
     }
 
-    // Attacker hits defender
     const activeBuffs = this.scene.activeBuffs || [];
     const attackerBuffs = attacker.entityType === 'player' ? activeBuffs : [];
     const defenderBuffs = defender.entityType === 'player' ? activeBuffs : [];
-    const attackerStats = getEffectiveStats(attacker, attackerBuffs);
-    const defenderStats = getEffectiveStats(defender, defenderBuffs);
-    let dmgToDefender = Math.max(1, attackerStats.atk - defenderStats.def);
-    // Wolf companion perk: +10% damage dealt by player
+    const attackerName = getEntityName(attacker);
+    const defenderName = getEntityName(defender);
+
+    // --- Attacker hits defender ---
+    const atkResult = calculateDamage(attacker, defender, attackerBuffs, defenderBuffs);
+
+    if (atkResult.isDodge) {
+      this.scene.events.emit('combatDodge', { attacker, defender });
+      this.scene.events.emit('combatLogEntry', { type: 'dodge', attackerName, defenderName });
+      if (this.scene.audioSystem) this.scene.audioSystem.playDodge();
+      return;
+    }
+
+    if (atkResult.isMiss) {
+      this.scene.events.emit('combatMiss', { attacker, defender });
+      this.scene.events.emit('combatLogEntry', { type: 'miss', attackerName, defenderName });
+      if (this.scene.audioSystem) this.scene.audioSystem.playMiss();
+      return;
+    }
+
+    // Apply wolf companion damage bonus for player attacks
+    let dmgToDefender = atkResult.damage;
     if (attacker.entityType === 'player' && this.scene.companionSystem) {
       const dmgBonus = this.scene.companionSystem.getEffectivePerkValue('damageBonus');
       if (dmgBonus > 0) dmgToDefender = Math.ceil(dmgToDefender * (1 + dmgBonus));
     }
-    defender.takeDamage(dmgToDefender);
-    this.showDamageNumber(defender, dmgToDefender);
-    // Play combat hit sound and juice effects
-    if (this.scene.audioSystem) this.scene.audioSystem.playHit();
-    if (this.scene.juiceSystem) {
-      this.scene.juiceSystem.showDamageNumber(defender.x, defender.y - 16, dmgToDefender);
+
+    if (typeof defender.takeDamage === 'function') {
+      defender.takeDamage(dmgToDefender);
+    } else {
+      defender.stats.hp = Math.max(0, defender.stats.hp - dmgToDefender);
+      if (defender.updateHPBar) defender.updateHPBar();
     }
 
-    // Check if defender died
+    if (atkResult.isCrit) {
+      this.scene.events.emit('combatCrit', { attacker, defender, damage: dmgToDefender });
+      this.scene.events.emit('combatLogEntry', { type: 'crit', attackerName, defenderName, damage: dmgToDefender });
+      if (this.scene.audioSystem) this.scene.audioSystem.playCritHit();
+    } else {
+      this.scene.events.emit('combatHit', { attacker, defender, damage: dmgToDefender });
+      this.scene.events.emit('combatLogEntry', { type: 'hit', attackerName, defenderName, damage: dmgToDefender });
+      if (this.scene.audioSystem) this.scene.audioSystem.playHit();
+    }
+
+    if (this.scene.juiceSystem) {
+      this.scene.juiceSystem.showDamageNumber(defender.x, defender.y - 16, dmgToDefender, atkResult.isCrit);
+    }
+
     if (defender.stats.hp <= 0) {
       this.onEntityDeath(defender, attacker);
       this.endCombat(combat);
       return;
     }
 
-    // Defender hits attacker
-    let dmgToAttacker = Math.max(1, defenderStats.atk - attackerStats.def);
-    // Wolf companion perk: -5% damage taken by player
+    // --- Defender counter-attacks attacker ---
+    const defResult = calculateDamage(defender, attacker, defenderBuffs, attackerBuffs);
+
+    if (defResult.isDodge) {
+      this.scene.events.emit('combatDodge', { attacker: defender, defender: attacker });
+      this.scene.events.emit('combatLogEntry', { type: 'dodge', attackerName: defenderName, defenderName: attackerName });
+      if (this.scene.audioSystem) this.scene.audioSystem.playDodge();
+      return;
+    }
+
+    if (defResult.isMiss) {
+      this.scene.events.emit('combatMiss', { attacker: defender, defender: attacker });
+      this.scene.events.emit('combatLogEntry', { type: 'miss', attackerName: defenderName, defenderName: attackerName });
+      if (this.scene.audioSystem) this.scene.audioSystem.playMiss();
+      return;
+    }
+
+    // Apply wolf companion damage reduction for player being hit
+    let dmgToAttacker = defResult.damage;
     if (attacker.entityType === 'player' && this.scene.companionSystem) {
       const dmgReduce = this.scene.companionSystem.getEffectivePerkValue('damageReduction');
       if (dmgReduce > 0) dmgToAttacker = Math.max(1, Math.ceil(dmgToAttacker * (1 - dmgReduce)));
     }
-    attacker.takeDamage(dmgToAttacker);
-    this.showDamageNumber(attacker, dmgToAttacker);
-    if (this.scene.juiceSystem) {
-      this.scene.juiceSystem.showDamageNumber(attacker.x, attacker.y - 16, dmgToAttacker);
+
+    attacker.stats.hp = Math.max(0, attacker.stats.hp - dmgToAttacker);
+    if (attacker.updateHPBar) attacker.updateHPBar();
+
+    if (defResult.isCrit) {
+      this.scene.events.emit('combatCrit', { attacker: defender, defender: attacker, damage: dmgToAttacker });
+      this.scene.events.emit('combatLogEntry', { type: 'crit', attackerName: defenderName, defenderName: attackerName, damage: dmgToAttacker });
+      if (this.scene.audioSystem) this.scene.audioSystem.playCritHit();
+    } else {
+      this.scene.events.emit('combatHit', { attacker: defender, defender: attacker, damage: dmgToAttacker });
+      this.scene.events.emit('combatLogEntry', { type: 'hit', attackerName: defenderName, defenderName: attackerName, damage: dmgToAttacker });
+      if (this.scene.audioSystem) this.scene.audioSystem.playHit();
     }
 
-    // Check if attacker died
+    if (this.scene.juiceSystem) {
+      this.scene.juiceSystem.showDamageNumber(attacker.x, attacker.y - 16, dmgToAttacker, defResult.isCrit);
+    }
+
     if (attacker.stats.hp <= 0) {
       this.onEntityDeath(attacker, defender);
       this.endCombat(combat);
       return;
-    }
-  }
-
-  showDamageNumber(entity, damage) {
-    if (!entity || !entity.active) return;
-
-    const text = this.scene.add.text(entity.x, entity.y - 16, `-${damage}`, {
-      fontSize: '12px',
-      fontFamily: 'monospace',
-      color: '#ffffff',
-      stroke: '#000000',
-      strokeThickness: 3,
-      fontStyle: 'bold',
-    });
-    text.setOrigin(0.5);
-    text.setDepth(100);
-
-    this.scene.tweens.add({
-      targets: text,
-      y: text.y - 20,
-      alpha: 0,
-      duration: 600,
-      onComplete: () => text.destroy(),
-    });
-
-    // Red tint flash on damaged entity
-    if (entity.sprite) {
-      entity.sprite.setTint(0xff0000);
-      this.scene.time.delayedCall(150, () => {
-        if (entity.active && entity.sprite) {
-          entity.sprite.clearTint();
-        }
-      });
     }
   }
 
@@ -134,7 +196,6 @@ export class CombatSystem {
   }
 
   update() {
-    // Clean up combats where entities are gone
     this.combats = this.combats.filter(combat => {
       if (!combat.attacker.active || !combat.defender.active) {
         this.endCombat(combat);

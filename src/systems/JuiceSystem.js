@@ -1,13 +1,28 @@
 export class JuiceSystem {
   constructor(scene) {
     this.scene = scene;
+
+    this.scene.events.on('combatCrit', ({ attacker, defender, damage }) => {
+      this.hitFlash(defender, 0xffffff, 200);
+      this.screenShake(0.01, 200);
+    });
+
+    this.scene.events.on('combatMiss', ({ attacker, defender }) => {
+      this.floatingText(defender, 'MISS', { color: '#888888', scale: 0.8 });
+      this.whiffTween(attacker, defender);
+    });
+
+    this.scene.events.on('combatDodge', ({ attacker, defender }) => {
+      this.floatingText(defender, 'DODGE', { color: '#FFFFFF', scale: 0.9 });
+      this.dodgeTween(defender);
+    });
   }
 
   showDamageNumber(x, y, amount, isCrit = false) {
     const text = this.scene.add.text(x, y, `-${amount}`, {
       fontFamily: 'monospace',
       fontSize: isCrit ? '18px' : '14px',
-      color: isCrit ? '#FF4444' : '#FFFFFF',
+      color: isCrit ? '#FFD700' : '#FFFFFF',
       stroke: '#000000',
       strokeThickness: 2,
     }).setOrigin(0.5).setDepth(1000);
@@ -20,6 +35,25 @@ export class JuiceSystem {
       ease: 'Power2',
       onComplete: () => text.destroy(),
     });
+
+    if (isCrit) {
+      const critLabel = this.scene.add.text(x, y - 16, 'CRIT!', {
+        fontFamily: 'monospace',
+        fontSize: '12px',
+        color: '#FFD700',
+        stroke: '#000000',
+        strokeThickness: 2,
+      }).setOrigin(0.5).setDepth(1000);
+
+      this.scene.tweens.add({
+        targets: critLabel,
+        y: y - 56,
+        alpha: 0,
+        duration: 800,
+        ease: 'Power2',
+        onComplete: () => critLabel.destroy(),
+      });
+    }
   }
 
   showHealNumber(x, y, amount) {
@@ -87,6 +121,83 @@ export class JuiceSystem {
     if (!sprite || !sprite.active) return;
     if (sprite._flashTimer) sprite._flashTimer.remove();
     sprite.setTint(0xffffff);
+    sprite._flashTimer = this.scene.time.delayedCall(duration, () => {
+      if (sprite && sprite.active) {
+        sprite.clearTint();
+      }
+      sprite._flashTimer = null;
+    });
+  }
+
+  floatingText(entity, text, options = {}) {
+    const { color = '#FFFFFF', scale = 1.0 } = options;
+    const floatX = entity.x;
+    const floatY = entity.y - 16;
+    const label = this.scene.add.text(floatX, floatY, text, {
+      fontFamily: 'monospace',
+      fontSize: '14px',
+      color,
+      stroke: '#000000',
+      strokeThickness: 2,
+    }).setOrigin(0.5).setDepth(1000).setScale(scale);
+
+    this.scene.tweens.add({
+      targets: label,
+      y: floatY - 40,
+      alpha: 0,
+      duration: 800,
+      ease: 'Power2',
+      onComplete: () => label.destroy(),
+    });
+  }
+
+  whiffTween(attacker, defender) {
+    const sprite = attacker.sprite || attacker;
+    if (!sprite || !sprite.active) return;
+    const dx = defender.x - attacker.x;
+    const dy = defender.y - attacker.y;
+    const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+    const offsetX = (dx / dist) * 2;
+    const offsetY = (dy / dist) * 2;
+    const origX = sprite.x;
+    const origY = sprite.y;
+
+    this.scene.tweens.add({
+      targets: sprite,
+      x: origX + offsetX,
+      y: origY + offsetY,
+      duration: 75,
+      ease: 'Power1',
+      yoyo: true,
+      onComplete: () => {
+        sprite.x = origX;
+        sprite.y = origY;
+      },
+    });
+  }
+
+  dodgeTween(defender) {
+    const sprite = defender.sprite || defender;
+    if (!sprite || !sprite.active) return;
+    const origX = sprite.x;
+
+    this.scene.tweens.add({
+      targets: sprite,
+      x: origX + 3,
+      duration: 100,
+      ease: 'Power1',
+      yoyo: true,
+      onComplete: () => {
+        sprite.x = origX;
+      },
+    });
+  }
+
+  hitFlash(entity, color, duration) {
+    const sprite = entity.sprite || entity;
+    if (!sprite || !sprite.active) return;
+    if (sprite._flashTimer) sprite._flashTimer.remove();
+    sprite.setTint(color);
     sprite._flashTimer = this.scene.time.delayedCall(duration, () => {
       if (sprite && sprite.active) {
         sprite.clearTint();

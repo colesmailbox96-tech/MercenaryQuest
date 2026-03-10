@@ -25,6 +25,24 @@ export class Agent extends Phaser.GameObjects.Container {
     this.pathTimer = 0;
     this.targetMob = null;
 
+    // Agent AI config (persisted)
+    this.config = {
+      zonePreference: 'auto',   // 'auto' | 'forest' | 'caves' | 'swamp' | 'volcanic'
+      retreatThreshold: 0.25,   // HP percentage to trigger retreat
+    };
+
+    // Session stats (NOT persisted — reset each page load)
+    this.sessionStats = {
+      kills: 0,
+      goldEarned: 0,
+      gearFound: 0,
+      deaths: 0,
+      tripsCompleted: 0,
+    };
+
+    this.consecutiveDeaths = 0;
+    this.currentTargetZone = null;
+
     this.sprite = scene.add.image(0, 0, 'entity_agent_down');
     this.add(this.sprite);
 
@@ -72,6 +90,20 @@ export class Agent extends Phaser.GameObjects.Container {
     const mobs = this.scene.spawner.getMobs();
     if (mobs.length === 0) return;
 
+    // Check retreat threshold
+    const effectiveStats = getEffectiveStats(this);
+    const hpPercent = this.stats.hp / effectiveStats.maxHp;
+    if (hpPercent <= this.config.retreatThreshold) {
+      this.state = 'RETREATING';
+      this.currentPath = [];
+      this.scene.events.emit('agentStateChanged', this.state);
+      this.scene.events.emit('combatLogEntry', {
+        type: 'agent_retreat',
+        message: `Agent retreats at ${Math.round(hpPercent * 100)}% HP`,
+      });
+      return;
+    }
+
     // Night morale check — retreat earlier without Lantern
     if (this.scene.dayNightSystem && this.scene.dayNightSystem.isNight) {
       const hasLantern = this.equipment.accessory &&
@@ -87,12 +119,17 @@ export class Agent extends Phaser.GameObjects.Container {
       }
     }
 
-    // Find nearest mob
+    // Find nearest mob (filtered by zone preference)
     if (!this.targetMob || !this.targetMob.active || this.pathTimer > 2000) {
       let nearest = null;
       let nearestDist = Infinity;
       for (const mob of mobs) {
         if (!mob.active || mob.inCombat) continue;
+        // Zone preference filtering
+        if (this.config.zonePreference !== 'auto') {
+          const tile = this.scene.mapData[mob.tileY]?.[mob.tileX];
+          if (tile?.zone && tile.zone !== this.config.zonePreference) continue;
+        }
         const d = distance(this.tileX, this.tileY, mob.tileX, mob.tileY);
         if (d < nearestDist) {
           nearestDist = d;
@@ -101,6 +138,9 @@ export class Agent extends Phaser.GameObjects.Container {
       }
       if (nearest) {
         this.targetMob = nearest;
+        // Track current zone
+        const mobTile = this.scene.mapData[nearest.tileY]?.[nearest.tileX];
+        this.currentTargetZone = mobTile?.zone || 'unknown';
         this.currentPath = this.scene.pathfinding.findPath(this.tileX, this.tileY, nearest.tileX, nearest.tileY);
         this.pathTimer = 0;
       }
@@ -340,13 +380,42 @@ export class Agent extends Phaser.GameObjects.Container {
 
   onCombatEnd(killed) {
     if (this.stats.hp <= 0) {
+      this.sessionStats.deaths++;
+      this.consecutiveDeaths++;
+      // Warn after 3 consecutive deaths in locked zone
+      if (this.consecutiveDeaths >= 3 && this.config.zonePreference !== 'auto') {
+        const zone = this.config.zonePreference.charAt(0).toUpperCase() + this.config.zonePreference.slice(1);
+        this.scene.events.emit('combatLogEntry', {
+          type: 'agent_death',
+          message: `Agent is struggling in ${zone}. Consider switching zones or upgrading gear.`,
+        });
+      }
       this.state = 'RETREATING';
       this.currentPath = [];
       this.scene.events.emit('agentStateChanged', this.state);
       return;
     }
 
+    if (killed) {
+      this.consecutiveDeaths = 0;
+    }
+
+    // Check retreat threshold after combat
+    const effectiveStats = getEffectiveStats(this);
+    const hpPercent = this.stats.hp / effectiveStats.maxHp;
+    if (hpPercent <= this.config.retreatThreshold) {
+      this.state = 'RETREATING';
+      this.currentPath = [];
+      this.scene.events.emit('agentStateChanged', this.state);
+      this.scene.events.emit('combatLogEntry', {
+        type: 'agent_retreat',
+        message: `Agent retreats at ${Math.round(hpPercent * 100)}% HP`,
+      });
+      return;
+    }
+
     if (this.isInventoryFull()) {
+      this.sessionStats.tripsCompleted++;
       this.state = 'RETURNING';
       this.currentPath = [];
       this.scene.events.emit('agentStateChanged', this.state);

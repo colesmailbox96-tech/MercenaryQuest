@@ -23,6 +23,7 @@ import { SaveSystem } from '../systems/SaveSystem.js';
 import { AudioSystem } from '../systems/AudioSystem.js';
 import { JuiceSystem } from '../systems/JuiceSystem.js';
 import { TutorialSystem } from '../systems/TutorialSystem.js';
+import { CombatLog } from '../systems/CombatLog.js';
 import { EGG_HATCH_CONFIG } from '../config/companionData.js';
 
 const DISPLAY_TILE = TILE_SIZE * TILE_SCALE;
@@ -53,6 +54,7 @@ export class GameScene extends Phaser.Scene {
     this.companionSystem = new CompanionSystem(this);
     this.audioSystem = new AudioSystem(this);
     this.juiceSystem = new JuiceSystem(this);
+    this.combatLog = new CombatLog(100);
     this.agent = null;
     this.viewTarget = 'player';
     this.activeBuffs = [];
@@ -151,6 +153,60 @@ export class GameScene extends Phaser.Scene {
     });
     this.events.on('miningMiss', () => {
       this.audioSystem.playMineMiss();
+    });
+
+    // ── Combat Log wiring ──
+    this.events.on('combatLogEntry', (entry) => this.combatLog.addEntry(entry));
+
+    this.events.on('fishingCatch', (data) => {
+      const itemDef = ITEMS[data?.itemId];
+      this.combatLog.addEntry({
+        type: 'fishing',
+        message: `Caught ${itemDef?.name || 'a fish'}`,
+      });
+    });
+    this.events.on('fishingMiss', () => {
+      this.combatLog.addEntry({ type: 'fishing_miss', message: 'The fish got away...' });
+    });
+    this.events.on('miningExtract', (data) => {
+      const itemDef = ITEMS[data?.itemId];
+      this.combatLog.addEntry({
+        type: 'mining',
+        message: `Extracted ${itemDef?.name || 'ore'}`,
+      });
+    });
+    this.events.on('skillLevelUp', (data) => {
+      const unlockStr = data.unlock ? ` ${data.unlock.description}` : '';
+      const entry = {
+        type: 'skill_levelup',
+        message: `${data.skillId} reached Level ${data.newLevel}!${unlockStr}`,
+      };
+      this.combatLog.addEntry(entry);
+      this.events.emit('combatLogEntry', entry);
+    });
+    this.events.on('levelUp', (data) => {
+      const entry = {
+        type: 'level_up',
+        message: `Level up! You are now Level ${data?.level || '?'}`,
+      };
+      this.combatLog.addEntry(entry);
+      this.events.emit('combatLogEntry', entry);
+    });
+    this.events.on('activeBuffsChanged', (buffs) => {
+      if (buffs.length === 0) {
+        const entry = { type: 'buff_expire', message: 'Food buff expired' };
+        this.combatLog.addEntry(entry);
+        this.events.emit('combatLogEntry', entry);
+      }
+    });
+    this.events.on('cookingComplete', (data) => {
+      const foodDef = ITEMS[data?.item];
+      const entry = {
+        type: 'cooking',
+        message: `Cooked ${foodDef?.name || data?.item}`,
+      };
+      this.combatLog.addEntry(entry);
+      this.events.emit('combatLogEntry', entry);
     });
   }
 
@@ -299,6 +355,19 @@ export class GameScene extends Phaser.Scene {
         this.events.emit('mobKilled', deadEntity);
         if (this.saveSystem) this.saveSystem.markDirty();
 
+        // Combat log for kill
+        const mobName = deadEntity.name || deadEntity.typeKey || 'Enemy';
+        const prefix = killer.entityType === 'agent' ? 'Agent' : 'You';
+        this.combatLog.addEntry({
+          type: killer.entityType === 'agent' ? 'agent_kill' : 'kill',
+          message: `${prefix} killed ${mobName}`,
+        });
+
+        // Agent session stats
+        if (killer.entityType === 'agent' && killer.sessionStats) {
+          killer.sessionStats.kills++;
+        }
+
         // Notify agent combat ended
         if (killer.entityType === 'agent') {
           killer.onCombatEnd(true);
@@ -307,12 +376,20 @@ export class GameScene extends Phaser.Scene {
         // Player death - respawn in town
         this.audioSystem.playDeath();
         this.juiceSystem.screenShake(0.01, 200);
+        this.combatLog.addEntry({
+          type: 'player_death',
+          message: 'You were defeated!',
+        });
         deadEntity.stats.hp = deadEntity.stats.maxHp;
         deadEntity.updateHPBar();
         deadEntity.tileX = 19;
         deadEntity.tileY = 20;
         deadEntity.setPosition(19 * DISPLAY_TILE + DISPLAY_TILE / 2, 20 * DISPLAY_TILE + DISPLAY_TILE / 2);
       } else if (deadEntity.entityType === 'agent') {
+        this.events.emit('combatLogEntry', {
+          type: 'agent_death',
+          message: 'Agent was defeated!',
+        });
         deadEntity.onCombatEnd(false);
       }
     });
@@ -789,6 +866,10 @@ export class GameScene extends Phaser.Scene {
       this.agent.equipment = this.deserializeEquipment(saveData.agent.equipment);
       this.agent.updateVisuals();
       this.agent.updateHPBar();
+      // Restore agent config
+      if (saveData.agentConfig && this.agent.config) {
+        this.agent.config = { ...this.agent.config, ...saveData.agentConfig };
+      }
     }
 
     // Inventory
