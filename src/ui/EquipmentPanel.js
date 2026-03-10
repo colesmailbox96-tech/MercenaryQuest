@@ -286,12 +286,37 @@ export class EquipmentPanel extends Phaser.Scene {
     }
   }
 
+  _computeGearGridBottomY(gearGridStartY) {
+    // Determine the bottom of the gear grid based on rendered grid cells.
+    // Fallback to the previous fixed offset behavior if we cannot infer it.
+    let maxY = null;
+
+    if (Array.isArray(this.gridCells)) {
+      this.gridCells.forEach((cell) => {
+        if (cell && typeof cell.y === 'number' && cell.y >= gearGridStartY) {
+          if (maxY === null || cell.y > maxY) {
+            maxY = cell.y;
+          }
+        }
+      });
+    }
+
+    if (maxY === null) {
+      // No grid cells found; fall back to legacy fixed offset.
+      return gearGridStartY + 120;
+    }
+
+    // Place the next section below the last row of the grid, with padding.
+    return maxY + CELL_SIZE + 16;
+  }
+
   _buildAgentConfig(gearGridStartY) {
     const agent = this.gameScene.agent;
     const config = agent.config;
     const baseX = this.panelX + 10;
-    // Position below gear grid area
-    let curY = gearGridStartY + 120;
+    // Position below the actual gear grid area
+    const gridBottomY = this._computeGearGridBottomY(gearGridStartY);
+    let curY = gridBottomY + 10;
 
     // Divider
     this._add(this.add.rectangle(this.panelX + this.panelW / 2, curY, this.panelW - 20, 1, 0x555577, 1));
