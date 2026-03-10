@@ -88,6 +88,11 @@ export class AudioSystem {
     this._playTone('square', 80, 0.06, 0.8);
   }
 
+  playCritHit() {
+    this._playTone('square', 120, 0.08, 1.0);
+    this._playTone('sawtooth', 200, 0.06, 0.6);
+  }
+
   playMiss() {
     this._playNoise(0.1, 0.4, 2000);
   }
