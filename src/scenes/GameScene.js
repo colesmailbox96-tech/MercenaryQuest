@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { TILE_SIZE, TILE_SCALE, MAP_WIDTH, MAP_HEIGHT, BUILDINGS, KITCHEN_TILE } from '../config/constants.js';
+import { TILE_SIZE, TILE_SCALE, MAP_WIDTH, MAP_HEIGHT, BUILDINGS, KITCHEN_TILE, GOLD_TRACKING_WINDOW } from '../config/constants.js';
 import { generateMap, getTileAt } from '../utils/mapGenerator.js';
 import { Player } from '../entities/Player.js';
 import { Agent } from '../entities/Agent.js';
@@ -505,10 +505,10 @@ export class GameScene extends Phaser.Scene {
     if (this._goldRateUpdateTimer >= 10000) {
       this._goldRateUpdateTimer = 0;
       const now = Date.now();
-      this.goldHistory = this.goldHistory.filter(e => now - e.timestamp < 180000);
+      this.goldHistory = this.goldHistory.filter(e => now - e.timestamp < GOLD_TRACKING_WINDOW);
       const totalGold = this.goldHistory.reduce((sum, e) => sum + e.gold, 0);
       const windowSecs = this.goldHistory.length > 0
-        ? Math.min(180, (now - this.goldHistory[0].timestamp) / 1000)
+        ? Math.min(GOLD_TRACKING_WINDOW / 1000, (now - this.goldHistory[0].timestamp) / 1000)
         : 0;
       const gpm = windowSecs > 0 ? Math.round((totalGold / windowSecs) * 60) : 0;
       this.events.emit('goldRateChanged', gpm);
