@@ -19,6 +19,7 @@ import { distance } from '../utils/helpers.js';
 import { DayNightSystem } from '../systems/DayNightSystem.js';
 import { WanderingMerchant } from '../systems/WanderingMerchant.js';
 import { CompanionSystem } from '../systems/CompanionSystem.js';
+import { SaveSystem } from '../systems/SaveSystem.js';
 import { EGG_HATCH_CONFIG } from '../config/companionData.js';
 
 const DISPLAY_TILE = TILE_SIZE * TILE_SCALE;
@@ -51,8 +52,22 @@ export class GameScene extends Phaser.Scene {
     this.viewTarget = 'player';
     this.activeBuffs = [];
 
-    // Shared game state for inventory (materials)
-    this.gameState = { materials: this.lootSystem.sharedStash };
+    // Shared game state for save/load serialization
+    this.gameState = {
+      player: this.player,
+      gold: this.lootSystem.gold,
+      agent: this.agent,
+      materials: this.lootSystem.sharedStash,
+      gear: this.lootSystem.gearStash,
+      fishingSystem: this.fishingSystem,
+      miningSystem: this.miningSystem,
+      skillSystem: this.skillSystem,
+      farmingSystem: this.farmingSystem,
+      activeBuff: this.activeBuffs.length > 0 ? this.activeBuffs[0] : null,
+      totalPlayTime: this.totalPlayTime || 0,
+      sessionCount: this.sessionCount || 0,
+      createdAt: this.createdAt || new Date().toISOString(),
+    };
 
     this.miningNodeSprites = {};
     this.farmPlotEntities = [];
@@ -67,6 +82,22 @@ export class GameScene extends Phaser.Scene {
     this.setupAmbientAnimations();
     this.setupMiningNodeVisuals();
     this.setupSkillHandlers();
+
+    // Initialize SaveSystem
+    this.saveSystem = new SaveSystem(this);
+
+    // Attempt to load existing save
+    const loadResult = this.saveSystem.load();
+    if (loadResult.success) {
+      this.applyLoadedState(loadResult.data);
+    } else {
+      this.totalPlayTime = 0;
+      this.sessionCount = 1;
+      this.createdAt = new Date().toISOString();
+    }
+
+    // Start auto-save
+    this.saveSystem.startAutoSave(this.gameState, 30000);
 
     this.scene.launch('HUDScene');
 
@@ -198,6 +229,7 @@ export class GameScene extends Phaser.Scene {
         // Kill mob
         deadEntity.die();
         this.spawner.onMobDeath(deadEntity);
+        if (this.saveSystem) this.saveSystem.markDirty();
 
         // Notify agent combat ended
         if (killer.entityType === 'agent') {
@@ -278,6 +310,7 @@ export class GameScene extends Phaser.Scene {
         this.agent = new Agent(this, 19, 19);
         this.events.emit('agentHired');
         this.events.emit('agentStateChanged', this.agent.state);
+        if (this.saveSystem) this.saveSystem.markDirty();
       }
     } else if (buildingType === 'shop') {
       this.scene.launch('ShopScene');
@@ -304,6 +337,15 @@ export class GameScene extends Phaser.Scene {
 
   update(time, delta) {
     this.handleMovement();
+
+    // Track play time
+    if (!this._lastTimeUpdate) this._lastTimeUpdate = 0;
+    this._lastTimeUpdate += delta;
+    if (this._lastTimeUpdate >= 1000) {
+      this.totalPlayTime = (this.totalPlayTime || 0) + Math.floor(this._lastTimeUpdate / 1000);
+      this._lastTimeUpdate = this._lastTimeUpdate % 1000;
+      if (this.gameState) this.gameState.totalPlayTime = this.totalPlayTime;
+    }
 
     // Update tap-to-move system
     this.tapMoveSystem.update();
@@ -598,6 +640,8 @@ export class GameScene extends Phaser.Scene {
       duration: actualDuration,
     };
     this.activeBuffs = [buff];
+    if (this.gameState) this.gameState.activeBuff = buff;
+    if (this.saveSystem) this.saveSystem.markDirty();
 
     // Apply HP heal
     if (buff.heal > 0) {
@@ -616,5 +660,135 @@ export class GameScene extends Phaser.Scene {
       });
     }
     return true;
+  }
+
+  applyLoadedState(saveData) {
+    // Player stats
+    if (saveData.player) {
+      this.player.stats.level = saveData.player.level ?? this.player.stats.level;
+      this.player.stats.xp = saveData.player.xp ?? this.player.stats.xp;
+      this.player.stats.xpToNext = this.player.stats.xpToNext;
+      // Recalculate xpToNext based on level
+      let xpToNext = 25;
+      for (let i = 1; i < this.player.stats.level; i++) {
+        xpToNext = Math.floor(xpToNext * 1.5);
+      }
+      this.player.stats.xpToNext = xpToNext;
+
+      this.lootSystem.gold = saveData.player.gold ?? this.lootSystem.gold;
+      if (saveData.player.stats) {
+        this.player.stats.maxHp = saveData.player.stats.maxHp ?? this.player.stats.maxHp;
+        this.player.stats.atk = saveData.player.stats.atk ?? this.player.stats.atk;
+        this.player.stats.def = saveData.player.stats.def ?? this.player.stats.def;
+      }
+      this.player.stats.hp = saveData.player.currentHp ?? this.player.stats.hp;
+
+      if (saveData.player.position && saveData.player.position.tileX != null) {
+        this.player.tileX = saveData.player.position.tileX;
+        this.player.tileY = saveData.player.position.tileY;
+        const DTILE = TILE_SIZE * TILE_SCALE;
+        this.player.setPosition(
+          saveData.player.position.tileX * DTILE + DTILE / 2,
+          saveData.player.position.tileY * DTILE + DTILE / 2
+        );
+      }
+      this.player.equipment = this.deserializeEquipment(saveData.player.equipment);
+      this.player.updateVisuals();
+      this.player.updateHPBar();
+    }
+
+    // Agent
+    if (saveData.agent && saveData.agent.hired && !this.agent) {
+      this.agent = new Agent(this, 19, 19);
+      this.events.emit('agentHired');
+      this.events.emit('agentStateChanged', this.agent.state);
+    }
+    if (this.agent && saveData.agent && saveData.agent.hired) {
+      this.agent.stats.level = saveData.agent.level ?? this.agent.stats.level;
+      this.agent.stats.xp = saveData.agent.xp ?? this.agent.stats.xp;
+      let agentXpToNext = 25;
+      for (let i = 1; i < this.agent.stats.level; i++) {
+        agentXpToNext = Math.floor(agentXpToNext * 1.5);
+      }
+      this.agent.stats.xpToNext = agentXpToNext;
+      if (saveData.agent.stats) {
+        this.agent.stats.maxHp = saveData.agent.stats.maxHp ?? this.agent.stats.maxHp;
+        this.agent.stats.atk = saveData.agent.stats.atk ?? this.agent.stats.atk;
+        this.agent.stats.def = saveData.agent.stats.def ?? this.agent.stats.def;
+      }
+      this.agent.stats.hp = saveData.agent.currentHp ?? this.agent.stats.hp;
+      this.agent.equipment = this.deserializeEquipment(saveData.agent.equipment);
+      this.agent.updateVisuals();
+      this.agent.updateHPBar();
+    }
+
+    // Inventory
+    this.lootSystem.sharedStash.length = 0;
+    if (saveData.inventory && saveData.inventory.materials) {
+      saveData.inventory.materials.forEach(m => this.lootSystem.sharedStash.push(m));
+    }
+    if (saveData.inventory && saveData.inventory.gear) {
+      this.lootSystem.gearStash = saveData.inventory.gear;
+    }
+
+    // Skills
+    if (this.skillSystem && saveData.skills) {
+      this.skillSystem.skills = JSON.parse(JSON.stringify(saveData.skills));
+    }
+
+    // Farm plots
+    if (this.farmingSystem && saveData.farmPlots && saveData.farmPlots.length > 0) {
+      saveData.farmPlots.forEach(plotData => {
+        const plot = this.farmingSystem.plots[plotData.index];
+        if (plot) {
+          plot.state = plotData.state;
+          plot.seedId = plotData.seedId;
+          plot.plantedAt = plotData.plantedAt;
+          plot.growthDuration = plotData.growthDuration;
+          if ((plot.state === 'planted' || plot.state === 'growing') && plot.plantedAt) {
+            const elapsed = Date.now() - plot.plantedAt;
+            if (elapsed >= plot.growthDuration) {
+              plot.state = 'ready';
+            }
+          }
+        }
+      });
+    }
+
+    // Active buff
+    if (saveData.activeBuff) {
+      if (saveData.activeBuff.expiresAt && Date.now() >= saveData.activeBuff.expiresAt) {
+        // Buff expired while offline
+      } else {
+        this.activeBuffs = [saveData.activeBuff];
+      }
+    }
+
+    // Meta
+    this.totalPlayTime = saveData.totalPlayTime || 0;
+    this.sessionCount = (saveData.sessionCount || 0) + 1;
+    this.createdAt = saveData.createdAt || new Date().toISOString();
+
+    // Update gameState reference
+    this.gameState.player = this.player;
+    this.gameState.gold = this.lootSystem.gold;
+    this.gameState.agent = this.agent;
+    this.gameState.materials = this.lootSystem.sharedStash;
+    this.gameState.gear = this.lootSystem.gearStash;
+    this.gameState.totalPlayTime = this.totalPlayTime;
+    this.gameState.sessionCount = this.sessionCount;
+    this.gameState.createdAt = this.createdAt;
+
+    // Emit updates
+    this.events.emit('goldChanged', this.lootSystem.gold);
+    this.events.emit('playerStatsChanged', this.player.stats);
+  }
+
+  deserializeEquipment(eqData) {
+    const result = {};
+    for (const [slot, item] of Object.entries(eqData || {})) {
+      result[slot] = item ? { ...item } : null;
+    }
+    return result;
   }
 }

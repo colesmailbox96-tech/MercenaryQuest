@@ -292,6 +292,39 @@ export class HUDScene extends Phaser.Scene {
     this.companionBtn.on('pointerup', () => {
       this.companionBtn.setScale(1);
     });
+
+    // Settings button
+    this.settingsBtn = this.add.image(w - 130, h - 160, 'ui_btn_small');
+    this.settingsBtn.setScrollFactor(0);
+    this.settingsBtn.setDepth(200);
+    this.settingsBtn.setInteractive({ useHandCursor: true });
+    this.settingsBtn.setAlpha(0.8);
+
+    this.settingsBtnLabel = this.add.text(w - 130, h - 160, '⚙️', {
+      fontSize: '18px',
+    });
+    this.settingsBtnLabel.setOrigin(0.5);
+    this.settingsBtnLabel.setScrollFactor(0);
+    this.settingsBtnLabel.setDepth(201);
+
+    this.settingsBtn.on('pointerdown', () => {
+      this.settingsBtn.setScale(0.9);
+      this.scene.launch('SettingsPanel');
+    });
+    this.settingsBtn.on('pointerup', () => {
+      this.settingsBtn.setScale(1);
+    });
+
+    // Auto-save indicator
+    this.saveIndicator = this.add.text(w - 15, 55, '', {
+      fontSize: '14px',
+      fontFamily: 'monospace',
+      color: '#F5E6C8',
+    });
+    this.saveIndicator.setOrigin(1, 0);
+    this.saveIndicator.setScrollFactor(0);
+    this.saveIndicator.setDepth(101);
+    this.saveIndicator.setAlpha(0);
   }
 
   createContextPrompt(w, h) {
@@ -415,6 +448,20 @@ export class HUDScene extends Phaser.Scene {
 
     this.gameScene.events.on('levelUp', (stats) => {
       this.notifications.showLevelUp(stats);
+      if (this.gameScene.saveSystem) this.gameScene.saveSystem.markDirty();
+    });
+
+    this.gameScene.events.on('gameSaved', () => {
+      if (this.saveIndicator) {
+        this.saveIndicator.setText('💾');
+        this.saveIndicator.setAlpha(1);
+        this.tweens.add({
+          targets: this.saveIndicator,
+          alpha: 0,
+          duration: 600,
+          delay: 1000,
+        });
+      }
     });
 
     this.gameScene.events.on('inventoryChanged', () => {
