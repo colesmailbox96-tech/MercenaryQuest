@@ -88,3 +88,5 @@ export const ACTIVITY = {
 export const NEST_TILE = { x: 12, y: 35 };
 
 export const COMPANION_FOLLOW_DISTANCE = 1.5;
+
+export const AUTO_SAVE_INTERVAL = 30000;

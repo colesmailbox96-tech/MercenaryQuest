@@ -51,6 +51,12 @@ export const ITEMS = {
   moonberry_tart:  { id: 'moonberry_tart',  name: 'Moonberry Tart',  emoji: '🥧', sellValue: 30, category: 'food', duration: 120000, buff: { stats: { atk: 8, def: 5, maxHp: 20 } } },
   abyssal_broth:   { id: 'abyssal_broth',   name: 'Abyssal Broth',   emoji: '🍵', sellValue: 30, category: 'food', duration: 120000, buff: { stats: { atk: 10 }, skillEffects: { farming: { growthSpeedBonus: 0.25 } } } },
   starfruit_elixir:{ id: 'starfruit_elixir',name: 'Starfruit Elixir',emoji: '🧪', sellValue: 50, category: 'food', duration: 180000, buff: { stats: { atk: 12, def: 8, maxHp: 30 }, skillEffects: { fishing: { cycleSpeedBonus: 0.15 }, mining: { cycleSpeedBonus: 0.15 }, farming: { growthSpeedBonus: 0.15 } } } },
+  // === Phase 5: Swamp & Volcanic Materials ===
+  bog_moss:     { id: 'bog_moss',     name: 'Bog Moss',     emoji: '🌿', sellValue: 8,  category: 'material' },
+  witch_eye:    { id: 'witch_eye',    name: 'Witch Eye',    emoji: '👁️', sellValue: 12, category: 'material' },
+  lava_rock:    { id: 'lava_rock',    name: 'Lava Rock',    emoji: '🪨',  sellValue: 10, category: 'material' },
+  ash_dust:     { id: 'ash_dust',     name: 'Ash Dust',     emoji: '💨', sellValue: 6,  category: 'material' },
+  forge_ember:  { id: 'forge_ember',  name: 'Forge Ember',  emoji: '🔥', sellValue: 20, category: 'material' },
   // === Phase 7: Night Materials ===
   shadow_essence:      { id: 'shadow_essence',      name: 'Shadow Essence',      emoji: '🌑', sellValue: 6,  category: 'material' },
   wisp_core:           { id: 'wisp_core',           name: 'Wisp Core',           emoji: '💠', sellValue: 14, category: 'material' },

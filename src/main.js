@@ -11,6 +11,8 @@ import { FarmingPanel } from './ui/FarmingPanel.js';
 import { CookingPanel } from './ui/CookingPanel.js';
 import { MerchantPanel } from './ui/MerchantPanel.js';
 import { CompanionPanel } from './ui/CompanionPanel.js';
+import { ForgePanel } from './ui/ForgePanel.js';
+import { SettingsPanel } from './ui/SettingsPanel.js';
 
 const config = {
   type: Phaser.AUTO,
@@ -29,7 +31,7 @@ const config = {
       debug: false,
     },
   },
-  scene: [BootScene, GameScene, HUDScene, ShopScene, EquipmentPanel, FishingPanel, MiningPanel, SkillsPanel, FarmingPanel, CookingPanel, MerchantPanel, CompanionPanel],
+  scene: [BootScene, GameScene, HUDScene, ShopScene, EquipmentPanel, FishingPanel, MiningPanel, SkillsPanel, FarmingPanel, CookingPanel, MerchantPanel, CompanionPanel, ForgePanel, SettingsPanel],
   backgroundColor: '#0a0a14',
 };
 

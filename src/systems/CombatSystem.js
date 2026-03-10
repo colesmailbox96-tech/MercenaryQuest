@@ -49,6 +49,11 @@ export class CombatSystem {
     }
     defender.takeDamage(dmgToDefender);
     this.showDamageNumber(defender, dmgToDefender);
+    // Play combat hit sound and juice effects
+    if (this.scene.audioSystem) this.scene.audioSystem.playHit();
+    if (this.scene.juiceSystem) {
+      this.scene.juiceSystem.showDamageNumber(defender.x, defender.y - 16, dmgToDefender);
+    }
 
     // Check if defender died
     if (defender.stats.hp <= 0) {
@@ -66,6 +71,9 @@ export class CombatSystem {
     }
     attacker.takeDamage(dmgToAttacker);
     this.showDamageNumber(attacker, dmgToAttacker);
+    if (this.scene.juiceSystem) {
+      this.scene.juiceSystem.showDamageNumber(attacker.x, attacker.y - 16, dmgToAttacker);
+    }
 
     // Check if attacker died
     if (attacker.stats.hp <= 0) {

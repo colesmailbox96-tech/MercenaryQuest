@@ -19,6 +19,10 @@ import { distance } from '../utils/helpers.js';
 import { DayNightSystem } from '../systems/DayNightSystem.js';
 import { WanderingMerchant } from '../systems/WanderingMerchant.js';
 import { CompanionSystem } from '../systems/CompanionSystem.js';
+import { SaveSystem } from '../systems/SaveSystem.js';
+import { AudioSystem } from '../systems/AudioSystem.js';
+import { JuiceSystem } from '../systems/JuiceSystem.js';
+import { TutorialSystem } from '../systems/TutorialSystem.js';
 import { EGG_HATCH_CONFIG } from '../config/companionData.js';
 
 const DISPLAY_TILE = TILE_SIZE * TILE_SCALE;
@@ -47,12 +51,29 @@ export class GameScene extends Phaser.Scene {
     this.dayNightSystem = new DayNightSystem(this);
     this.wanderingMerchant = new WanderingMerchant(this);
     this.companionSystem = new CompanionSystem(this);
+    this.audioSystem = new AudioSystem(this);
+    this.juiceSystem = new JuiceSystem(this);
     this.agent = null;
     this.viewTarget = 'player';
     this.activeBuffs = [];
 
-    // Shared game state for inventory (materials)
-    this.gameState = { materials: this.lootSystem.sharedStash };
+    // Shared game state for save/load serialization
+    this.gameState = {
+      player: this.player,
+      gold: this.lootSystem.gold,
+      agent: this.agent,
+      materials: this.lootSystem.sharedStash,
+      gear: this.lootSystem.gearStash,
+      fishingSystem: this.fishingSystem,
+      miningSystem: this.miningSystem,
+      skillSystem: this.skillSystem,
+      farmingSystem: this.farmingSystem,
+      activeBuff: this.activeBuffs.length > 0 ? this.activeBuffs[0] : null,
+      totalPlayTime: this.totalPlayTime || 0,
+      sessionCount: this.sessionCount || 0,
+      createdAt: this.createdAt || new Date().toISOString(),
+      tutorialSystem: null,
+    };
 
     this.miningNodeSprites = {};
     this.farmPlotEntities = [];
@@ -68,10 +89,69 @@ export class GameScene extends Phaser.Scene {
     this.setupMiningNodeVisuals();
     this.setupSkillHandlers();
 
+    // Initialize SaveSystem
+    this.saveSystem = new SaveSystem(this);
+
+    // Attempt to load existing save
+    const loadResult = this.saveSystem.load();
+    this._initialLoadResult = loadResult;
+    if (loadResult.success) {
+      this.applyLoadedState(loadResult.data);
+    } else {
+      this.totalPlayTime = 0;
+      this.sessionCount = 1;
+      this.createdAt = new Date().toISOString();
+    }
+
+    // Start auto-save
+    this.saveSystem.startAutoSave(this.gameState, 30000);
+    this._lastTimeUpdate = 0;
+
+    // Tutorial system
+    this.tutorialSystem = new TutorialSystem(this);
+    this.gameState.tutorialSystem = this.tutorialSystem;
+
     this.scene.launch('HUDScene');
+
+    // Init tutorial (must be after HUDScene is launched)
+    this.time.delayedCall(500, () => {
+      const cached = this._initialLoadResult;
+      this.tutorialSystem.init(cached && cached.success ? cached.data : {});
+      this._initialLoadResult = null;
+    });
+
+    // Initialize AudioContext on first user interaction (browser autoplay policy)
+    this.input.once('pointerdown', () => {
+      this.audioSystem.init();
+    });
 
     this.events.emit('goldChanged', this.lootSystem.gold);
     this.events.emit('playerStatsChanged', this.player.stats);
+
+    // Audio hooks for level up and gold
+    this.events.on('levelUp', () => {
+      this.audioSystem.playLevelUp();
+      if (this.player) {
+        this.juiceSystem.levelUpBurst(this.player.x, this.player.y);
+      }
+    });
+    this.events.on('goldChanged', () => {
+      this.audioSystem.playGold();
+    });
+    // Fishing sounds
+    this.events.on('fishingCatch', () => {
+      this.audioSystem.playFishCatch();
+    });
+    this.events.on('fishingMiss', () => {
+      this.audioSystem.playFishMiss();
+    });
+    // Mining sounds
+    this.events.on('miningExtract', () => {
+      this.audioSystem.playMineExtract();
+    });
+    this.events.on('miningMiss', () => {
+      this.audioSystem.playMineMiss();
+    });
   }
 
   createTilemap() {
@@ -181,6 +261,10 @@ export class GameScene extends Phaser.Scene {
           killer.gainXP(deadEntity.xpReward);
         }
 
+        // Kill sound + juice
+        this.audioSystem.playKill();
+        this.juiceSystem.showXPNumber(deadEntity.x, deadEntity.y - 20, deadEntity.xpReward);
+
         // Roll loot (material + gear)
         const killerLevel = killer.stats ? killer.stats.level : 1;
         const drops = this.lootSystem.rollLoot(deadEntity.typeKey, killerLevel);
@@ -193,11 +277,27 @@ export class GameScene extends Phaser.Scene {
             }
           }
           this.showLootPickup(deadEntity.x, deadEntity.y, drop.item);
+
+          // Play rarity-appropriate loot sound for gear drops
+          if (drop.type === 'gear' && drop.item.rarity) {
+            const lootSounds = {
+              EPIC: 'playLootEpic',
+              RARE: 'playLootRare',
+              UNCOMMON: 'playLootUncommon',
+              COMMON: 'playLootCommon',
+            };
+            const method = lootSounds[drop.item.rarity.toUpperCase()] || 'playLootCommon';
+            this.audioSystem[method]();
+          } else {
+            this.audioSystem.playLootCommon();
+          }
         }
 
         // Kill mob
         deadEntity.die();
         this.spawner.onMobDeath(deadEntity);
+        this.events.emit('mobKilled', deadEntity);
+        if (this.saveSystem) this.saveSystem.markDirty();
 
         // Notify agent combat ended
         if (killer.entityType === 'agent') {
@@ -205,6 +305,8 @@ export class GameScene extends Phaser.Scene {
         }
       } else if (deadEntity.entityType === 'player') {
         // Player death - respawn in town
+        this.audioSystem.playDeath();
+        this.juiceSystem.screenShake(0.01, 200);
         deadEntity.stats.hp = deadEntity.stats.maxHp;
         deadEntity.updateHPBar();
         deadEntity.tileX = 19;
@@ -278,6 +380,7 @@ export class GameScene extends Phaser.Scene {
         this.agent = new Agent(this, 19, 19);
         this.events.emit('agentHired');
         this.events.emit('agentStateChanged', this.agent.state);
+        if (this.saveSystem) this.saveSystem.markDirty();
       }
     } else if (buildingType === 'shop') {
       this.scene.launch('ShopScene');
@@ -294,6 +397,7 @@ export class GameScene extends Phaser.Scene {
 
     this.cameras.main.startFollow(target, true, 0.1, 0.1);
     this.events.emit('viewTargetChanged', this.viewTarget);
+    this.events.emit('viewToggled');
 
     if (this.viewTarget === 'agent') {
       this.events.emit('agentStatsChanged', this.agent.stats);
@@ -304,6 +408,14 @@ export class GameScene extends Phaser.Scene {
 
   update(time, delta) {
     this.handleMovement();
+
+    // Track play time
+    this._lastTimeUpdate += delta;
+    if (this._lastTimeUpdate >= 1000) {
+      this.totalPlayTime = (this.totalPlayTime || 0) + Math.floor(this._lastTimeUpdate / 1000);
+      this._lastTimeUpdate = this._lastTimeUpdate % 1000;
+      if (this.gameState) this.gameState.totalPlayTime = this.totalPlayTime;
+    }
 
     // Update tap-to-move system
     this.tapMoveSystem.update();
@@ -379,7 +491,10 @@ export class GameScene extends Phaser.Scene {
     else if (dir === 'right') dx = 1;
 
     this.player.setFacing(dir);
-    this.player.moveTo(this.player.tileX + dx, this.player.tileY + dy, this.mapData);
+    const moved = this.player.moveTo(this.player.tileX + dx, this.player.tileY + dy, this.mapData);
+    if (moved) {
+      this.events.emit('playerMoved');
+    }
   }
 
   checkCombatOverlaps() {
@@ -490,6 +605,10 @@ export class GameScene extends Phaser.Scene {
   setupSkillHandlers() {
     // Skill level-up banner
     this.events.on('skillLevelUp', ({ skillId, newLevel, unlock }) => {
+      this.audioSystem.playSkillLevelUp();
+      if (this.player) {
+        this.juiceSystem.levelUpBurst(this.player.x, this.player.y, true);
+      }
       const skillIcons = { fishing: '🎣', mining: '⛏', farming: '🌾', cooking: '🍳' };
       const skillNames = { fishing: 'Fishing', mining: 'Mining', farming: 'Farming', cooking: 'Cooking' };
       const icon = skillIcons[skillId] || '📊';
@@ -550,6 +669,7 @@ export class GameScene extends Phaser.Scene {
 
     // Cooking complete → offer to eat
     this.events.on('cookingComplete', ({ item, quantity }) => {
+      this.audioSystem.playCraft();
       const hudScene = this.scene.get('HUDScene');
       if (hudScene && hudScene.lootToast) {
         const foodDef = ITEMS[item];
@@ -598,6 +718,8 @@ export class GameScene extends Phaser.Scene {
       duration: actualDuration,
     };
     this.activeBuffs = [buff];
+    if (this.gameState) this.gameState.activeBuff = buff;
+    if (this.saveSystem) this.saveSystem.markDirty();
 
     // Apply HP heal
     if (buff.heal > 0) {
@@ -607,6 +729,7 @@ export class GameScene extends Phaser.Scene {
 
     this.events.emit('activeBuffsChanged', this.activeBuffs);
     this.events.emit('inventoryChanged', this.gameState.materials);
+    this.audioSystem.playEat();
 
     const hudScene = this.scene.get('HUDScene');
     if (hudScene && hudScene.lootToast) {
@@ -616,5 +739,133 @@ export class GameScene extends Phaser.Scene {
       });
     }
     return true;
+  }
+
+  applyLoadedState(saveData) {
+    // Player stats
+    if (saveData.player) {
+      this.player.stats.level = saveData.player.level ?? this.player.stats.level;
+      this.player.stats.xp = saveData.player.xp ?? this.player.stats.xp;
+      this.player.stats.xpToNext = this.player.stats.xpToNext;
+      this.player.stats.xpToNext = this._calcXpToNext(this.player.stats.level);
+
+      this.lootSystem.gold = saveData.player.gold ?? this.lootSystem.gold;
+      if (saveData.player.stats) {
+        this.player.stats.maxHp = saveData.player.stats.maxHp ?? this.player.stats.maxHp;
+        this.player.stats.atk = saveData.player.stats.atk ?? this.player.stats.atk;
+        this.player.stats.def = saveData.player.stats.def ?? this.player.stats.def;
+      }
+      this.player.stats.hp = saveData.player.currentHp ?? this.player.stats.hp;
+
+      if (saveData.player.position && saveData.player.position.tileX != null) {
+        this.player.tileX = saveData.player.position.tileX;
+        this.player.tileY = saveData.player.position.tileY;
+        this.player.setPosition(
+          saveData.player.position.tileX * DISPLAY_TILE + DISPLAY_TILE / 2,
+          saveData.player.position.tileY * DISPLAY_TILE + DISPLAY_TILE / 2
+        );
+      }
+      this.player.equipment = this.deserializeEquipment(saveData.player.equipment);
+      this.player.updateVisuals();
+      this.player.updateHPBar();
+    }
+
+    // Agent
+    if (saveData.agent && saveData.agent.hired && !this.agent) {
+      this.agent = new Agent(this, 19, 19);
+      this.events.emit('agentHired');
+      this.events.emit('agentStateChanged', this.agent.state);
+    }
+    if (this.agent && saveData.agent && saveData.agent.hired) {
+      this.agent.stats.level = saveData.agent.level ?? this.agent.stats.level;
+      this.agent.stats.xp = saveData.agent.xp ?? this.agent.stats.xp;
+      this.agent.stats.xpToNext = this._calcXpToNext(this.agent.stats.level);
+      if (saveData.agent.stats) {
+        this.agent.stats.maxHp = saveData.agent.stats.maxHp ?? this.agent.stats.maxHp;
+        this.agent.stats.atk = saveData.agent.stats.atk ?? this.agent.stats.atk;
+        this.agent.stats.def = saveData.agent.stats.def ?? this.agent.stats.def;
+      }
+      this.agent.stats.hp = saveData.agent.currentHp ?? this.agent.stats.hp;
+      this.agent.equipment = this.deserializeEquipment(saveData.agent.equipment);
+      this.agent.updateVisuals();
+      this.agent.updateHPBar();
+    }
+
+    // Inventory
+    this.lootSystem.sharedStash.length = 0;
+    if (saveData.inventory && saveData.inventory.materials) {
+      saveData.inventory.materials.forEach(m => this.lootSystem.sharedStash.push(m));
+    }
+    if (saveData.inventory && saveData.inventory.gear) {
+      this.lootSystem.gearStash = saveData.inventory.gear;
+    }
+
+    // Skills
+    if (this.skillSystem && saveData.skills) {
+      this.skillSystem.skills = JSON.parse(JSON.stringify(saveData.skills));
+    }
+
+    // Farm plots
+    if (this.farmingSystem && saveData.farmPlots && saveData.farmPlots.length > 0) {
+      saveData.farmPlots.forEach(plotData => {
+        const plot = this.farmingSystem.plots[plotData.index];
+        if (plot) {
+          plot.state = plotData.state;
+          plot.seedId = plotData.seedId;
+          plot.plantedAt = plotData.plantedAt;
+          plot.growthDuration = plotData.growthDuration;
+          if ((plot.state === 'planted' || plot.state === 'growing') && plot.plantedAt) {
+            const elapsed = Date.now() - plot.plantedAt;
+            if (elapsed >= plot.growthDuration) {
+              plot.state = 'ready';
+            }
+          }
+        }
+      });
+    }
+
+    // Active buff
+    if (saveData.activeBuff) {
+      if (saveData.activeBuff.expiresAt && Date.now() >= saveData.activeBuff.expiresAt) {
+        // Buff expired while offline
+      } else {
+        this.activeBuffs = [saveData.activeBuff];
+      }
+    }
+
+    // Meta
+    this.totalPlayTime = saveData.totalPlayTime || 0;
+    this.sessionCount = (saveData.sessionCount || 0) + 1;
+    this.createdAt = saveData.createdAt || new Date().toISOString();
+
+    // Update gameState reference
+    this.gameState.player = this.player;
+    this.gameState.gold = this.lootSystem.gold;
+    this.gameState.agent = this.agent;
+    this.gameState.materials = this.lootSystem.sharedStash;
+    this.gameState.gear = this.lootSystem.gearStash;
+    this.gameState.totalPlayTime = this.totalPlayTime;
+    this.gameState.sessionCount = this.sessionCount;
+    this.gameState.createdAt = this.createdAt;
+
+    // Emit updates
+    this.events.emit('goldChanged', this.lootSystem.gold);
+    this.events.emit('playerStatsChanged', this.player.stats);
+  }
+
+  _calcXpToNext(level) {
+    let xpToNext = 25;
+    for (let i = 1; i < level; i++) {
+      xpToNext = Math.floor(xpToNext * 1.5);
+    }
+    return xpToNext;
+  }
+
+  deserializeEquipment(eqData) {
+    const result = {};
+    for (const [slot, item] of Object.entries(eqData || {})) {
+      result[slot] = item ? { ...item } : null;
+    }
+    return result;
   }
 }

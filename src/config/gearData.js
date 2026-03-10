@@ -144,6 +144,14 @@ export const GEAR_DEFS = {
     dropSources: [],
     nightOnly: true,
   },
+  // ===== TIER 4 FORGE GEAR =====
+  swamp_fang_blade: { id: 'swamp_fang_blade', name: 'Swamp Fang Blade', slot: 'weapon', icon: '🗡️', textureKey: 'gear_swamp_fang_blade', baseStats: { atk: 12 }, dropLevel: 0, dropSources: ['forge'] },
+  volcanic_helm: { id: 'volcanic_helm', name: 'Volcanic Helm', slot: 'helmet', icon: '⛑️', textureKey: 'gear_volcanic_helm', baseStats: { def: 8, maxHp: 10 }, dropLevel: 0, dropSources: ['forge'] },
+  miasma_mail: { id: 'miasma_mail', name: 'Miasma Mail', slot: 'chest', icon: '🛡️', textureKey: 'gear_miasma_mail', baseStats: { def: 10, maxHp: 15 }, dropLevel: 0, dropSources: ['forge'] },
+  ashwalker_boots: { id: 'ashwalker_boots', name: 'Ashwalker Boots', slot: 'boots', icon: '👢', textureKey: 'gear_ashwalker_boots', baseStats: { def: 6, maxHp: 8 }, dropLevel: 0, dropSources: ['forge'] },
+  hexed_amulet: { id: 'hexed_amulet', name: 'Hexed Amulet', slot: 'accessory', icon: '📿', textureKey: 'gear_hexed_amulet', baseStats: { atk: 5, def: 5, maxHp: 5 }, dropLevel: 0, dropSources: ['forge'] },
+  infernal_greatsword: { id: 'infernal_greatsword', name: 'Infernal Greatsword', slot: 'weapon', icon: '⚔️', textureKey: 'gear_infernal_greatsword', baseStats: { atk: 16 }, dropLevel: 0, dropSources: ['forge'] },
+
   agent_lantern: {
     id: 'agent_lantern',
     name: 'Lantern',
