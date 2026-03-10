@@ -22,6 +22,7 @@ import { CompanionSystem } from '../systems/CompanionSystem.js';
 import { SaveSystem } from '../systems/SaveSystem.js';
 import { AudioSystem } from '../systems/AudioSystem.js';
 import { JuiceSystem } from '../systems/JuiceSystem.js';
+import { TutorialSystem } from '../systems/TutorialSystem.js';
 import { EGG_HATCH_CONFIG } from '../config/companionData.js';
 
 const DISPLAY_TILE = TILE_SIZE * TILE_SCALE;
@@ -71,6 +72,7 @@ export class GameScene extends Phaser.Scene {
       totalPlayTime: this.totalPlayTime || 0,
       sessionCount: this.sessionCount || 0,
       createdAt: this.createdAt || new Date().toISOString(),
+      tutorialSystem: null,
     };
 
     this.miningNodeSprites = {};
@@ -92,6 +94,7 @@ export class GameScene extends Phaser.Scene {
 
     // Attempt to load existing save
     const loadResult = this.saveSystem.load();
+    this._initialLoadResult = loadResult;
     if (loadResult.success) {
       this.applyLoadedState(loadResult.data);
     } else {
@@ -104,7 +107,18 @@ export class GameScene extends Phaser.Scene {
     this.saveSystem.startAutoSave(this.gameState, 30000);
     this._lastTimeUpdate = 0;
 
+    // Tutorial system
+    this.tutorialSystem = new TutorialSystem(this);
+    this.gameState.tutorialSystem = this.tutorialSystem;
+
     this.scene.launch('HUDScene');
+
+    // Init tutorial (must be after HUDScene is launched)
+    this.time.delayedCall(500, () => {
+      const cached = this._initialLoadResult;
+      this.tutorialSystem.init(cached && cached.success ? cached.data : {});
+      this._initialLoadResult = null;
+    });
 
     // Initialize AudioContext on first user interaction (browser autoplay policy)
     this.input.once('pointerdown', () => {
@@ -282,6 +296,7 @@ export class GameScene extends Phaser.Scene {
         // Kill mob
         deadEntity.die();
         this.spawner.onMobDeath(deadEntity);
+        this.events.emit('mobKilled', deadEntity);
         if (this.saveSystem) this.saveSystem.markDirty();
 
         // Notify agent combat ended
@@ -382,6 +397,7 @@ export class GameScene extends Phaser.Scene {
 
     this.cameras.main.startFollow(target, true, 0.1, 0.1);
     this.events.emit('viewTargetChanged', this.viewTarget);
+    this.events.emit('viewToggled');
 
     if (this.viewTarget === 'agent') {
       this.events.emit('agentStatsChanged', this.agent.stats);
@@ -475,7 +491,10 @@ export class GameScene extends Phaser.Scene {
     else if (dir === 'right') dx = 1;
 
     this.player.setFacing(dir);
-    this.player.moveTo(this.player.tileX + dx, this.player.tileY + dy, this.mapData);
+    const moved = this.player.moveTo(this.player.tileX + dx, this.player.tileY + dy, this.mapData);
+    if (moved) {
+      this.events.emit('playerMoved');
+    }
   }
 
   checkCombatOverlaps() {

@@ -167,6 +167,7 @@ export class TapMoveSystem {
 
     // Attempt to move, using the tween's onComplete to drive the next step
     const moved = player.moveTo(nextTile.x, nextTile.y, this.scene.mapData, () => {
+      this.scene.events.emit('playerMoved');
       this.onStepComplete();
     });
     if (!moved) {

@@ -215,6 +215,16 @@ export class SaveSystem {
     data.sessionCount = gameState.sessionCount || 0;
     data.createdAt = gameState.createdAt || null;
 
+    // Tutorial
+    if (gameState.tutorialSystem) {
+      const tutState = gameState.tutorialSystem.getState();
+      data.tutorialComplete = tutState.tutorialComplete;
+      data.tutorialStep = tutState.tutorialStep;
+    } else {
+      data.tutorialComplete = false;
+      data.tutorialStep = 0;
+    }
+
     return data;
   }
 }
