@@ -111,6 +111,35 @@ export class SettingsPanel extends Phaser.Scene {
     this.resetPending = false;
     yOffset += 40;
 
+    // --- Display Section ---
+    this.add.text(leftX, yOffset, '🖥️ Display', {
+      fontSize: '15px',
+      fontFamily: 'monospace',
+      color: '#DAA520',
+      fontStyle: 'bold',
+    });
+    yOffset += 30;
+
+    // Minimap toggle
+    const minimapVisible = this.gameScene.minimapVisible !== false;
+    const minimapToggle = this.add.text(leftX, yOffset, `Show Minimap: ${minimapVisible ? '✅ ON' : '❌ OFF'}`, {
+      fontSize: '12px',
+      fontFamily: 'monospace',
+      color: minimapVisible ? '#4CAF50' : '#FF6B6B',
+    });
+    minimapToggle.setInteractive({ useHandCursor: true });
+    minimapToggle.on('pointerdown', () => {
+      this.gameScene.minimapVisible = !this.gameScene.minimapVisible;
+      const hudScene = this.gameScene.scene.get('HUDScene');
+      if (hudScene && hudScene.minimap) {
+        hudScene.minimap.setVisible(this.gameScene.minimapVisible);
+      }
+      minimapToggle.setText(`Show Minimap: ${this.gameScene.minimapVisible ? '✅ ON' : '❌ OFF'}`);
+      minimapToggle.setColor(this.gameScene.minimapVisible ? '#4CAF50' : '#FF6B6B');
+      if (this.gameScene.saveSystem) this.gameScene.saveSystem.markDirty();
+    });
+    yOffset += 30;
+
     // --- Info Section ---
     this.add.text(leftX, yOffset, 'ℹ️ Info', {
       fontSize: '15px',

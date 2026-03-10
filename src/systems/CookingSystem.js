@@ -67,4 +67,56 @@ export class CookingSystem {
     this.scene.events.emit('inventoryChanged', gameState.materials);
     return { success: true, item: recipe.output.id, quantity: outputQty };
   }
+
+  getMaxCookCount(recipeId, materials) {
+    const recipe = COOKING_RECIPES[recipeId];
+    if (!recipe) return 0;
+    if (this.skillSystem.getLevel('cooking') < recipe.requiredCookingLevel) return 0;
+    let maxCount = Infinity;
+    for (const ing of recipe.ingredients) {
+      const owned = getOwnedQuantity(materials, ing.id);
+      const possible = Math.floor(owned / ing.quantity);
+      if (possible < maxCount) maxCount = possible;
+    }
+    return maxCount === Infinity ? 0 : maxCount;
+  }
+
+  cookBatch(recipeId, gameState, count) {
+    if (count <= 0) return { success: false, reason: 'Invalid count' };
+    const recipe = COOKING_RECIPES[recipeId];
+    if (!recipe) return { success: false, reason: 'Unknown recipe' };
+
+    const maxCount = this.getMaxCookCount(recipeId, gameState.materials);
+    const actualCount = Math.min(count, maxCount);
+    if (actualCount <= 0) return { success: false, reason: 'Insufficient ingredients' };
+
+    for (const ing of recipe.ingredients) {
+      removeFromMaterials(gameState.materials, ing.id, ing.quantity * actualCount);
+    }
+
+    let totalOutput = 0;
+    for (let i = 0; i < actualCount; i++) {
+      let outputQty = recipe.output.quantity;
+      if (this.skillSystem.hasPerk('cooking', 'double_portion') && Math.random() < 0.20) {
+        outputQty += recipe.output.quantity;
+      }
+      totalOutput += outputQty;
+    }
+
+    const foodDef = ITEMS[recipe.output.id];
+    addToMaterials(gameState.materials, {
+      id: recipe.output.id,
+      name: foodDef?.name || recipe.output.id,
+      emoji: foodDef?.emoji || '🍽',
+      quantity: totalOutput,
+      sellValue: foodDef?.sellValue || 0,
+      category: 'food',
+    });
+
+    const isAdvanced = recipe.requiredCookingLevel >= 5;
+    this.skillSystem.addXP('cooking', (isAdvanced ? 10 : 6) * actualCount);
+
+    this.scene.events.emit('inventoryChanged', gameState.materials);
+    return { success: true, item: recipe.output.id, quantity: totalOutput, batchCount: actualCount };
+  }
 }

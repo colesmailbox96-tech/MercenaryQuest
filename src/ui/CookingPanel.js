@@ -176,6 +176,23 @@ export class CookingPanel extends Phaser.Scene {
           });
         }
         this.elements.push(cookBtn);
+
+        // Cook Max button
+        const maxCount = cookSys.getMaxCookCount(recipe.id, materials);
+        const cookMaxColor = maxCount > 0 ? '#FF9800' : '#555555';
+        const cookMaxBtn = this.add.text(panelX + panelW - 70, y - ingChecks.length * 12 - 14 + 18, `[Max ×${maxCount}]`, {
+          fontSize: '11px', fontFamily: 'monospace', color: cookMaxColor,
+        });
+        if (maxCount > 0) {
+          cookMaxBtn.setInteractive({ useHandCursor: true });
+          cookMaxBtn.on('pointerdown', () => {
+            const result = cookSys.cookBatch(recipe.id, this.gameScene.gameState, maxCount);
+            if (result.success) {
+              this.gameScene.events.emit('cookingComplete', result);
+            }
+          });
+        }
+        this.elements.push(cookMaxBtn);
         y += 8;
       }
     }

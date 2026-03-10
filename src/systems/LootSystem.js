@@ -202,4 +202,73 @@ export class LootSystem {
     this.scene.events.emit('goldChanged', this.gold);
     return true;
   }
+
+  sellAllMaterials() {
+    let total = 0;
+    this.sharedStash = this.sharedStash.filter(item => {
+      if (item.category !== 'food' && item.category !== 'seed' && item.sellValue > 0) {
+        total += item.sellValue * item.quantity;
+        return false;
+      }
+      return true;
+    });
+    if (total > 0) {
+      this.gold += total;
+      this.scene.events.emit('goldChanged', this.gold);
+      this.scene.events.emit('inventoryChanged', this.sharedStash);
+    }
+    return total;
+  }
+
+  sellAllUncommonAndBelowGear() {
+    let total = 0;
+    this.gearStash = this.gearStash.filter(g => {
+      if (!g.equippedBy && (g.rarity === 'COMMON' || g.rarity === 'UNCOMMON')) {
+        total += g.sellValue;
+        return false;
+      }
+      return true;
+    });
+    if (total > 0) {
+      this.gold += total;
+      this.scene.events.emit('goldChanged', this.gold);
+      this.scene.events.emit('gearStashChanged', this.gearStash);
+    }
+    return total;
+  }
+
+  sellAllFood() {
+    let total = 0;
+    this.sharedStash = this.sharedStash.filter(item => {
+      if (item.category === 'food' && item.sellValue > 0) {
+        total += item.sellValue * item.quantity;
+        return false;
+      }
+      return true;
+    });
+    if (total > 0) {
+      this.gold += total;
+      this.scene.events.emit('goldChanged', this.gold);
+      this.scene.events.emit('inventoryChanged', this.sharedStash);
+    }
+    return total;
+  }
+
+  getMaterialsSellTotal() {
+    return this.sharedStash
+      .filter(item => item.category !== 'food' && item.category !== 'seed' && item.sellValue > 0)
+      .reduce((sum, item) => sum + item.sellValue * item.quantity, 0);
+  }
+
+  getUncommonAndBelowGearSellTotal() {
+    return this.gearStash
+      .filter(g => !g.equippedBy && (g.rarity === 'COMMON' || g.rarity === 'UNCOMMON'))
+      .reduce((sum, g) => sum + g.sellValue, 0);
+  }
+
+  getFoodSellTotal() {
+    return this.sharedStash
+      .filter(item => item.category === 'food' && item.sellValue > 0)
+      .reduce((sum, item) => sum + item.sellValue * item.quantity, 0);
+  }
 }

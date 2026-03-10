@@ -440,16 +440,38 @@ export class EquipmentPanel extends Phaser.Scene {
     if (tx + tw > this.panelX + this.panelW) tx = gx - CELL_SIZE / 2 - tw - 8;
     if (tx < this.panelX + 4) tx = this.panelX + 4;
 
-    const th = currentEquipped ? 185 : 140;
+    // Stat deltas
+    const statKeys = ['atk', 'def', 'maxHp'];
+    const statLabels = { atk: 'ATK', def: 'DEF', maxHp: 'HP' };
+    const statCount = statKeys.filter(s => (gear.stats[s] || 0) > 0 || (currentEquipped?.stats[s] || 0) > 0).length;
+    const th = (currentEquipped ? 160 : 120) + statCount * 14;
     this.tooltip = this._makeTooltip(tx, ty, tw, th);
 
     const rarityColor = '#' + gear.rarityColor.toString(16).padStart(6, '0');
     this._addTooltipText(tx + 8, ty + 8, gear.name, rarityColor, '12px');
 
-    const statsStr = Object.entries(gear.stats).map(([k, v]) => `${k.toUpperCase()}: +${v}`).join('  ');
-    this._addTooltipText(tx + 8, ty + 26, statsStr, '#AADDAA', '11px');
+    let statY = ty + 26;
+    for (const stat of statKeys) {
+      const newVal = gear.stats[stat] || 0;
+      if (newVal === 0 && !(currentEquipped?.stats[stat])) continue;
+      const curVal = currentEquipped ? (currentEquipped.stats[stat] || 0) : 0;
+      const delta = newVal - curVal;
+      let deltaStr, deltaColor;
+      if (delta > 0) {
+        deltaStr = `(+${delta} ▲)`;
+        deltaColor = '#4CAF50';
+      } else if (delta < 0) {
+        deltaStr = `(${delta} ▼)`;
+        deltaColor = '#FF6B6B';
+      } else {
+        deltaStr = '(—)';
+        deltaColor = '#AAAAAA';
+      }
+      this._addTooltipText(tx + 8, statY, `${statLabels[stat]}: ${newVal}  ${deltaStr}`, deltaColor, '11px');
+      statY += 14;
+    }
 
-    let compareY = ty + 46;
+    let compareY = statY + 4;
     if (currentEquipped) {
       this._addTooltipText(tx + 8, compareY, '─ Equipped ─', '#888899', '10px');
       compareY += 14;
@@ -467,10 +489,10 @@ export class EquipmentPanel extends Phaser.Scene {
     const currentPS = calculatePowerScore(entity, psEntityBuf);
     const simEntity = this._simulateEquip(entity, gear);
     const newPS = calculatePowerScore(simEntity, psEntityBuf);
-    const delta = newPS - currentPS;
-    const deltaStr = delta > 0 ? `▲${delta}` : delta < 0 ? `▼${Math.abs(delta)}` : '=';
-    const deltaColor = delta > 0 ? '#4CAF50' : delta < 0 ? '#F44336' : '#888888';
-    this._addTooltipText(tx + 8, compareY, `Power: ${currentPS} → ${newPS} (${deltaStr})`, deltaColor, '10px');
+    const psDelta = newPS - currentPS;
+    const psStr = psDelta > 0 ? `▲${psDelta}` : psDelta < 0 ? `▼${Math.abs(psDelta)}` : '=';
+    const psColor = psDelta > 0 ? '#4CAF50' : psDelta < 0 ? '#F44336' : '#888888';
+    this._addTooltipText(tx + 8, compareY, `Power: ${currentPS} → ${newPS} (${psStr})`, psColor, '10px');
     compareY += 16;
 
     // EQUIP button

@@ -34,6 +34,16 @@ export class FarmingPanel extends Phaser.Scene {
     this.elements = [];
     this._render();
 
+    // Refresh every second for countdown timers
+    this._timerEvent = this.time.addEvent({
+      delay: 1000,
+      callback: () => this._render(),
+      loop: true,
+    });
+    this.events.once('shutdown', () => {
+      if (this._timerEvent) this._timerEvent.remove();
+    });
+
     // Refresh on plot state changes
     this.gameScene.events.on('plotStateChanged', this._render, this);
     this.events.once('shutdown', () => {
@@ -125,12 +135,30 @@ export class FarmingPanel extends Phaser.Scene {
         cell.on('pointerdown', () => this._harvestPlot(i));
       } else {
         const seedDef = SEEDS[farmSys.plots[i].seedId];
-        const growIcon = this.add.text(cx, cy - 8, seedDef?.icon || '🌱', { fontSize: '14px' }).setOrigin(0.5);
-        const pctLabel = this.add.text(cx, cy + 8,
-          `${Math.round((status.progress || 0) * 100)}%`, {
-          fontSize: '9px', fontFamily: 'monospace', color: '#AAAAAA',
+        const growIcon = this.add.text(cx, cy - 10, seedDef?.icon || '🌱', { fontSize: '14px' }).setOrigin(0.5);
+        const remainMs = status.timeRemaining || 0;
+        const totalSec = Math.ceil(remainMs / 1000);
+        const mins = Math.floor(totalSec / 60);
+        const secs = totalSec % 60;
+        const timerStr = mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
+        const timerColor = totalSec <= 10 ? '#4CAF50' : '#AAAAAA';
+        const timerLabel = this.add.text(cx, cy + 6,
+          timerStr, {
+          fontSize: '9px', fontFamily: 'monospace', color: timerColor,
         }).setOrigin(0.5);
-        this.elements.push(growIcon, pctLabel);
+        if (totalSec <= 10) {
+          this.tweens.add({
+            targets: timerLabel,
+            scaleX: 1.1, scaleY: 1.1,
+            yoyo: true, repeat: -1,
+            duration: 500,
+          });
+        }
+        const pctLabel = this.add.text(cx, cy + 18,
+          `${Math.round((status.progress || 0) * 100)}%`, {
+          fontSize: '8px', fontFamily: 'monospace', color: '#666666',
+        }).setOrigin(0.5);
+        this.elements.push(growIcon, timerLabel, pctLabel);
       }
     }
 

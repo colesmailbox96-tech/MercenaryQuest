@@ -25,6 +25,7 @@ import { JuiceSystem } from '../systems/JuiceSystem.js';
 import { TutorialSystem } from '../systems/TutorialSystem.js';
 import { CombatLog } from '../systems/CombatLog.js';
 import { EGG_HATCH_CONFIG } from '../config/companionData.js';
+import { MINING_NODE_PLACEMENTS } from '../config/oreData.js';
 
 const DISPLAY_TILE = TILE_SIZE * TILE_SCALE;
 const TAP_DRAG_THRESHOLD = 10;
@@ -58,6 +59,11 @@ export class GameScene extends Phaser.Scene {
     this.agent = null;
     this.viewTarget = 'player';
     this.activeBuffs = [];
+    this.minimapVisible = true;
+
+    // Gold rate tracking (QOL Pass B)
+    this.goldHistory = [];
+    this._goldRateUpdateTimer = 0;
 
     // Shared game state for save/load serialization
     this.gameState = {
@@ -139,6 +145,16 @@ export class GameScene extends Phaser.Scene {
     });
     this.events.on('goldChanged', () => {
       this.audioSystem.playGold();
+    });
+
+    // Track gold gains for rate calculation
+    this._lastKnownGold = this.lootSystem.gold;
+    this.events.on('goldChanged', (newGold) => {
+      const gained = newGold - this._lastKnownGold;
+      if (gained > 0) {
+        this.goldHistory.push({ gold: gained, timestamp: Date.now() });
+      }
+      this._lastKnownGold = newGold;
     });
     // Fishing sounds
     this.events.on('fishingCatch', () => {
@@ -484,6 +500,20 @@ export class GameScene extends Phaser.Scene {
   }
 
   update(time, delta) {
+    // Gold rate tracking update
+    this._goldRateUpdateTimer += delta;
+    if (this._goldRateUpdateTimer >= 10000) {
+      this._goldRateUpdateTimer = 0;
+      const now = Date.now();
+      this.goldHistory = this.goldHistory.filter(e => now - e.timestamp < 180000);
+      const totalGold = this.goldHistory.reduce((sum, e) => sum + e.gold, 0);
+      const windowSecs = this.goldHistory.length > 0
+        ? Math.min(180, (now - this.goldHistory[0].timestamp) / 1000)
+        : 0;
+      const gpm = windowSecs > 0 ? Math.round((totalGold / windowSecs) * 60) : 0;
+      this.events.emit('goldRateChanged', gpm);
+    }
+
     this.handleMovement();
 
     // Track play time
@@ -519,6 +549,9 @@ export class GameScene extends Phaser.Scene {
     // Update Phase 7 systems
     if (this.dayNightSystem) this.dayNightSystem.update(delta);
     if (this.companionSystem) this.companionSystem.update(delta);
+
+    // Mining node respawn countdowns (QOL Pass B)
+    this._updateMiningRespawnTexts();
 
     // Keyboard shortcuts
     if (Phaser.Input.Keyboard.JustDown(this.eKey)) {
@@ -919,6 +952,11 @@ export class GameScene extends Phaser.Scene {
     this.sessionCount = (saveData.sessionCount || 0) + 1;
     this.createdAt = saveData.createdAt || new Date().toISOString();
 
+    // Minimap preference
+    if (saveData.minimapVisible !== undefined) {
+      this.minimapVisible = saveData.minimapVisible;
+    }
+
     // Update gameState reference
     this.gameState.player = this.player;
     this.gameState.gold = this.lootSystem.gold;
@@ -948,5 +986,67 @@ export class GameScene extends Phaser.Scene {
       result[slot] = item ? { ...item } : null;
     }
     return result;
+  }
+
+  _updateMiningRespawnTexts() {
+    if (!this._miningRespawnTexts) this._miningRespawnTexts = {};
+    const mining = this.miningSystem;
+    const playerX = this.player.tileX;
+    const playerY = this.player.tileY;
+
+    for (const [nodeKey, ns] of Object.entries(mining.nodeStates)) {
+      const textKey = `respawn_${nodeKey}`;
+      if (ns.state === 'depleted' && ns.depletedAt && ns.respawnDuration) {
+        const elapsed = Date.now() - ns.depletedAt;
+        const remaining = Math.max(0, ns.respawnDuration - elapsed);
+        const totalSec = Math.ceil(remaining / 1000);
+
+        const placement = this._getMiningNodePlacement(nodeKey);
+        if (!placement) continue;
+
+        const dist = Math.abs(playerX - placement.tileX) + Math.abs(playerY - placement.tileY);
+        if (dist > 5) {
+          if (this._miningRespawnTexts[textKey]) {
+            this._miningRespawnTexts[textKey].destroy();
+            delete this._miningRespawnTexts[textKey];
+          }
+          continue;
+        }
+
+        const worldX = placement.tileX * DISPLAY_TILE + DISPLAY_TILE / 2;
+        const worldY = placement.tileY * DISPLAY_TILE - 8;
+        const mins = Math.floor(totalSec / 60);
+        const secs = totalSec % 60;
+        const timerStr = mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
+        const color = totalSec <= 10 ? '#FFFFFF' : '#AAAAAA';
+
+        if (!this._miningRespawnTexts[textKey]) {
+          const txt = this.add.text(worldX, worldY, timerStr, {
+            fontSize: '10px', fontFamily: 'monospace', color,
+            stroke: '#000000', strokeThickness: 2,
+          }).setOrigin(0.5).setDepth(40);
+          this._miningRespawnTexts[textKey] = txt;
+        } else {
+          this._miningRespawnTexts[textKey].setText(timerStr);
+          this._miningRespawnTexts[textKey].setColor(color);
+          this._miningRespawnTexts[textKey].setPosition(worldX, worldY);
+        }
+      } else {
+        if (this._miningRespawnTexts[textKey]) {
+          this._miningRespawnTexts[textKey].destroy();
+          delete this._miningRespawnTexts[textKey];
+        }
+      }
+    }
+  }
+
+  _getMiningNodePlacement(nodeKey) {
+    if (!this._miningNodePlacementCache) {
+      this._miningNodePlacementCache = {};
+      for (const p of MINING_NODE_PLACEMENTS) {
+        this._miningNodePlacementCache[p.nodeType] = p;
+      }
+    }
+    return this._miningNodePlacementCache[nodeKey] || null;
   }
 }
