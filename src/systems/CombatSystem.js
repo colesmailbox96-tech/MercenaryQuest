@@ -103,8 +103,12 @@ export class CombatSystem {
       if (dmgBonus > 0) dmgToDefender = Math.ceil(dmgToDefender * (1 + dmgBonus));
     }
 
-    defender.stats.hp = Math.max(0, defender.stats.hp - dmgToDefender);
-    if (defender.updateHPBar) defender.updateHPBar();
+    if (typeof defender.takeDamage === 'function') {
+      defender.takeDamage(dmgToDefender);
+    } else {
+      defender.stats.hp = Math.max(0, defender.stats.hp - dmgToDefender);
+      if (defender.updateHPBar) defender.updateHPBar();
+    }
 
     if (atkResult.isCrit) {
       this.scene.events.emit('combatCrit', { attacker, defender, damage: dmgToDefender });
