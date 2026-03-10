@@ -1367,4 +1367,84 @@ function generatePhase7Textures(scene) {
     g.fillStyle(0xFFFFAA);
     g.fillRect(14, 12, 4, 6);
   });
+
+  // === Tier 4 Forge Gear ===
+
+  // Swamp Fang Blade – murky green weapon with toxic edge
+  tex32(scene, 'gear_swamp_fang_blade', (g) => {
+    g.fillStyle(0x3A4A2A);
+    g.fillRect(14, 18, 4, 12);
+    g.fillStyle(0x4A6A2A);
+    g.fillRect(14, 4, 4, 14);
+    g.fillStyle(0x66AA33);
+    g.fillRect(16, 4, 2, 14);
+    g.fillStyle(0x5A5A2A);
+    g.fillRect(12, 18, 8, 2);
+  });
+
+  // Volcanic Helm – dark red-brown with orange lava cracks
+  tex32(scene, 'gear_volcanic_helm', (g) => {
+    g.fillStyle(0x5A2500);
+    g.fillRect(8, 10, 16, 12);
+    g.fillRect(6, 12, 20, 8);
+    g.fillStyle(0xFF4400);
+    g.fillRect(10, 14, 2, 6);
+    g.fillRect(18, 12, 2, 8);
+    g.fillRect(14, 16, 4, 2);
+    g.fillStyle(0x3A1800);
+    g.fillRect(8, 20, 16, 2);
+  });
+
+  // Miasma Mail – swamp green-brown with purple trim
+  tex32(scene, 'gear_miasma_mail', (g) => {
+    g.fillStyle(0x3A4A2A);
+    g.fillRect(6, 6, 20, 20);
+    g.fillStyle(0x4A4458);
+    g.fillRect(6, 6, 20, 2);
+    g.fillRect(6, 24, 20, 2);
+    g.fillRect(6, 6, 2, 20);
+    g.fillRect(24, 6, 2, 20);
+    g.fillStyle(0x2A3A1A);
+    g.fillRect(14, 8, 4, 16);
+  });
+
+  // Ashwalker Boots – charcoal with ember orange sole
+  tex32(scene, 'gear_ashwalker_boots', (g) => {
+    g.fillStyle(0x2A2A2A);
+    g.fillRect(4, 16, 8, 10);
+    g.fillRect(20, 16, 8, 10);
+    g.fillStyle(0xFF4400);
+    g.fillRect(4, 26, 8, 2);
+    g.fillRect(20, 26, 8, 2);
+    g.fillStyle(0x3A3A3A);
+    g.fillRect(6, 16, 4, 8);
+    g.fillRect(22, 16, 4, 8);
+  });
+
+  // Hexed Amulet – purple ring with green eye center
+  tex32(scene, 'gear_hexed_amulet', (g) => {
+    g.lineStyle(4, 0x9C27B0);
+    g.strokeCircle(16, 16, 8);
+    g.fillStyle(0x9C27B0);
+    g.fillRect(14, 6, 4, 4);
+    g.fillStyle(0x44FF44);
+    g.fillCircle(16, 16, 3);
+    g.fillStyle(0x000000);
+    g.fillRect(15, 15, 2, 2);
+  });
+
+  // Infernal Greatsword – dark metal with lava blade cracks
+  tex32(scene, 'gear_infernal_greatsword', (g) => {
+    g.fillStyle(0x3A3A3A);
+    g.fillRect(13, 18, 6, 12);
+    g.fillStyle(0x2A2A2A);
+    g.fillRect(12, 2, 8, 16);
+    g.fillStyle(0xFF4400);
+    g.fillRect(14, 4, 2, 12);
+    g.fillRect(17, 6, 2, 10);
+    g.fillStyle(0xFFAA00);
+    g.fillRect(15, 8, 2, 4);
+    g.fillStyle(0x555555);
+    g.fillRect(10, 18, 12, 2);
+  });
 }

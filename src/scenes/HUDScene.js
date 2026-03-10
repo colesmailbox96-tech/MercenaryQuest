@@ -315,6 +315,28 @@ export class HUDScene extends Phaser.Scene {
       this.settingsBtn.setScale(1);
     });
 
+    // Forge button
+    this.forgeBtn = this.add.image(w - 190, h - 160, 'ui_btn_small');
+    this.forgeBtn.setScrollFactor(0);
+    this.forgeBtn.setDepth(200);
+    this.forgeBtn.setInteractive({ useHandCursor: true });
+    this.forgeBtn.setAlpha(0.8);
+
+    this.forgeBtnLabel = this.add.text(w - 190, h - 160, '⚒️', {
+      fontSize: '18px',
+    });
+    this.forgeBtnLabel.setOrigin(0.5);
+    this.forgeBtnLabel.setScrollFactor(0);
+    this.forgeBtnLabel.setDepth(201);
+
+    this.forgeBtn.on('pointerdown', () => {
+      this.forgeBtn.setScale(0.9);
+      this.scene.launch('ForgePanel');
+    });
+    this.forgeBtn.on('pointerup', () => {
+      this.forgeBtn.setScale(1);
+    });
+
     // Auto-save indicator
     this.saveIndicator = this.add.text(w - 15, 55, '', {
       fontSize: '14px',
