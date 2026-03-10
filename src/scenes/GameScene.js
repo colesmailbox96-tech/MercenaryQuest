@@ -378,7 +378,7 @@ export class GameScene extends Phaser.Scene {
         deadEntity.tileY = 20;
         deadEntity.setPosition(19 * DISPLAY_TILE + DISPLAY_TILE / 2, 20 * DISPLAY_TILE + DISPLAY_TILE / 2);
       } else if (deadEntity.entityType === 'agent') {
-        this.combatLog.addEntry({
+        this.events.emit('combatLogEntry', {
           type: 'agent_death',
           message: 'Agent was defeated!',
         });
