@@ -128,7 +128,7 @@ export class Agent extends Phaser.GameObjects.Container {
         // Zone preference filtering
         if (this.config.zonePreference !== 'auto') {
           const tile = this.scene.mapData[mob.tileY]?.[mob.tileX];
-          if (tile && tile.zone !== this.config.zonePreference) continue;
+          if (tile?.zone && tile.zone !== this.config.zonePreference) continue;
         }
         const d = distance(this.tileX, this.tileY, mob.tileX, mob.tileY);
         if (d < nearestDist) {

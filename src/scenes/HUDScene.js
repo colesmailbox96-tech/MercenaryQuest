@@ -438,8 +438,9 @@ export class HUDScene extends Phaser.Scene {
       const agent = this.gameScene.agent;
       switch (state) {
         case 'HUNTING': {
-          const zone = agent.currentTargetZone || 'unknown';
-          this.agentStatus.setText(`🤖 Hunting in ${zone}`);
+          const zone = agent.currentTargetZone || 'wilderness';
+          const zoneName = zone.charAt(0).toUpperCase() + zone.slice(1);
+          this.agentStatus.setText(`🤖 Hunting in ${zoneName}`);
           this.agentStatus.setColor('#4CAF50');
           break;
         }

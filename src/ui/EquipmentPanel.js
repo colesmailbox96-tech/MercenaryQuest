@@ -155,8 +155,8 @@ export class EquipmentPanel extends Phaser.Scene {
     const buffs = this.gameScene.activeBuffs || [];
     const entityBuffs = this.viewEntity === 'player' ? buffs : [];
     const powerScore = calculatePowerScore(entity, entityBuffs);
-    const buffPowerScore = entityBuffs.length > 0 ? calculatePowerScore(entity, []) : powerScore;
-    const buffContrib = powerScore - buffPowerScore;
+    const basePowerScore = entityBuffs.length > 0 ? calculatePowerScore(entity, []) : powerScore;
+    const buffContrib = powerScore - basePowerScore;
 
     const psY = statsY + 3 * 16 + 4;
     const psText = buffContrib > 0
