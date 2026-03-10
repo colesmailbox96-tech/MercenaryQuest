@@ -130,6 +130,14 @@ export class HUDScene extends Phaser.Scene {
     this.goldRateLabel.setScrollFactor(0);
     this.goldRateLabel.setDepth(101);
 
+    // Keep gold rate aligned with gold label on resize
+    this.scale.on('resize', () => {
+      if (this.goldLabel && this.goldRateLabel) {
+        // Align X with goldLabel and keep a fixed vertical offset below it
+        this.goldRateLabel.x = this.goldLabel.x;
+        this.goldRateLabel.y = this.goldLabel.y + 16;
+      }
+    });
     // Agent status indicator
     this.agentStatus = this.add.text(15, 42, '', {
       fontSize: '11px',
