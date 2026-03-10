@@ -1041,12 +1041,43 @@ export class GameScene extends Phaser.Scene {
   }
 
   _getMiningNodePlacement(nodeKey) {
+    // Build cache of placements grouped by nodeType
     if (!this._miningNodePlacementCache) {
       this._miningNodePlacementCache = {};
       for (const p of MINING_NODE_PLACEMENTS) {
-        this._miningNodePlacementCache[p.nodeType] = p;
+        if (!this._miningNodePlacementCache[p.nodeType]) {
+          this._miningNodePlacementCache[p.nodeType] = [];
+        }
+        this._miningNodePlacementCache[p.nodeType].push(p);
       }
     }
-    return this._miningNodePlacementCache[nodeKey] || null;
+
+    const placements = this._miningNodePlacementCache[nodeKey];
+    if (!placements || placements.length === 0) {
+      return null;
+    }
+
+    // If the player is not yet available, fall back to the first placement
+    if (!this.player) {
+      return placements[0];
+    }
+
+    const playerX = this.player.tileX;
+    const playerY = this.player.tileY;
+
+    // Choose the nearest placement of this node type to the player
+    let bestPlacement = placements[0];
+    let bestDist = distance(playerX, playerY, bestPlacement.x, bestPlacement.y);
+
+    for (let i = 1; i < placements.length; i++) {
+      const p = placements[i];
+      const d = distance(playerX, playerY, p.x, p.y);
+      if (d < bestDist) {
+        bestDist = d;
+        bestPlacement = p;
+      }
+    }
+
+    return bestPlacement;
   }
 }
