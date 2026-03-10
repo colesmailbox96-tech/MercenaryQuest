@@ -747,12 +747,7 @@ export class GameScene extends Phaser.Scene {
       this.player.stats.level = saveData.player.level ?? this.player.stats.level;
       this.player.stats.xp = saveData.player.xp ?? this.player.stats.xp;
       this.player.stats.xpToNext = this.player.stats.xpToNext;
-      // Recalculate xpToNext based on level
-      let xpToNext = 25;
-      for (let i = 1; i < this.player.stats.level; i++) {
-        xpToNext = Math.floor(xpToNext * 1.5);
-      }
-      this.player.stats.xpToNext = xpToNext;
+      this.player.stats.xpToNext = this._calcXpToNext(this.player.stats.level);
 
       this.lootSystem.gold = saveData.player.gold ?? this.lootSystem.gold;
       if (saveData.player.stats) {
@@ -765,10 +760,9 @@ export class GameScene extends Phaser.Scene {
       if (saveData.player.position && saveData.player.position.tileX != null) {
         this.player.tileX = saveData.player.position.tileX;
         this.player.tileY = saveData.player.position.tileY;
-        const DTILE = TILE_SIZE * TILE_SCALE;
         this.player.setPosition(
-          saveData.player.position.tileX * DTILE + DTILE / 2,
-          saveData.player.position.tileY * DTILE + DTILE / 2
+          saveData.player.position.tileX * DISPLAY_TILE + DISPLAY_TILE / 2,
+          saveData.player.position.tileY * DISPLAY_TILE + DISPLAY_TILE / 2
         );
       }
       this.player.equipment = this.deserializeEquipment(saveData.player.equipment);
@@ -785,11 +779,7 @@ export class GameScene extends Phaser.Scene {
     if (this.agent && saveData.agent && saveData.agent.hired) {
       this.agent.stats.level = saveData.agent.level ?? this.agent.stats.level;
       this.agent.stats.xp = saveData.agent.xp ?? this.agent.stats.xp;
-      let agentXpToNext = 25;
-      for (let i = 1; i < this.agent.stats.level; i++) {
-        agentXpToNext = Math.floor(agentXpToNext * 1.5);
-      }
-      this.agent.stats.xpToNext = agentXpToNext;
+      this.agent.stats.xpToNext = this._calcXpToNext(this.agent.stats.level);
       if (saveData.agent.stats) {
         this.agent.stats.maxHp = saveData.agent.stats.maxHp ?? this.agent.stats.maxHp;
         this.agent.stats.atk = saveData.agent.stats.atk ?? this.agent.stats.atk;
@@ -861,6 +851,14 @@ export class GameScene extends Phaser.Scene {
     // Emit updates
     this.events.emit('goldChanged', this.lootSystem.gold);
     this.events.emit('playerStatsChanged', this.player.stats);
+  }
+
+  _calcXpToNext(level) {
+    let xpToNext = 25;
+    for (let i = 1; i < level; i++) {
+      xpToNext = Math.floor(xpToNext * 1.5);
+    }
+    return xpToNext;
   }
 
   deserializeEquipment(eqData) {

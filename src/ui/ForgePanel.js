@@ -33,7 +33,7 @@ function rollForgeGear(recipe) {
   }
 
   return {
-    uid: `${recipe.id}_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+    uid: `${recipe.id}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}_${(ForgePanel._uidCounter = (ForgePanel._uidCounter || 0) + 1)}`,
     defId: recipe.id,
     name: chosenRarity.name === 'Common' ? recipe.name : `${chosenRarity.name} ${recipe.name}`,
     slot: recipe.slot,
