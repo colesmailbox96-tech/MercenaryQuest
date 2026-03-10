@@ -1,4 +1,7 @@
 export const SAVE_VERSION = 2;
+// NOTE: SAVE_KEY intentionally keeps the original 'agentquest_save_v1' name
+// for backward compatibility with existing saves. Changing this key would
+// prevent older save data from being loaded.
 export const SAVE_KEY = 'agentquest_save_v1';
 
 export const DEFAULT_SAVE_STATE = {
