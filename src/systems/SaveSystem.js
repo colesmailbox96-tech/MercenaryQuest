@@ -16,6 +16,7 @@ export class SaveSystem {
       localStorage.setItem(SAVE_KEY, json);
       this.dirty = false;
       this.scene.events.emit('gameSaved', { timestamp: data.timestamp });
+      if (this.scene.audioSystem) this.scene.audioSystem.playSave();
       return { success: true };
     } catch (err) {
       console.error('[SaveSystem] save failed:', err);

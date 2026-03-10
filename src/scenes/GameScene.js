@@ -20,6 +20,8 @@ import { DayNightSystem } from '../systems/DayNightSystem.js';
 import { WanderingMerchant } from '../systems/WanderingMerchant.js';
 import { CompanionSystem } from '../systems/CompanionSystem.js';
 import { SaveSystem } from '../systems/SaveSystem.js';
+import { AudioSystem } from '../systems/AudioSystem.js';
+import { JuiceSystem } from '../systems/JuiceSystem.js';
 import { EGG_HATCH_CONFIG } from '../config/companionData.js';
 
 const DISPLAY_TILE = TILE_SIZE * TILE_SCALE;
@@ -48,6 +50,8 @@ export class GameScene extends Phaser.Scene {
     this.dayNightSystem = new DayNightSystem(this);
     this.wanderingMerchant = new WanderingMerchant(this);
     this.companionSystem = new CompanionSystem(this);
+    this.audioSystem = new AudioSystem(this);
+    this.juiceSystem = new JuiceSystem(this);
     this.agent = null;
     this.viewTarget = 'player';
     this.activeBuffs = [];
@@ -102,8 +106,38 @@ export class GameScene extends Phaser.Scene {
 
     this.scene.launch('HUDScene');
 
+    // Initialize AudioContext on first user interaction (browser autoplay policy)
+    this.input.once('pointerdown', () => {
+      this.audioSystem.init();
+    });
+
     this.events.emit('goldChanged', this.lootSystem.gold);
     this.events.emit('playerStatsChanged', this.player.stats);
+
+    // Audio hooks for level up and gold
+    this.events.on('levelUp', () => {
+      this.audioSystem.playLevelUp();
+      if (this.player) {
+        this.juiceSystem.levelUpBurst(this.player.x, this.player.y);
+      }
+    });
+    this.events.on('goldChanged', () => {
+      this.audioSystem.playGold();
+    });
+    // Fishing sounds
+    this.events.on('fishingCatch', () => {
+      this.audioSystem.playFishCatch();
+    });
+    this.events.on('fishingMiss', () => {
+      this.audioSystem.playFishMiss();
+    });
+    // Mining sounds
+    this.events.on('miningExtract', () => {
+      this.audioSystem.playMineExtract();
+    });
+    this.events.on('miningMiss', () => {
+      this.audioSystem.playMineMiss();
+    });
   }
 
   createTilemap() {
@@ -213,6 +247,10 @@ export class GameScene extends Phaser.Scene {
           killer.gainXP(deadEntity.xpReward);
         }
 
+        // Kill sound + juice
+        this.audioSystem.playKill();
+        this.juiceSystem.showXPNumber(deadEntity.x, deadEntity.y - 20, deadEntity.xpReward);
+
         // Roll loot (material + gear)
         const killerLevel = killer.stats ? killer.stats.level : 1;
         const drops = this.lootSystem.rollLoot(deadEntity.typeKey, killerLevel);
@@ -225,6 +263,20 @@ export class GameScene extends Phaser.Scene {
             }
           }
           this.showLootPickup(deadEntity.x, deadEntity.y, drop.item);
+
+          // Play rarity-appropriate loot sound for gear drops
+          if (drop.type === 'gear' && drop.item.rarity) {
+            const lootSounds = {
+              EPIC: 'playLootEpic',
+              RARE: 'playLootRare',
+              UNCOMMON: 'playLootUncommon',
+              COMMON: 'playLootCommon',
+            };
+            const method = lootSounds[drop.item.rarity.toUpperCase()] || 'playLootCommon';
+            this.audioSystem[method]();
+          } else {
+            this.audioSystem.playLootCommon();
+          }
         }
 
         // Kill mob
@@ -238,6 +290,8 @@ export class GameScene extends Phaser.Scene {
         }
       } else if (deadEntity.entityType === 'player') {
         // Player death - respawn in town
+        this.audioSystem.playDeath();
+        this.juiceSystem.screenShake(0.01, 200);
         deadEntity.stats.hp = deadEntity.stats.maxHp;
         deadEntity.updateHPBar();
         deadEntity.tileX = 19;
@@ -532,6 +586,10 @@ export class GameScene extends Phaser.Scene {
   setupSkillHandlers() {
     // Skill level-up banner
     this.events.on('skillLevelUp', ({ skillId, newLevel, unlock }) => {
+      this.audioSystem.playSkillLevelUp();
+      if (this.player) {
+        this.juiceSystem.levelUpBurst(this.player.x, this.player.y, true);
+      }
       const skillIcons = { fishing: '🎣', mining: '⛏', farming: '🌾', cooking: '🍳' };
       const skillNames = { fishing: 'Fishing', mining: 'Mining', farming: 'Farming', cooking: 'Cooking' };
       const icon = skillIcons[skillId] || '📊';
@@ -592,6 +650,7 @@ export class GameScene extends Phaser.Scene {
 
     // Cooking complete → offer to eat
     this.events.on('cookingComplete', ({ item, quantity }) => {
+      this.audioSystem.playCraft();
       const hudScene = this.scene.get('HUDScene');
       if (hudScene && hudScene.lootToast) {
         const foodDef = ITEMS[item];
@@ -651,6 +710,7 @@ export class GameScene extends Phaser.Scene {
 
     this.events.emit('activeBuffsChanged', this.activeBuffs);
     this.events.emit('inventoryChanged', this.gameState.materials);
+    this.audioSystem.playEat();
 
     const hudScene = this.scene.get('HUDScene');
     if (hudScene && hudScene.lootToast) {
