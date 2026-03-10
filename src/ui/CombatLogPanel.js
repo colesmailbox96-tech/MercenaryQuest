@@ -138,10 +138,11 @@ export class CombatLogPanel extends Phaser.Scene {
     });
 
     this.events.once('shutdown', () => {
-      // Remove listener - note: CombatLog uses a simple array, so we filter
+      // Remove our listener via CombatLog's public API if available
       const log = this.gameScene.combatLog;
-      if (log) {
-        log.listeners = log.listeners.filter(l => l !== this._onNewEntry);
+      if (log && typeof log.offNewEntry === 'function' && this._onNewEntry) {
+        log.offNewEntry(this._onNewEntry);
+        this._onNewEntry = null;
       }
     });
   }
