@@ -1,4 +1,4 @@
-export const SAVE_VERSION = 2;
+export const SAVE_VERSION = 3;
 // NOTE: SAVE_KEY intentionally keeps the original 'agentquest_save_v1' name
 // for backward compatibility with existing saves. Changing this key would
 // prevent older save data from being loaded.
@@ -36,12 +36,18 @@ export const DEFAULT_SAVE_STATE = {
   createdAt: null,
   tutorialComplete: false,
   tutorialStep: 0,
+  minimapVisible: true,
 };
 
 export const SCHEMA_MIGRATIONS = {
   1: (data) => {
     data.agentConfig = data.agentConfig || { zonePreference: 'auto', retreatThreshold: 0.25 };
     data.version = 2;
+    return data;
+  },
+  2: (data) => {
+    if (data.minimapVisible === undefined) data.minimapVisible = true;
+    data.version = 3;
     return data;
   },
 };

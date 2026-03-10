@@ -174,10 +174,14 @@ export class MiningSystem {
       respawnBonus = this.scene.companionSystem.getEffectivePerkValue('nodeRespawnBonus');
     }
     const adjustedRespawn = Math.floor(this.activeNodeDef.respawnTime * (1 - respawnBonus));
+    ns.depletedAt = Date.now();
+    ns.respawnDuration = adjustedRespawn;
     this.scene.time.delayedCall(adjustedRespawn, () => {
       const rns = this.getNodeState(depletedKey);
       rns.state = 'available';
       rns.extractionsUsed = 0;
+      delete rns.depletedAt;
+      delete rns.respawnDuration;
       this.scene.events.emit('miningNodeStateChanged', { nodeKey: depletedKey, state: 'available' });
       this.scene.events.emit('miningNodeRespawned', { node: MINING_NODES[depletedKey].name });
     });

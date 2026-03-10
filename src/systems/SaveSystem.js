@@ -229,6 +229,9 @@ export class SaveSystem {
       data.tutorialStep = 0;
     }
 
+    // Minimap preference
+    data.minimapVisible = this.scene.minimapVisible !== false;
+
     return data;
   }
 }

@@ -90,3 +90,13 @@ export const NEST_TILE = { x: 12, y: 35 };
 export const COMPANION_FOLLOW_DISTANCE = 1.5;
 
 export const AUTO_SAVE_INTERVAL = 30000;
+
+export const ZONE_DISPLAY_NAMES = {
+  town: 'Town of Elderglen',
+  forest: 'The Verdant Forest',
+  caves: 'Sunless Caves',
+  swamp: 'Blighted Swamp',
+  volcanic: 'Volcanic Rift',
+};
+
+export const GOLD_TRACKING_WINDOW = 180000; // 3 minutes in ms

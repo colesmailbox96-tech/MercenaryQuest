@@ -79,6 +79,13 @@ export class ShopScene extends Phaser.Scene {
       this.tabObjects[tabDef.id] = { rect, label };
     });
 
+    // Sort button
+    this.sortBtn = this.add.text(panelX + panelW - 14, tabY, '↕', {
+      fontSize: '16px', fontFamily: 'monospace', color: '#DAA520',
+      backgroundColor: '#2A2A3E', padding: { x: 4, y: 2 },
+    }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+    this.sortBtn.on('pointerdown', () => this._sortCurrentTab());
+
     this.itemRows = [];
     this._renderContent();
   }
@@ -144,6 +151,21 @@ export class ShopScene extends Phaser.Scene {
         this.itemRows.push({ text: rowText, btn: sellBtn });
         yOffset += 26;
       });
+
+      const matTotal = this.gameScene.lootSystem.getMaterialsSellTotal();
+      if (matTotal > 0) {
+        const sellAllMatBtn = this.add.text(this.scale.width / 2, yOffset + 8, `[SELL ALL MATERIALS (${matTotal}g)]`, {
+          fontSize: '12px', fontFamily: 'monospace', color: '#AAAAAA',
+          backgroundColor: '#2A2A3E', padding: { x: 8, y: 4 },
+        }).setOrigin(0.5, 0).setInteractive({ useHandCursor: true });
+        sellAllMatBtn.on('pointerdown', () => {
+          this._showConfirmDialog(`Sell all materials for ${matTotal}g?`, () => {
+            this.gameScene.lootSystem.sellAllMaterials();
+            this._renderContent();
+          });
+        });
+        this.itemRows.push({ text: sellAllMatBtn, btn: null });
+      }
     }
   }
 
@@ -194,6 +216,22 @@ export class ShopScene extends Phaser.Scene {
           this._renderContent();
         });
         this.itemRows.push({ text: sellAllBtn, btn: null });
+      }
+
+      const uncommonTotal = this.gameScene.lootSystem.getUncommonAndBelowGearSellTotal();
+      const uncommonCount = unequipped.filter(g => g.rarity === 'COMMON' || g.rarity === 'UNCOMMON').length;
+      if (uncommonCount > 0) {
+        const sellUncBtn = this.add.text(this.scale.width / 2, yOffset + (commonCount > 0 ? 38 : 8), `[SELL ALL ≤ UNCOMMON (${uncommonCount} for ${uncommonTotal}g)]`, {
+          fontSize: '11px', fontFamily: 'monospace', color: '#AAAAAA',
+          backgroundColor: '#2A2A3E', padding: { x: 8, y: 4 },
+        }).setOrigin(0.5, 0).setInteractive({ useHandCursor: true });
+        sellUncBtn.on('pointerdown', () => {
+          this._showConfirmDialog(`Sell ${uncommonCount} Common+Uncommon gear for ${uncommonTotal}g?`, () => {
+            this.gameScene.lootSystem.sellAllUncommonAndBelowGear();
+            this._renderContent();
+          });
+        });
+        this.itemRows.push({ text: sellUncBtn, btn: null });
       }
     }
   }
@@ -301,10 +339,26 @@ export class ShopScene extends Phaser.Scene {
         this.itemRows.push({ text: rowText, btn: sellBtn });
         yOffset += 26;
       });
+
+      const foodTotal = this.gameScene.lootSystem.getFoodSellTotal();
+      if (foodTotal > 0) {
+        const sellAllFoodBtn = this.add.text(this.scale.width / 2, yOffset + 8, `[SELL ALL FOOD (${foodTotal}g)]`, {
+          fontSize: '12px', fontFamily: 'monospace', color: '#AAAAAA',
+          backgroundColor: '#2A2A3E', padding: { x: 8, y: 4 },
+        }).setOrigin(0.5, 0).setInteractive({ useHandCursor: true });
+        sellAllFoodBtn.on('pointerdown', () => {
+          this._showConfirmDialog(`Sell all food for ${foodTotal}g?`, () => {
+            this.gameScene.lootSystem.sellAllFood();
+            this._renderContent();
+          });
+        });
+        this.itemRows.push({ text: sellAllFoodBtn, btn: null });
+      }
     }
   }
 
   closeShop() {
+    this._closeConfirmDialog();
     this.tweens.add({
       targets: this.panel,
       y: this.scale.height,
@@ -315,5 +369,80 @@ export class ShopScene extends Phaser.Scene {
         this.scene.stop();
       },
     });
+  }
+
+  _sortCurrentTab() {
+    const lootSystem = this.gameScene.lootSystem;
+    if (this.activeTab === 'materials') {
+      const items = lootSystem.sharedStash.filter(i => i.category !== 'food' && i.category !== 'seed');
+      items.sort((a, b) => (b.sellValue || 0) - (a.sellValue || 0) || a.name.localeCompare(b.name));
+      const rest = lootSystem.sharedStash.filter(i => i.category === 'food' || i.category === 'seed');
+      lootSystem.sharedStash = [...items, ...rest];
+    } else if (this.activeTab === 'gear') {
+      const rarityOrder = { EPIC: 0, RARE: 1, UNCOMMON: 2, COMMON: 3 };
+      lootSystem.gearStash.sort((a, b) => {
+        const ra = rarityOrder[a.rarity] ?? 4;
+        const rb = rarityOrder[b.rarity] ?? 4;
+        if (ra !== rb) return ra - rb;
+        const psA = Object.values(a.stats).reduce((s, v) => s + v, 0);
+        const psB = Object.values(b.stats).reduce((s, v) => s + v, 0);
+        return psB - psA;
+      });
+    } else if (this.activeTab === 'seeds') {
+      const seeds = lootSystem.sharedStash.filter(i => i.category === 'seed');
+      seeds.sort((a, b) => a.name.localeCompare(b.name));
+      const rest = lootSystem.sharedStash.filter(i => i.category !== 'seed');
+      lootSystem.sharedStash = [...rest, ...seeds];
+    } else if (this.activeTab === 'food') {
+      const foods = lootSystem.sharedStash.filter(i => i.category === 'food');
+      foods.sort((a, b) => (b.sellValue || 0) - (a.sellValue || 0) || a.name.localeCompare(b.name));
+      const rest = lootSystem.sharedStash.filter(i => i.category !== 'food');
+      lootSystem.sharedStash = [...rest, ...foods];
+    }
+    this._renderContent();
+  }
+
+  _showConfirmDialog(message, onConfirm) {
+    if (this._confirmDialog) {
+      this._confirmDialog.forEach(obj => obj.destroy && obj.destroy());
+    }
+    this._confirmDialog = [];
+    const w = this.scale.width;
+    const h = this.scale.height;
+
+    const bg = this.add.rectangle(w / 2, h / 2, w * 0.8, 100, 0x1A1A2E, 0.95);
+    bg.setStrokeStyle(1, 0xDAA520);
+    bg.setDepth(400);
+    this._confirmDialog.push(bg);
+
+    const msg = this.add.text(w / 2, h / 2 - 18, message, {
+      fontSize: '12px', fontFamily: 'monospace', color: '#F5E6C8',
+      wordWrap: { width: w * 0.7 }, align: 'center',
+    }).setOrigin(0.5).setDepth(401);
+    this._confirmDialog.push(msg);
+
+    const yesBtn = this.add.text(w / 2 - 50, h / 2 + 18, '[ Yes ]', {
+      fontSize: '14px', fontFamily: 'monospace', color: '#4CAF50',
+      backgroundColor: '#1A3A1A', padding: { x: 8, y: 4 },
+    }).setOrigin(0.5).setDepth(401).setInteractive({ useHandCursor: true });
+    yesBtn.on('pointerdown', () => {
+      this._closeConfirmDialog();
+      onConfirm();
+    });
+    this._confirmDialog.push(yesBtn);
+
+    const noBtn = this.add.text(w / 2 + 50, h / 2 + 18, '[ No ]', {
+      fontSize: '14px', fontFamily: 'monospace', color: '#FF6B6B',
+      backgroundColor: '#3A1A1A', padding: { x: 8, y: 4 },
+    }).setOrigin(0.5).setDepth(401).setInteractive({ useHandCursor: true });
+    noBtn.on('pointerdown', () => this._closeConfirmDialog());
+    this._confirmDialog.push(noBtn);
+  }
+
+  _closeConfirmDialog() {
+    if (this._confirmDialog) {
+      this._confirmDialog.forEach(obj => obj.destroy && obj.destroy());
+      this._confirmDialog = null;
+    }
   }
 }

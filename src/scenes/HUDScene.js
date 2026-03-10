@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { COLORS } from '../config/constants.js';
+import { COLORS, ZONE_DISPLAY_NAMES } from '../config/constants.js';
 import { Joystick } from '../ui/Joystick.js';
 import { createHPBar, updateHPBar, createXPBar, updateXPBar } from '../ui/HUDComponents.js';
 import { MiniNotifications } from '../ui/MiniNotifications.js';
@@ -9,6 +9,7 @@ import { BuffBar } from '../ui/BuffBar.js';
 import { DayNightHUD } from '../ui/DayNightHUD.js';
 import { CompanionHUD } from '../ui/CompanionHUD.js';
 import { MerchantAlert } from '../ui/MerchantAlert.js';
+import { Minimap } from '../ui/Minimap.js';
 
 export class HUDScene extends Phaser.Scene {
   constructor() {
@@ -61,6 +62,14 @@ export class HUDScene extends Phaser.Scene {
     this.currentContext = null;
     this.miniLogTexts = [];
 
+    // Zone transition notification
+    this.lastZone = null;
+    this.zoneTransitionCooldown = 0;
+    this._createZoneTransition(w, h);
+
+    // Minimap (QOL Pass B)
+    this.minimap = new Minimap(this, this.gameScene);
+
     // Mini-log: listen for new combat log entries
     this.gameScene.events.on('combatLogEntry', (entry) => {
       this.showMiniLogEntry(entry);
@@ -111,6 +120,24 @@ export class HUDScene extends Phaser.Scene {
     this.goldLabel.setScrollFactor(0);
     this.goldLabel.setDepth(101);
 
+    // Gold rate indicator
+    this.goldRateLabel = this.add.text(w - 15, 36, '+0g/min', {
+      fontSize: '10px',
+      fontFamily: 'monospace',
+      color: '#AAAAAA',
+    });
+    this.goldRateLabel.setOrigin(1, 0);
+    this.goldRateLabel.setScrollFactor(0);
+    this.goldRateLabel.setDepth(101);
+
+    // Keep gold rate aligned with gold label on resize
+    this.scale.on('resize', () => {
+      if (this.goldLabel && this.goldRateLabel) {
+        // Align X with goldLabel and keep a fixed vertical offset below it
+        this.goldRateLabel.x = this.goldLabel.x;
+        this.goldRateLabel.y = this.goldLabel.y + 16;
+      }
+    });
     // Agent status indicator
     this.agentStatus = this.add.text(15, 42, '', {
       fontSize: '11px',
@@ -424,6 +451,12 @@ export class HUDScene extends Phaser.Scene {
       this.goldLabel.setText(`🪙 ${gold}`);
     });
 
+    this.gameScene.events.on('goldRateChanged', (gpm) => {
+      const color = gpm > 0 ? '#DAA520' : '#AAAAAA';
+      this.goldRateLabel.setText(`+${gpm}g/min`);
+      this.goldRateLabel.setColor(color);
+    });
+
     this.gameScene.events.on('viewTargetChanged', (target) => {
       this.viewTarget = target;
       this.viewLabel.setText(target === 'player' ? '👁️ You' : '👁️ Agent');
@@ -582,7 +615,7 @@ export class HUDScene extends Phaser.Scene {
     if (entity) {
       const tile = scene.mapData[entity.tileY]?.[entity.tileX];
       if (tile) {
-        const zoneNames = { town: '🏘️ Town', forest: '🌲 Forest', caves: '⛰️ Caves' };
+        const zoneNames = { town: '🏘️ Town', forest: '🌲 Forest', caves: '⛰️ Caves', swamp: '🌿 Swamp', volcanic: '🌋 Volcanic' };
         this.zoneLabel.setText(zoneNames[tile.zone] || tile.zone);
       }
     }
@@ -649,6 +682,77 @@ export class HUDScene extends Phaser.Scene {
     if (this.dayNightHUD) this.dayNightHUD.update();
     if (this.companionHUD) this.companionHUD.update();
     if (this.merchantAlert) this.merchantAlert.update();
+
+    // Minimap update with panel visibility check
+    if (this.minimap) {
+      const panelScenes = ['ShopScene', 'EquipmentPanel', 'FarmingPanel', 'CookingPanel', 'FishingPanel', 'MiningPanel', 'SkillsPanel', 'SettingsPanel', 'ForgePanel', 'CombatLogPanel', 'CompanionPanel', 'MerchantPanel'];
+      const anyPanelOpen = panelScenes.some(key => this.scene.isActive(key));
+      const minimapEnabled = this.gameScene.minimapVisible !== false;
+      this.minimap.setVisible(!anyPanelOpen && minimapEnabled);
+      this.minimap.update();
+    }
+
+    // Zone transition detection
+    if (this.gameScene) {
+      const entity = this.viewTarget === 'player' ? this.gameScene.player : this.gameScene.agent;
+      if (entity) {
+        const tile = this.gameScene.mapData[entity.tileY]?.[entity.tileX];
+        const currentZone = tile?.zone || null;
+        if (currentZone && currentZone !== this.lastZone) {
+          if (this.lastZone !== null && this.zoneTransitionCooldown <= 0) {
+            this._showZoneTransition(currentZone);
+            this.zoneTransitionCooldown = 5000;
+          }
+          this.lastZone = currentZone;
+        }
+        if (this.zoneTransitionCooldown > 0) {
+          this.zoneTransitionCooldown -= this.game.loop.delta;
+        }
+      }
+    }
+  }
+
+  _createZoneTransition(w, h) {
+    const ty = Math.floor(h * 0.2);
+    this.zoneTransBg = this.add.rectangle(w / 2, ty, 300, 36, 0x1A1A2E, 0.7);
+    this.zoneTransBg.setScrollFactor(0).setDepth(500);
+    this.zoneTransBg.setStrokeStyle(0);
+    this.zoneTransBg.setVisible(false);
+
+    this.zoneTransDash = this.add.text(w / 2, ty, '', {
+      fontSize: '18px', fontFamily: 'monospace', color: '#DAA520', fontStyle: 'bold',
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(501);
+    this.zoneTransDash.setVisible(false);
+  }
+
+  _showZoneTransition(zone) {
+    const displayName = ZONE_DISPLAY_NAMES[zone] || zone;
+    const fullText = `━━  ${displayName}  ━━`;
+    this.zoneTransDash.setText(fullText);
+    const textWidth = this.zoneTransDash.width + 24;
+    this.zoneTransBg.width = textWidth;
+
+    this.zoneTransBg.setVisible(true).setAlpha(0);
+    this.zoneTransDash.setVisible(true).setAlpha(0);
+
+    this.tweens.add({
+      targets: [this.zoneTransBg, this.zoneTransDash],
+      alpha: 1,
+      duration: 200,
+      onComplete: () => {
+        this.time.delayedCall(1500, () => {
+          this.tweens.add({
+            targets: [this.zoneTransBg, this.zoneTransDash],
+            alpha: 0,
+            duration: 500,
+            onComplete: () => {
+              this.zoneTransBg.setVisible(false);
+              this.zoneTransDash.setVisible(false);
+            },
+          });
+        });
+      },
+    });
   }
 
   showMiniLogEntry(entry) {
