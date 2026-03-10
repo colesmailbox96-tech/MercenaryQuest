@@ -1,4 +1,4 @@
-export const SAVE_VERSION = 1;
+export const SAVE_VERSION = 2;
 export const SAVE_KEY = 'agentquest_save_v1';
 
 export const DEFAULT_SAVE_STATE = {
@@ -17,6 +17,10 @@ export const DEFAULT_SAVE_STATE = {
     currentHp: 15,
     equipment: { weapon: null, helmet: null, chest: null, boots: null, accessory: null },
   },
+  agentConfig: {
+    zonePreference: 'auto',
+    retreatThreshold: 0.25,
+  },
   inventory: { materials: [], gear: [] },
   fishing: { active: false, selectedPoolId: null, pendingCatches: [], cycleStartedAt: null },
   mining: { active: false, selectedNodeId: null, pendingExtracts: [], cycleStartedAt: null },
@@ -31,7 +35,13 @@ export const DEFAULT_SAVE_STATE = {
   tutorialStep: 0,
 };
 
-export const SCHEMA_MIGRATIONS = {};
+export const SCHEMA_MIGRATIONS = {
+  1: (data) => {
+    data.agentConfig = data.agentConfig || { zonePreference: 'auto', retreatThreshold: 0.25 };
+    data.version = 2;
+    return data;
+  },
+};
 
 export function migrateSave(save) {
   let current = save.version || 1;

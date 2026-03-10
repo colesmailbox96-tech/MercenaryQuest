@@ -155,6 +155,10 @@ export class SaveSystem {
       };
       data.agent.currentHp = agent.stats?.hp ?? agent.stats?.maxHp ?? 40;
       data.agent.equipment = this.serializeEquipment(agent.equipment);
+      // Save agent config
+      if (agent.config) {
+        data.agentConfig = { ...agent.config };
+      }
     }
 
     // Inventory

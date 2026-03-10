@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { COLORS } from '../config/constants.js';
 import { RARITY } from '../config/gearData.js';
+import { calculatePowerScore } from '../systems/StatCalculator.js';
 
 const SLOT_SIZE = 52;
 const GRID_COLS = 4;
@@ -150,6 +151,21 @@ export class EquipmentPanel extends Phaser.Scene {
       }).setOrigin(0.5, 0));
     });
 
+    // Power score
+    const buffs = this.gameScene.activeBuffs || [];
+    const entityBuffs = this.viewEntity === 'player' ? buffs : [];
+    const powerScore = calculatePowerScore(entity, entityBuffs);
+    const buffPowerScore = entityBuffs.length > 0 ? calculatePowerScore(entity, []) : powerScore;
+    const buffContrib = powerScore - buffPowerScore;
+
+    const psY = statsY + 3 * 16 + 4;
+    const psText = buffContrib > 0
+      ? `⚔️ Power: ${powerScore} (+${buffContrib} from buffs)`
+      : `⚔️ Power: ${powerScore}`;
+    this._add(this.add.text(nameX, psY, psText, {
+      fontSize: '13px', fontFamily: 'monospace', color: '#DAA520',
+    }).setOrigin(0.5, 0));
+
     // Equipment slots layout
     const slotLayoutX = this.panelX + this.panelW * 0.28;
     const slotDefs = [
@@ -174,6 +190,11 @@ export class EquipmentPanel extends Phaser.Scene {
 
     // Gear grid
     this._buildGearGrid(divY + 22);
+
+    // Agent config section (agent tab only)
+    if (this.viewEntity === 'agent' && this.gameScene.agent) {
+      this._buildAgentConfig(divY + 22);
+    }
   }
 
   _computeEffective(entity) {
@@ -265,6 +286,95 @@ export class EquipmentPanel extends Phaser.Scene {
     }
   }
 
+  _buildAgentConfig(gearGridStartY) {
+    const agent = this.gameScene.agent;
+    const config = agent.config;
+    const baseX = this.panelX + 10;
+    // Position below gear grid area
+    let curY = gearGridStartY + 120;
+
+    // Divider
+    this._add(this.add.rectangle(this.panelX + this.panelW / 2, curY, this.panelW - 20, 1, 0x555577, 1));
+    curY += 10;
+
+    this._add(this.add.text(baseX, curY, 'Agent Config', {
+      fontSize: '11px', fontFamily: 'monospace', color: '#888899',
+    }));
+    curY += 18;
+
+    // Zone preference
+    this._add(this.add.text(baseX, curY, 'Zone:', {
+      fontSize: '11px', fontFamily: 'monospace', color: '#AABBCC',
+    }));
+    const zones = ['auto', 'forest', 'caves', 'swamp', 'volcanic'];
+    const zoneLabels = ['Auto', 'Forest', 'Caves', 'Swamp', 'Volcanic'];
+    let zoneX = baseX + 42;
+    zones.forEach((z, i) => {
+      const isActive = config.zonePreference === z;
+      const btn = this._add(this.add.text(zoneX, curY, zoneLabels[i], {
+        fontSize: '10px', fontFamily: 'monospace',
+        color: isActive ? '#88FF88' : '#888899',
+        backgroundColor: isActive ? '#2A5A2A' : '#1A1A2E',
+        padding: { x: 4, y: 2 },
+      }));
+      btn.setInteractive({ useHandCursor: true });
+      btn.on('pointerdown', () => {
+        config.zonePreference = z;
+        this._buildContent();
+      });
+      zoneX += btn.width + 4;
+    });
+    curY += 22;
+
+    // Retreat threshold
+    this._add(this.add.text(baseX, curY, 'Retreat:', {
+      fontSize: '11px', fontFamily: 'monospace', color: '#AABBCC',
+    }));
+    const thresholds = [0.10, 0.25, 0.40, 0.50];
+    const threshLabels = ['10%', '25%', '40%', '50%'];
+    let threshX = baseX + 56;
+    thresholds.forEach((t, i) => {
+      const isActive = config.retreatThreshold === t;
+      const btn = this._add(this.add.text(threshX, curY, threshLabels[i], {
+        fontSize: '10px', fontFamily: 'monospace',
+        color: isActive ? '#88FF88' : '#888899',
+        backgroundColor: isActive ? '#2A5A2A' : '#1A1A2E',
+        padding: { x: 4, y: 2 },
+      }));
+      btn.setInteractive({ useHandCursor: true });
+      btn.on('pointerdown', () => {
+        config.retreatThreshold = t;
+        this._buildContent();
+      });
+      threshX += btn.width + 4;
+    });
+    curY += 24;
+
+    // Session stats
+    this._add(this.add.rectangle(this.panelX + this.panelW / 2, curY, this.panelW - 20, 1, 0x333355, 1));
+    curY += 8;
+    const ss = agent.sessionStats || {};
+    const statLines = [
+      `Kills: ${ss.kills || 0}  Gold: ${ss.goldEarned || 0}  Gear: ${ss.gearFound || 0}`,
+      `Deaths: ${ss.deaths || 0}  Trips: ${ss.tripsCompleted || 0}`,
+    ];
+    statLines.forEach((line) => {
+      this._add(this.add.text(baseX, curY, line, {
+        fontSize: '10px', fontFamily: 'monospace', color: '#8888AA',
+      }));
+      curY += 14;
+    });
+  }
+
+  _simulateEquip(entity, gear) {
+    const simEquipment = { ...entity.equipment };
+    simEquipment[gear.slot] = gear;
+    return {
+      stats: { ...entity.stats },
+      equipment: simEquipment,
+    };
+  }
+
   _showSlotTooltip(slot, equipped, slotX, slotY) {
     this._closeTooltip();
     const entity = this._getEntity();
@@ -305,7 +415,7 @@ export class EquipmentPanel extends Phaser.Scene {
     if (tx + tw > this.panelX + this.panelW) tx = gx - CELL_SIZE / 2 - tw - 8;
     if (tx < this.panelX + 4) tx = this.panelX + 4;
 
-    const th = currentEquipped ? 165 : 120;
+    const th = currentEquipped ? 185 : 140;
     this.tooltip = this._makeTooltip(tx, ty, tw, th);
 
     const rarityColor = '#' + gear.rarityColor.toString(16).padStart(6, '0');
@@ -325,6 +435,18 @@ export class EquipmentPanel extends Phaser.Scene {
       this._addTooltipText(tx + 8, compareY, curStats, '#AAAAAA', '10px');
       compareY += 18;
     }
+
+    // Power score delta
+    const psBuf = this.gameScene.activeBuffs || [];
+    const psEntityBuf = this.viewEntity === 'player' ? psBuf : [];
+    const currentPS = calculatePowerScore(entity, psEntityBuf);
+    const simEntity = this._simulateEquip(entity, gear);
+    const newPS = calculatePowerScore(simEntity, psEntityBuf);
+    const delta = newPS - currentPS;
+    const deltaStr = delta > 0 ? `▲${delta}` : delta < 0 ? `▼${Math.abs(delta)}` : '=';
+    const deltaColor = delta > 0 ? '#4CAF50' : delta < 0 ? '#F44336' : '#888888';
+    this._addTooltipText(tx + 8, compareY, `Power: ${currentPS} → ${newPS} (${deltaStr})`, deltaColor, '10px');
+    compareY += 16;
 
     // EQUIP button
     const equipBtn = this.add.text(tx + tw * 0.28, compareY + 4, '[EQUIP]', {

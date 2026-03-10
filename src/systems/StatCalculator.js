@@ -1,3 +1,12 @@
+export function calculatePowerScore(entity, activeBuffs = []) {
+  const stats = getEffectiveStats(entity, activeBuffs);
+  return Math.round(
+    (stats.atk * 3) +
+    (stats.def * 2.5) +
+    (stats.maxHp * 0.5)
+  );
+}
+
 export function getEffectiveStats(entity, activeBuffs = []) {
   const base = {
     maxHp: entity.stats.maxHp,

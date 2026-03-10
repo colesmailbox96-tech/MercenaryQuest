@@ -85,7 +85,7 @@ export class CombatSystem {
     if (atkResult.isDodge) {
       this.scene.events.emit('combatDodge', { attacker, defender });
       this.scene.events.emit('combatLogEntry', { type: 'dodge', attackerName, defenderName });
-      if (this.scene.audioSystem) this.scene.audioSystem.playMiss();
+      if (this.scene.audioSystem) this.scene.audioSystem.playDodge();
       return;
     }
 
@@ -132,7 +132,7 @@ export class CombatSystem {
     if (defResult.isDodge) {
       this.scene.events.emit('combatDodge', { attacker: defender, defender: attacker });
       this.scene.events.emit('combatLogEntry', { type: 'dodge', attackerName: defenderName, defenderName: attackerName });
-      if (this.scene.audioSystem) this.scene.audioSystem.playMiss();
+      if (this.scene.audioSystem) this.scene.audioSystem.playDodge();
       return;
     }
 

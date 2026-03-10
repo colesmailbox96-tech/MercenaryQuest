@@ -97,6 +97,10 @@ export class AudioSystem {
     this._playNoise(0.1, 0.4, 2000);
   }
 
+  playDodge() {
+    this._playFreqSweep('sine', 600, 200, 0.15, 0.3);
+  }
+
   playKill() {
     this.ensureContext();
     if (!this.enabled) return;

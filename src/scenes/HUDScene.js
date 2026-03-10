@@ -59,6 +59,12 @@ export class HUDScene extends Phaser.Scene {
 
     this.viewTarget = 'player';
     this.currentContext = null;
+    this.miniLogTexts = [];
+
+    // Mini-log: listen for new combat log entries
+    this.gameScene.events.on('combatLogEntry', (entry) => {
+      this.showMiniLogEntry(entry);
+    });
 
     // Listen for resize events (iOS Safari address bar collapse)
     this.scale.on('resize', (gameSize) => {
@@ -337,6 +343,32 @@ export class HUDScene extends Phaser.Scene {
       this.forgeBtn.setScale(1);
     });
 
+    // Combat Log button
+    this.logBtn = this.add.image(w - 310, h - 95, 'ui_btn_small');
+    this.logBtn.setScrollFactor(0);
+    this.logBtn.setDepth(200);
+    this.logBtn.setInteractive({ useHandCursor: true });
+    this.logBtn.setAlpha(0.8);
+
+    this.logBtnLabel = this.add.text(w - 310, h - 95, '📜', {
+      fontSize: '18px',
+    });
+    this.logBtnLabel.setOrigin(0.5);
+    this.logBtnLabel.setScrollFactor(0);
+    this.logBtnLabel.setDepth(201);
+
+    this.logBtn.on('pointerdown', () => {
+      this.logBtn.setScale(0.9);
+      if (this.scene.isActive('CombatLogPanel')) {
+        this.scene.stop('CombatLogPanel');
+      } else {
+        this.scene.launch('CombatLogPanel');
+      }
+    });
+    this.logBtn.on('pointerup', () => {
+      this.logBtn.setScale(1);
+    });
+
     // Auto-save indicator
     this.saveIndicator = this.add.text(w - 15, 55, '', {
       fontSize: '14px',
@@ -398,15 +430,49 @@ export class HUDScene extends Phaser.Scene {
     });
 
     this.gameScene.events.on('agentStateChanged', (state) => {
-      const stateEmojis = {
-        HUNTING: '🌲 Hunting',
-        RETURNING: '🏘️ Returning',
-        DEPOSITING: '📦 Depositing',
-        RETREATING: '💀 Retreating',
-        HEALING: '💚 Healing',
-        IDLE: '😴 Idle',
-      };
-      this.agentStatus.setText(`🤖 Agent: ${stateEmojis[state] || state}`);
+      if (!this.gameScene.agent) {
+        this.agentStatus.setText('No agent hired');
+        this.agentStatus.setColor('#666666');
+        return;
+      }
+      const agent = this.gameScene.agent;
+      switch (state) {
+        case 'HUNTING': {
+          const zone = agent.currentTargetZone || 'unknown';
+          this.agentStatus.setText(`🤖 Hunting in ${zone}`);
+          this.agentStatus.setColor('#4CAF50');
+          break;
+        }
+        case 'COMBAT': {
+          const mobName = agent.targetMob?.name || 'enemy';
+          this.agentStatus.setText(`🤖 Fighting ${mobName}`);
+          this.agentStatus.setColor('#FF9800');
+          break;
+        }
+        case 'RETURNING':
+          this.agentStatus.setText('🤖 Returning to town');
+          this.agentStatus.setColor('#FFD700');
+          break;
+        case 'RETREATING':
+          this.agentStatus.setText('🤖 Retreating (low HP)');
+          this.agentStatus.setColor('#F44336');
+          break;
+        case 'DEPOSITING':
+          this.agentStatus.setText('🤖 Depositing loot');
+          this.agentStatus.setColor('#2196F3');
+          break;
+        case 'HEALING':
+          this.agentStatus.setText('🤖 Healing in town');
+          this.agentStatus.setColor('#4CAF50');
+          break;
+        case 'DEAD':
+          this.agentStatus.setText('🤖 Defeated! Respawning...');
+          this.agentStatus.setColor('#F44336');
+          break;
+        default:
+          this.agentStatus.setText('🤖 Idle in town');
+          this.agentStatus.setColor('#AAAAAA');
+      }
     });
 
     this.gameScene.events.on('contextAction', (action) => {
@@ -582,5 +648,77 @@ export class HUDScene extends Phaser.Scene {
     if (this.dayNightHUD) this.dayNightHUD.update();
     if (this.companionHUD) this.companionHUD.update();
     if (this.merchantAlert) this.merchantAlert.update();
+  }
+
+  showMiniLogEntry(entry) {
+    // Don't show mini-log if the full log panel is open
+    if (this.scene.isActive('CombatLogPanel')) return;
+
+    const h = this.scale.height;
+    const message = entry.message || this._formatMiniEntry(entry);
+    if (!message) return;
+
+    const MINI_LOG_COLORS = {
+      hit: '#FFFFFF', crit: '#FFD700', miss: '#888888', dodge: '#AAAAAA',
+      kill: '#4CAF50', agent_kill: '#81C784', agent_retreat: '#FF9800',
+      agent_death: '#F44336', player_death: '#F44336', fishing: '#42A5F5',
+      mining: '#FF8A65', cooking: '#FFAB40', skill_levelup: '#00897B',
+      level_up: '#FFD700',
+    };
+    const color = MINI_LOG_COLORS[entry.type] || '#CCCCCC';
+
+    // Shift existing mini-log texts up
+    for (const t of this.miniLogTexts) {
+      if (t && t.active) {
+        t.y -= 14;
+      }
+    }
+
+    // Remove oldest if more than 3
+    while (this.miniLogTexts.length >= 3) {
+      const old = this.miniLogTexts.shift();
+      if (old && old.active) old.destroy();
+    }
+
+    const txt = this.add.text(10, h - 225, message, {
+      fontSize: '9px',
+      fontFamily: 'monospace',
+      color,
+      stroke: '#000000',
+      strokeThickness: 2,
+    });
+    txt.setScrollFactor(0);
+    txt.setDepth(200);
+    txt.setAlpha(0.6);
+
+    this.miniLogTexts.push(txt);
+
+    // Fade out after 3 seconds
+    this.tweens.add({
+      targets: txt,
+      alpha: 0,
+      duration: 1000,
+      delay: 3000,
+      onComplete: () => {
+        const idx = this.miniLogTexts.indexOf(txt);
+        if (idx !== -1) this.miniLogTexts.splice(idx, 1);
+        if (txt.active) txt.destroy();
+      },
+    });
+  }
+
+  _formatMiniEntry(entry) {
+    switch (entry.type) {
+      case 'hit':
+        return `${entry.attackerName} hit ${entry.defenderName} for ${entry.damage}`;
+      case 'crit':
+        return `${entry.attackerName} CRIT ${entry.defenderName} for ${entry.damage}!`;
+      case 'miss':
+        return `${entry.attackerName} missed ${entry.defenderName}`;
+      case 'dodge':
+        return `${entry.defenderName} dodged ${entry.attackerName}'s attack`;
+      default:
+        return entry.message || '';
+    }
   }
 }
