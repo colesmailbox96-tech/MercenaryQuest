@@ -87,9 +87,10 @@ export class SaveSystem {
 
   startAutoSave(gameState, intervalMs = 30000) {
     this.stopAutoSave();
+    this._autoSaveGameState = gameState;
     this.autoSaveTimer = setInterval(() => {
-      if (this.dirty) {
-        this.save(gameState);
+      if (this.dirty && this._autoSaveGameState) {
+        this.save(this._autoSaveGameState);
       }
     }, intervalMs);
   }

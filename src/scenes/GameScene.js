@@ -98,6 +98,7 @@ export class GameScene extends Phaser.Scene {
 
     // Start auto-save
     this.saveSystem.startAutoSave(this.gameState, 30000);
+    this._lastTimeUpdate = 0;
 
     this.scene.launch('HUDScene');
 
@@ -339,7 +340,6 @@ export class GameScene extends Phaser.Scene {
     this.handleMovement();
 
     // Track play time
-    if (!this._lastTimeUpdate) this._lastTimeUpdate = 0;
     this._lastTimeUpdate += delta;
     if (this._lastTimeUpdate >= 1000) {
       this.totalPlayTime = (this.totalPlayTime || 0) + Math.floor(this._lastTimeUpdate / 1000);

@@ -89,6 +89,4 @@ export const NEST_TILE = { x: 12, y: 35 };
 
 export const COMPANION_FOLLOW_DISTANCE = 1.5;
 
-export const SAVE_KEY = 'agentquest_save_v1';
-export const SAVE_VERSION = 1;
 export const AUTO_SAVE_INTERVAL = 30000;

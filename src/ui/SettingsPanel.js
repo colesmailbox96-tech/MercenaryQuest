@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { COLORS } from '../config/constants.js';
+import { SAVE_KEY, SAVE_VERSION } from '../config/saveSchema.js';
 
 export class SettingsPanel extends Phaser.Scene {
   constructor() {
@@ -136,7 +137,7 @@ export class SettingsPanel extends Phaser.Scene {
     });
     yOffset += 20;
 
-    this.add.text(leftX, yOffset, `Save version: v1`, {
+    this.add.text(leftX, yOffset, `Save version: v${SAVE_VERSION}`, {
       fontSize: '12px',
       fontFamily: 'monospace',
       color: '#F5E6C8',
@@ -187,7 +188,7 @@ export class SettingsPanel extends Phaser.Scene {
   _getLastSavedText() {
     if (!this.gameScene || !this.gameScene.saveSystem) return 'Last saved: never';
     try {
-      const raw = localStorage.getItem('agentquest_save_v1');
+      const raw = localStorage.getItem(SAVE_KEY);
       if (!raw) return 'Last saved: never';
       const data = JSON.parse(raw);
       if (!data.timestamp) return 'Last saved: never';
