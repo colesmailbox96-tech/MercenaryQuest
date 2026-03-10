@@ -43,17 +43,17 @@ export class HUDScene extends Phaser.Scene {
     this.activityHUD.create();
 
     // Buff bar (below stats bars)
-    const buffBarY = 98;
+    const buffBarY = 78;
     const buffBarW = this.scale.width - 30;
     this.buffBar = new BuffBar(this);
     this.buffBar.create(15, buffBarY, buffBarW);
 
-    // Phase 7 HUD components
+    // Phase 7 HUD components — day/night moved below minimap area
     this.dayNightHUD = new DayNightHUD(this);
-    this.dayNightHUD.create(w - 15, 42);
+    this.dayNightHUD.create(w - 15, 78);
 
     this.companionHUD = new CompanionHUD(this);
-    this.companionHUD.create(15, 110);
+    this.companionHUD.create(15, 90);
 
     this.merchantAlert = new MerchantAlert(this);
     this.merchantAlert.create();
@@ -82,15 +82,16 @@ export class HUDScene extends Phaser.Scene {
   }
 
   createTopBar(w) {
-    // Dark panel background
-    this.topPanel = this.add.rectangle(w / 2, 30, w, 60, COLORS.UI_PANEL, COLORS.UI_PANEL_ALPHA);
+    // ROW 1 — Info Bar (32px height)
+    this.topPanel = this.add.rectangle(w / 2, 16, w, 32, COLORS.UI_PANEL, COLORS.UI_PANEL_ALPHA);
     this.topPanel.setScrollFactor(0);
     this.topPanel.setDepth(100);
 
-    // View indicator
-    this.viewLabel = this.add.text(15, 20, '👁️ You', {
-      fontSize: '14px',
+    // View indicator (LEFT)
+    this.viewLabel = this.add.text(15, 8, '👁️ You', {
+      fontSize: '12px',
       fontFamily: 'monospace',
+      fontStyle: 'bold',
       color: '#F5E6C8',
     });
     this.viewLabel.setScrollFactor(0);
@@ -100,31 +101,34 @@ export class HUDScene extends Phaser.Scene {
       this.gameScene.events.emit('toggleView');
     });
 
-    // Zone name
-    this.zoneLabel = this.add.text(w / 2, 20, '🏘️ Town', {
-      fontSize: '14px',
+    // Zone name (CENTER)
+    this.zoneLabel = this.add.text(w / 2, 8, '🏘️ Town', {
+      fontSize: '12px',
       fontFamily: 'monospace',
+      fontStyle: 'bold',
       color: '#F5E6C8',
     });
     this.zoneLabel.setOrigin(0.5, 0);
     this.zoneLabel.setScrollFactor(0);
     this.zoneLabel.setDepth(101);
 
-    // Gold
-    this.goldLabel = this.add.text(w - 15, 20, '🪙 20', {
+    // Gold + rate merged (RIGHT)
+    this.goldLabel = this.add.text(w - 15, 8, '🪙 20', {
       fontSize: '14px',
       fontFamily: 'monospace',
+      fontStyle: 'bold',
       color: '#DAA520',
     });
     this.goldLabel.setOrigin(1, 0);
     this.goldLabel.setScrollFactor(0);
     this.goldLabel.setDepth(101);
 
-    // Gold rate indicator
-    this.goldRateLabel = this.add.text(w - 15, 36, '+0g/min', {
-      fontSize: '10px',
+    // Gold rate — smaller, rendered inline after gold amount
+    this.goldRateLabel = this.add.text(w - 15, 22, '+0/m', {
+      fontSize: '9px',
       fontFamily: 'monospace',
-      color: '#AAAAAA',
+      color: '#DAA520',
+      alpha: 0.8,
     });
     this.goldRateLabel.setOrigin(1, 0);
     this.goldRateLabel.setScrollFactor(0);
@@ -133,52 +137,60 @@ export class HUDScene extends Phaser.Scene {
     // Keep gold rate aligned with gold label on resize
     this.scale.on('resize', () => {
       if (this.goldLabel && this.goldRateLabel) {
-        // Align X with goldLabel and keep a fixed vertical offset below it
         this.goldRateLabel.x = this.goldLabel.x;
-        this.goldRateLabel.y = this.goldLabel.y + 16;
+        this.goldRateLabel.y = this.goldLabel.y + 14;
       }
     });
-    // Agent status indicator
-    this.agentStatus = this.add.text(15, 42, '', {
-      fontSize: '11px',
+
+    // Agent status indicator (ROW 3 — only visible in agent view, 16px)
+    this.agentStatus = this.add.text(15, 62, '', {
+      fontSize: '10px',
       fontFamily: 'monospace',
-      color: '#88CC88',
+      color: '#00BCD4',
     });
     this.agentStatus.setScrollFactor(0);
     this.agentStatus.setDepth(101);
   }
 
   createStatsBars(w) {
-    const barY = 72;
-    const barW = w - 30;
+    // ROW 2 — Bars (28px total, starting below info bar)
+    const barStartY = 38;
+    const barW = w - 16; // 8px margin each side
+    const barX = 8;
 
-    this.hpBar = createHPBar(this, 15, barY, barW, 14);
+    // HP bar background panel
+    this.hpBar = createHPBar(this, barX, barStartY, barW, 12);
     this.hpBar.bg.setDepth(100);
     this.hpBar.fill.setDepth(101);
 
-    this.hpText = this.add.text(w / 2, barY, 'HP 50/50', {
+    // HP text rendered INSIDE the bar
+    this.hpText = this.add.text(barX + barW - 4, barStartY, 'HP 50/50', {
       fontSize: '10px',
       fontFamily: 'monospace',
+      fontStyle: 'bold',
       color: '#FFFFFF',
       stroke: '#000000',
       strokeThickness: 2,
     });
-    this.hpText.setOrigin(0.5);
+    this.hpText.setOrigin(1, 0.5);
     this.hpText.setScrollFactor(0);
     this.hpText.setDepth(102);
 
-    this.xpBar = createXPBar(this, 15, barY + 16, barW, 8);
+    // XP bar below HP bar
+    this.xpBar = createXPBar(this, barX, barStartY + 14, barW, 8);
     this.xpBar.bg.setDepth(100);
     this.xpBar.fill.setDepth(101);
 
-    this.xpText = this.add.text(w / 2, barY + 16, 'Lv.1 — 0/25 XP', {
+    // XP text rendered INSIDE the bar
+    this.xpText = this.add.text(barX + barW - 4, barStartY + 14, 'Lv.1 — 0/25 XP', {
       fontSize: '9px',
       fontFamily: 'monospace',
+      fontStyle: 'bold',
       color: '#FFFFFF',
       stroke: '#000000',
       strokeThickness: 2,
     });
-    this.xpText.setOrigin(0.5);
+    this.xpText.setOrigin(1, 0.5);
     this.xpText.setScrollFactor(0);
     this.xpText.setDepth(102);
   }
@@ -186,214 +198,101 @@ export class HUDScene extends Phaser.Scene {
   createBottomControls(w, h) {
     // Joystick
     if (this.hasTouchSupport) {
-      this.joystick = new Joystick(this, 80, h - 140);
+      this.joystick = new Joystick(this, 80, h - 120);
     } else {
       this.joystick = null;
     }
 
-    // Action button (attack/interact)
-    this.actionBtn = this.add.image(w - 70, h - 160, 'ui_btn_circle');
-    this.actionBtn.setScrollFactor(0);
-    this.actionBtn.setDepth(200);
-    this.actionBtn.setInteractive({ useHandCursor: true });
-    this.actionBtn.setAlpha(0.8);
+    // --- PRIMARY ROW: 4 main action buttons (44x44, evenly spaced) ---
+    const primaryY = h - 80;
+    const btnSize = 44;
+    const primaryBtns = [
+      { icon: '⚔️', event: 'actionButtonPressed', key: 'action' },
+      { icon: '📦', event: 'openShop', key: 'inv' },
+      { icon: '📜', event: 'toggleLog', key: 'log' },
+      { icon: '⚙️', event: 'openSettings', key: 'settings' },
+    ];
+    const spacing = (w - 24) / primaryBtns.length;
 
-    this.actionBtnLabel = this.add.text(w - 70, h - 160, '⚔️', {
-      fontSize: '24px',
-    });
-    this.actionBtnLabel.setOrigin(0.5);
-    this.actionBtnLabel.setScrollFactor(0);
-    this.actionBtnLabel.setDepth(201);
+    primaryBtns.forEach((def, i) => {
+      const bx = 12 + spacing * i + spacing / 2;
+      const bg = this.add.rectangle(bx, primaryY, btnSize, btnSize, 0x1A1A2E, 0.9);
+      bg.setScrollFactor(0);
+      bg.setDepth(200);
+      bg.setStrokeStyle(1, 0x444444);
+      bg.setInteractive({ useHandCursor: true });
 
-    this.actionBtn.on('pointerdown', () => {
-      this.actionBtn.setAlpha(1);
-      this.actionBtn.setScale(0.9);
-      this.gameScene.events.emit('actionButtonPressed');
-    });
-    this.actionBtn.on('pointerup', () => {
-      this.actionBtn.setAlpha(0.8);
-      this.actionBtn.setScale(1);
-    });
+      const label = this.add.text(bx, primaryY, def.icon, {
+        fontSize: '20px',
+      });
+      label.setOrigin(0.5);
+      label.setScrollFactor(0);
+      label.setDepth(201);
 
-    // Inventory button
-    this.invBtn = this.add.image(w - 70, h - 95, 'ui_btn_small');
-    this.invBtn.setScrollFactor(0);
-    this.invBtn.setDepth(200);
-    this.invBtn.setInteractive({ useHandCursor: true });
-    this.invBtn.setAlpha(0.8);
+      bg.on('pointerdown', () => {
+        bg.setScale(0.9);
+        bg.setStrokeStyle(1, 0xDAA520);
+        if (def.key === 'action') {
+          this.gameScene.events.emit('actionButtonPressed');
+        } else if (def.key === 'inv') {
+          this.gameScene.events.emit('openInventory');
+          this.scene.launch('ShopScene');
+        } else if (def.key === 'log') {
+          if (this.scene.isActive('CombatLogPanel')) {
+            this.scene.stop('CombatLogPanel');
+          } else {
+            this.scene.launch('CombatLogPanel');
+          }
+        } else if (def.key === 'settings') {
+          this.scene.launch('SettingsPanel');
+        }
+      });
+      bg.on('pointerup', () => {
+        bg.setScale(1);
+        bg.setStrokeStyle(1, 0x444444);
+      });
 
-    this.invBtnLabel = this.add.text(w - 70, h - 95, '📦', {
-      fontSize: '18px',
-    });
-    this.invBtnLabel.setOrigin(0.5);
-    this.invBtnLabel.setScrollFactor(0);
-    this.invBtnLabel.setDepth(201);
-
-    this.invBtn.on('pointerdown', () => {
-      this.invBtn.setScale(0.9);
-      this.gameScene.events.emit('openInventory');
-      this.scene.launch('ShopScene');
-    });
-    this.invBtn.on('pointerup', () => {
-      this.invBtn.setScale(1);
-    });
-
-    // Toggle view button
-    this.viewBtn = this.add.image(w - 130, h - 95, 'ui_btn_small');
-    this.viewBtn.setScrollFactor(0);
-    this.viewBtn.setDepth(200);
-    this.viewBtn.setInteractive({ useHandCursor: true });
-    this.viewBtn.setAlpha(0.8);
-
-    this.viewBtnLabel = this.add.text(w - 130, h - 95, '👁️', {
-      fontSize: '18px',
-    });
-    this.viewBtnLabel.setOrigin(0.5);
-    this.viewBtnLabel.setScrollFactor(0);
-    this.viewBtnLabel.setDepth(201);
-
-    this.viewBtn.on('pointerdown', () => {
-      this.viewBtn.setScale(0.9);
-      this.gameScene.events.emit('toggleView');
-    });
-    this.viewBtn.on('pointerup', () => {
-      this.viewBtn.setScale(1);
-    });
-
-    // Equip button
-    this.equipBtn = this.add.image(w - 190, h - 95, 'ui_btn_small');
-    this.equipBtn.setScrollFactor(0);
-    this.equipBtn.setDepth(200);
-    this.equipBtn.setInteractive({ useHandCursor: true });
-    this.equipBtn.setAlpha(0.8);
-
-    this.equipBtnLabel = this.add.text(w - 190, h - 95, '🛡️', {
-      fontSize: '18px',
-    });
-    this.equipBtnLabel.setOrigin(0.5);
-    this.equipBtnLabel.setScrollFactor(0);
-    this.equipBtnLabel.setDepth(201);
-
-    this.equipBtn.on('pointerdown', () => {
-      this.equipBtn.setScale(0.9);
-      this.gameScene.events.emit('openEquipment');
-    });
-    this.equipBtn.on('pointerup', () => {
-      this.equipBtn.setScale(1);
-    });
-
-    // Skills button
-    this.skillsBtn = this.add.image(w - 250, h - 95, 'ui_btn_small');
-    this.skillsBtn.setScrollFactor(0);
-    this.skillsBtn.setDepth(200);
-    this.skillsBtn.setInteractive({ useHandCursor: true });
-    this.skillsBtn.setAlpha(0.8);
-
-    this.skillsBtnLabel = this.add.text(w - 250, h - 95, '📊', {
-      fontSize: '18px',
-    });
-    this.skillsBtnLabel.setOrigin(0.5);
-    this.skillsBtnLabel.setScrollFactor(0);
-    this.skillsBtnLabel.setDepth(201);
-
-    this.skillsBtn.on('pointerdown', () => {
-      this.skillsBtn.setScale(0.9);
-      this.scene.launch('SkillsPanel');
-    });
-    this.skillsBtn.on('pointerup', () => {
-      this.skillsBtn.setScale(1);
-    });
-
-    // Companion button
-    this.companionBtn = this.add.image(w - 250, h - 160, 'ui_btn_small');
-    this.companionBtn.setScrollFactor(0);
-    this.companionBtn.setDepth(200);
-    this.companionBtn.setInteractive({ useHandCursor: true });
-    this.companionBtn.setAlpha(0.8);
-
-    this.companionBtnLabel = this.add.text(w - 250, h - 160, '🐾', {
-      fontSize: '18px',
-    });
-    this.companionBtnLabel.setOrigin(0.5);
-    this.companionBtnLabel.setScrollFactor(0);
-    this.companionBtnLabel.setDepth(201);
-
-    this.companionBtn.on('pointerdown', () => {
-      this.companionBtn.setScale(0.9);
-      this.scene.launch('CompanionPanel');
-    });
-    this.companionBtn.on('pointerup', () => {
-      this.companionBtn.setScale(1);
-    });
-
-    // Settings button
-    this.settingsBtn = this.add.image(w - 130, h - 160, 'ui_btn_small');
-    this.settingsBtn.setScrollFactor(0);
-    this.settingsBtn.setDepth(200);
-    this.settingsBtn.setInteractive({ useHandCursor: true });
-    this.settingsBtn.setAlpha(0.8);
-
-    this.settingsBtnLabel = this.add.text(w - 130, h - 160, '⚙️', {
-      fontSize: '18px',
-    });
-    this.settingsBtnLabel.setOrigin(0.5);
-    this.settingsBtnLabel.setScrollFactor(0);
-    this.settingsBtnLabel.setDepth(201);
-
-    this.settingsBtn.on('pointerdown', () => {
-      this.settingsBtn.setScale(0.9);
-      this.scene.launch('SettingsPanel');
-    });
-    this.settingsBtn.on('pointerup', () => {
-      this.settingsBtn.setScale(1);
-    });
-
-    // Forge button
-    this.forgeBtn = this.add.image(w - 190, h - 160, 'ui_btn_small');
-    this.forgeBtn.setScrollFactor(0);
-    this.forgeBtn.setDepth(200);
-    this.forgeBtn.setInteractive({ useHandCursor: true });
-    this.forgeBtn.setAlpha(0.8);
-
-    this.forgeBtnLabel = this.add.text(w - 190, h - 160, '⚒️', {
-      fontSize: '18px',
-    });
-    this.forgeBtnLabel.setOrigin(0.5);
-    this.forgeBtnLabel.setScrollFactor(0);
-    this.forgeBtnLabel.setDepth(201);
-
-    this.forgeBtn.on('pointerdown', () => {
-      this.forgeBtn.setScale(0.9);
-      this.scene.launch('ForgePanel');
-    });
-    this.forgeBtn.on('pointerup', () => {
-      this.forgeBtn.setScale(1);
-    });
-
-    // Combat Log button
-    this.logBtn = this.add.image(w - 310, h - 95, 'ui_btn_small');
-    this.logBtn.setScrollFactor(0);
-    this.logBtn.setDepth(200);
-    this.logBtn.setInteractive({ useHandCursor: true });
-    this.logBtn.setAlpha(0.8);
-
-    this.logBtnLabel = this.add.text(w - 310, h - 95, '📜', {
-      fontSize: '18px',
-    });
-    this.logBtnLabel.setOrigin(0.5);
-    this.logBtnLabel.setScrollFactor(0);
-    this.logBtnLabel.setDepth(201);
-
-    this.logBtn.on('pointerdown', () => {
-      this.logBtn.setScale(0.9);
-      if (this.scene.isActive('CombatLogPanel')) {
-        this.scene.stop('CombatLogPanel');
-      } else {
-        this.scene.launch('CombatLogPanel');
+      if (def.key === 'action') {
+        this.actionBtn = bg;
+        this.actionBtnLabel = label;
       }
     });
-    this.logBtn.on('pointerup', () => {
-      this.logBtn.setScale(1);
+
+    // --- SECONDARY ROW: smaller shortcut buttons (32x32, lighter style) ---
+    const secondaryY = h - 120;
+    const secBtns = [
+      { icon: '🛡️', action: () => this.gameScene.events.emit('openEquipment') },
+      { icon: '📊', action: () => this.scene.launch('SkillsPanel') },
+      { icon: '⚒️', action: () => this.scene.launch('ForgePanel') },
+      { icon: '🐾', action: () => this.scene.launch('CompanionPanel') },
+      { icon: '👁️', action: () => this.gameScene.events.emit('toggleView') },
+    ];
+    const secSpacing = (w - 24) / secBtns.length;
+
+    // 1px separator between rows
+    this.add.rectangle(w / 2, secondaryY + 20, w - 24, 1, 0x333333, 0.6)
+      .setScrollFactor(0).setDepth(199);
+
+    secBtns.forEach((def, i) => {
+      const bx = 12 + secSpacing * i + secSpacing / 2;
+      const label = this.add.text(bx, secondaryY, def.icon, {
+        fontSize: '16px',
+      });
+      label.setOrigin(0.5);
+      label.setScrollFactor(0);
+      label.setDepth(201);
+      label.setAlpha(0.7);
+      label.setInteractive({ useHandCursor: true });
+
+      label.on('pointerdown', () => {
+        label.setScale(0.9);
+        label.setAlpha(1);
+        def.action();
+      });
+      label.on('pointerup', () => {
+        label.setScale(1);
+        label.setAlpha(0.7);
+      });
     });
 
     // Auto-save indicator
@@ -409,8 +308,8 @@ export class HUDScene extends Phaser.Scene {
   }
 
   createContextPrompt(w, h) {
-    this.contextPrompt = this.add.text(w / 2, h - 210, '', {
-      fontSize: '13px',
+    this.contextPrompt = this.add.text(w / 2, h - 145, '', {
+      fontSize: '12px',
       fontFamily: 'monospace',
       color: '#F5E6C8',
       backgroundColor: '#1A1A2ECC',
@@ -427,9 +326,13 @@ export class HUDScene extends Phaser.Scene {
     this.miniInvContainer.setScrollFactor(0);
     this.miniInvContainer.setDepth(200);
 
-    this.miniInvBg = this.add.rectangle(w / 2, h - 40, w - 20, 35, COLORS.UI_PANEL, 0.7);
+    this.miniInvBg = this.add.rectangle(w / 2, h - 36, w, 32, 0x111111, 0.9);
     this.miniInvBg.setScrollFactor(0);
+    // 1px top border
+    this.miniInvBorder = this.add.rectangle(w / 2, h - 52, w, 1, 0x333333);
+    this.miniInvBorder.setScrollFactor(0);
     this.miniInvContainer.add(this.miniInvBg);
+    this.miniInvContainer.add(this.miniInvBorder);
 
     this.miniInvItems = [];
   }
@@ -452,14 +355,19 @@ export class HUDScene extends Phaser.Scene {
     });
 
     this.gameScene.events.on('goldRateChanged', (gpm) => {
+      const text = gpm > 0 ? `+${gpm}/m` : '+0/m';
       const color = gpm > 0 ? '#DAA520' : '#AAAAAA';
-      this.goldRateLabel.setText(`+${gpm}g/min`);
+      this.goldRateLabel.setText(text);
       this.goldRateLabel.setColor(color);
     });
 
     this.gameScene.events.on('viewTargetChanged', (target) => {
       this.viewTarget = target;
       this.viewLabel.setText(target === 'player' ? '👁️ You' : '👁️ Agent');
+      // Agent status line only visible in agent view
+      if (this.agentStatus) {
+        this.agentStatus.setVisible(target === 'agent');
+      }
     });
 
     this.gameScene.events.on('agentStateChanged', (state) => {
@@ -593,20 +501,23 @@ export class HUDScene extends Phaser.Scene {
 
   updateStats(stats) {
     if (!stats) return;
-    const maxHp = stats.maxHp;
-    const hpRatio = stats.hp / maxHp;
+    const maxHp = Number.isFinite(stats.maxHp) ? stats.maxHp : 20;
+    const hp = Number.isFinite(stats.hp) ? stats.hp : 0;
+    const hpRatio = maxHp > 0 ? hp / maxHp : 0;
     updateHPBar(this.hpBar, hpRatio);
 
     const bonusHp = stats.bonusMaxHp || 0;
     const hpLabel = bonusHp > 0
-      ? `HP ${stats.hp}/${maxHp} (+${bonusHp})`
-      : `HP ${stats.hp}/${maxHp}`;
+      ? `HP ${hp}/${maxHp} (+${bonusHp})`
+      : `HP ${hp}/${maxHp}`;
     this.hpText.setText(hpLabel);
 
     if (stats.xpToNext !== undefined) {
-      const xpRatio = stats.xp / stats.xpToNext;
+      const xp = Number.isFinite(stats.xp) ? stats.xp : 0;
+      const xpToNext = Number.isFinite(stats.xpToNext) ? stats.xpToNext : 25;
+      const xpRatio = xpToNext > 0 ? xp / xpToNext : 0;
       updateXPBar(this.xpBar, xpRatio);
-      this.xpText.setText(`Lv.${stats.level} — ${stats.xp}/${stats.xpToNext} XP`);
+      this.xpText.setText(`Lv.${stats.level || 1} — ${xp}/${xpToNext} XP`);
     }
 
     // Update zone label
@@ -631,10 +542,10 @@ export class HUDScene extends Phaser.Scene {
     const h = this.scale.height;
     const last5 = stash.slice(-5);
 
-    let xOff = 30;
+    let xOff = 15;
     for (const item of last5) {
-      const txt = this.add.text(xOff, h - 46, `${item.emoji}×${item.quantity}`, {
-        fontSize: '12px',
+      const txt = this.add.text(xOff, h - 40, `${item.emoji}×${item.quantity}`, {
+        fontSize: '9px',
         fontFamily: 'monospace',
         color: '#F5E6C8',
       });
@@ -667,9 +578,9 @@ export class HUDScene extends Phaser.Scene {
 
   onResize(w, h) {
     // Reposition key HUD elements when viewport resizes (iOS Safari address bar)
-    if (this.topPanel) this.topPanel.setPosition(w / 2, 30 + this.safeTop);
-    if (this.goldLabel) this.goldLabel.setPosition(w - 15, 20 + this.safeTop);
-    if (this.miniInvBg) this.miniInvBg.setPosition(w / 2, h - 40 - this.safeBottom);
+    if (this.topPanel) this.topPanel.setPosition(w / 2, 16 + this.safeTop);
+    if (this.goldLabel) this.goldLabel.setPosition(w - 15, 8 + this.safeTop);
+    if (this.miniInvBg) this.miniInvBg.setPosition(w / 2, h - 36 - this.safeBottom);
   }
 
   update() {
@@ -775,35 +686,38 @@ export class HUDScene extends Phaser.Scene {
     // Shift existing mini-log texts up
     for (const t of this.miniLogTexts) {
       if (t && t.active) {
-        t.y -= 14;
+        t.y -= 12;
       }
     }
 
-    // Remove oldest if more than 3
-    while (this.miniLogTexts.length >= 3) {
+    // Remove oldest if more than 2 (2 lines max)
+    while (this.miniLogTexts.length >= 2) {
       const old = this.miniLogTexts.shift();
       if (old && old.active) old.destroy();
     }
 
-    const txt = this.add.text(10, h - 225, message, {
-      fontSize: '9px',
+    // Position above context prompt area, never overlapping buttons
+    const txt = this.add.text(8, h - 165, message, {
+      fontSize: '10px',
       fontFamily: 'monospace',
       color,
       stroke: '#000000',
       strokeThickness: 2,
+      backgroundColor: '#00000066',
+      padding: { x: 4, y: 1 },
     });
     txt.setScrollFactor(0);
     txt.setDepth(200);
-    txt.setAlpha(0.6);
+    txt.setAlpha(0.8);
 
     this.miniLogTexts.push(txt);
 
-    // Fade out after 3 seconds
+    // Fade out after 4 seconds
     this.tweens.add({
       targets: txt,
       alpha: 0,
       duration: 1000,
-      delay: 3000,
+      delay: 4000,
       onComplete: () => {
         const idx = this.miniLogTexts.indexOf(txt);
         if (idx !== -1) this.miniLogTexts.splice(idx, 1);

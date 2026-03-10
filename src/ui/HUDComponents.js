@@ -1,11 +1,12 @@
 import { COLORS } from '../config/constants.js';
 
 export function createHPBar(scene, x, y, width, height) {
-  const bg = scene.add.rectangle(x, y, width, height, COLORS.UI_HP_RED);
+  const bg = scene.add.rectangle(x, y, width, height, 0x2A2A2A);
   bg.setOrigin(0, 0.5);
   bg.setScrollFactor(0);
+  bg.setStrokeStyle(1, 0x444444);
 
-  const fill = scene.add.rectangle(x, y, width, height, COLORS.UI_HP_GREEN);
+  const fill = scene.add.rectangle(x, y, width, height, 0xCC3333);
   fill.setOrigin(0, 0.5);
   fill.setScrollFactor(0);
 
@@ -17,11 +18,12 @@ export function updateHPBar(bar, ratio) {
 }
 
 export function createXPBar(scene, x, y, width, height) {
-  const bg = scene.add.rectangle(x, y, width, height, COLORS.UI_XP_BG);
+  const bg = scene.add.rectangle(x, y, width, height, 0x2A2A2A);
   bg.setOrigin(0, 0.5);
   bg.setScrollFactor(0);
+  bg.setStrokeStyle(1, 0x444444);
 
-  const fill = scene.add.rectangle(x, y, width, height, COLORS.UI_XP_FILL);
+  const fill = scene.add.rectangle(x, y, width, height, 0x7B2FBE);
   fill.setOrigin(0, 0.5);
   fill.setScrollFactor(0);
 
