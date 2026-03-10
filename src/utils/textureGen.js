@@ -10,359 +10,751 @@ export function generateTextures(scene) {
   generatePhase7Textures(scene);
 }
 
-function generateTileTextures(scene) {
-  // Town ground
-  const tg = scene.make.graphics({ x: 0, y: 0, add: false });
-  tg.fillStyle(COLORS.TOWN_GROUND);
-  tg.fillRect(0, 0, 16, 16);
-  for (let i = 0; i < 16; i += 4) {
-    for (let j = 0; j < 16; j += 4) {
-      tg.fillStyle((i + j) % 8 === 0 ? 0x7A6548 : COLORS.TOWN_GROUND);
-      tg.fillRect(i, j, 4, 4);
-    }
-  }
-  tg.generateTexture('tile_town_ground', 16, 16);
-  tg.destroy();
-
-  // Town path
-  const tp = scene.make.graphics({ x: 0, y: 0, add: false });
-  tp.fillStyle(COLORS.TOWN_PATH);
-  tp.fillRect(0, 0, 16, 16);
-  tp.fillStyle(0xB09E82);
-  tp.fillRect(2, 2, 3, 3);
-  tp.fillRect(9, 7, 3, 3);
-  tp.fillRect(5, 12, 3, 3);
-  tp.generateTexture('tile_town_path', 16, 16);
-  tp.destroy();
-
-  // Forest ground
-  const fg = scene.make.graphics({ x: 0, y: 0, add: false });
-  fg.fillStyle(COLORS.FOREST_GROUND);
-  fg.fillRect(0, 0, 16, 16);
-  for (let i = 0; i < 8; i++) {
-    const px = Math.floor(Math.random() * 16);
-    const py = Math.floor(Math.random() * 16);
-    fg.fillStyle(COLORS.FOREST_GRASS);
-    fg.fillRect(px, py, 2, 2);
-  }
-  fg.generateTexture('tile_forest_ground', 16, 16);
-  fg.destroy();
-
-  // Tree
-  const tree = scene.make.graphics({ x: 0, y: 0, add: false });
-  tree.fillStyle(COLORS.FOREST_TREE_TRUNK);
-  tree.fillRect(7, 10, 2, 6);
-  tree.fillStyle(COLORS.FOREST_TREE_LEAVES);
-  tree.fillRect(4, 3, 8, 7);
-  tree.fillStyle(0x2E7D32);
-  tree.fillRect(5, 2, 6, 3);
-  tree.fillStyle(0x1B5E20);
-  tree.fillRect(6, 4, 4, 2);
-  tree.generateTexture('tile_tree', 16, 16);
-  tree.destroy();
-
-  // Cave ground
-  const cg = scene.make.graphics({ x: 0, y: 0, add: false });
-  cg.fillStyle(COLORS.CAVE_GROUND);
-  cg.fillRect(0, 0, 16, 16);
-  for (let i = 0; i < 4; i++) {
-    cg.fillStyle(COLORS.CAVE_PURPLE);
-    cg.fillRect(Math.floor(Math.random() * 14), Math.floor(Math.random() * 14), 2, 2);
-  }
-  cg.generateTexture('tile_cave_ground', 16, 16);
-  cg.destroy();
-
-  // Cave wall
-  const cw = scene.make.graphics({ x: 0, y: 0, add: false });
-  cw.fillStyle(COLORS.CAVE_WALL);
-  cw.fillRect(0, 0, 16, 16);
-  cw.fillStyle(0x25253E);
-  cw.fillRect(0, 0, 16, 4);
-  cw.fillRect(0, 12, 16, 4);
-  cw.generateTexture('tile_cave_wall', 16, 16);
-  cw.destroy();
-
-  // Water
-  const wt = scene.make.graphics({ x: 0, y: 0, add: false });
-  wt.fillStyle(COLORS.WATER);
-  wt.fillRect(0, 0, 16, 16);
-  wt.fillStyle(0x3D6FC4);
-  wt.fillRect(3, 5, 4, 2);
-  wt.fillRect(10, 10, 3, 2);
-  wt.generateTexture('tile_water', 16, 16);
-  wt.destroy();
-
-  // Building - Tavern
-  const tav = scene.make.graphics({ x: 0, y: 0, add: false });
-  tav.fillStyle(0x6B4226);
-  tav.fillRect(2, 4, 12, 10);
-  tav.fillStyle(COLORS.TOWN_ROOF);
-  tav.fillRect(1, 2, 14, 3);
-  tav.fillStyle(0xDAA520);
-  tav.fillRect(5, 6, 2, 2);
-  tav.fillRect(9, 6, 2, 2);
-  tav.fillStyle(0x3E2723);
-  tav.fillRect(6, 10, 4, 4);
-  tav.generateTexture('tile_building_tavern', 16, 16);
-  tav.destroy();
-
-  // Building - Shop
-  const shp = scene.make.graphics({ x: 0, y: 0, add: false });
-  shp.fillStyle(0x757575);
-  shp.fillRect(2, 4, 12, 10);
-  shp.fillStyle(0x546E7A);
-  shp.fillRect(1, 2, 14, 3);
-  shp.fillStyle(0xFFC107);
-  shp.fillRect(4, 3, 8, 1);
-  shp.fillStyle(0x3E2723);
-  shp.fillRect(6, 10, 4, 4);
-  shp.generateTexture('tile_building_shop', 16, 16);
-  shp.destroy();
-
-  // Building - Home
-  const hm = scene.make.graphics({ x: 0, y: 0, add: false });
-  hm.fillStyle(0x8D6E63);
-  hm.fillRect(2, 4, 12, 10);
-  hm.fillStyle(0x5D4037);
-  hm.fillRect(1, 2, 14, 3);
-  hm.fillStyle(0xFFCC80);
-  hm.fillRect(5, 6, 2, 2);
-  hm.fillStyle(0x3E2723);
-  hm.fillRect(6, 10, 4, 4);
-  hm.generateTexture('tile_building_home', 16, 16);
-  hm.destroy();
-
-  // Crystal decoration
-  const cr = scene.make.graphics({ x: 0, y: 0, add: false });
-  cr.fillStyle(COLORS.CAVE_GROUND);
-  cr.fillRect(0, 0, 16, 16);
-  cr.fillStyle(COLORS.CAVE_CRYSTAL);
-  cr.fillRect(6, 4, 4, 8);
-  cr.fillStyle(0x80CBC4);
-  cr.fillRect(7, 3, 2, 3);
-  cr.generateTexture('tile_crystal', 16, 16);
-  cr.destroy();
-
-  // Fishing dock
-  const dock = scene.make.graphics({ x: 0, y: 0, add: false });
-  for (let row = 0; row < 16; row += 2) {
-    dock.fillStyle(row % 4 === 0 ? 0x8B6914 : 0x6B4226);
-    dock.fillRect(0, row, 16, 2);
-  }
-  dock.fillStyle(0x5A3A1A);
-  dock.fillRect(0, 0, 16, 1);
-  dock.fillRect(0, 15, 16, 1);
-  dock.generateTexture('tile_fishing_dock', 16, 16);
-  dock.destroy();
-
-  // Mining node - Copper
-  const mnC = scene.make.graphics({ x: 0, y: 0, add: false });
-  mnC.fillStyle(0x7A7A7A);
-  mnC.fillRect(3, 5, 10, 8);
-  mnC.fillRect(5, 3, 6, 2);
-  mnC.fillRect(4, 13, 8, 2);
-  mnC.fillStyle(0xB87333);
-  mnC.fillRect(5, 7, 2, 2);
-  mnC.fillRect(9, 9, 2, 2);
-  mnC.fillRect(7, 11, 1, 1);
-  mnC.fillRect(4, 6, 1, 1);
-  mnC.generateTexture('tile_mining_node_copper', 16, 16);
-  mnC.destroy();
-
-  // Mining node - Iron
-  const mnI = scene.make.graphics({ x: 0, y: 0, add: false });
-  mnI.fillStyle(0x7A7A7A);
-  mnI.fillRect(3, 5, 10, 8);
-  mnI.fillRect(5, 3, 6, 2);
-  mnI.fillRect(4, 13, 8, 2);
-  mnI.fillStyle(0xC0C0C0);
-  mnI.fillRect(5, 7, 2, 2);
-  mnI.fillRect(9, 9, 2, 2);
-  mnI.fillRect(7, 11, 1, 1);
-  mnI.fillRect(4, 6, 1, 1);
-  mnI.generateTexture('tile_mining_node_iron', 16, 16);
-  mnI.destroy();
-
-  // Mining node - Crystal
-  const mnCr = scene.make.graphics({ x: 0, y: 0, add: false });
-  mnCr.fillStyle(0x4A4458);
-  mnCr.fillRect(3, 5, 10, 8);
-  mnCr.fillRect(5, 3, 6, 2);
-  mnCr.fillRect(4, 13, 8, 2);
-  mnCr.fillStyle(0x5B8FA8);
-  mnCr.fillRect(5, 7, 2, 2);
-  mnCr.fillRect(9, 9, 2, 2);
-  mnCr.fillStyle(0x9C27B0);
-  mnCr.fillRect(7, 11, 1, 1);
-  mnCr.fillRect(4, 6, 1, 1);
-  mnCr.generateTexture('tile_mining_node_crystal', 16, 16);
-  mnCr.destroy();
-
-  // Mining node - Depleted
-  const mnD = scene.make.graphics({ x: 0, y: 0, add: false });
-  mnD.fillStyle(0x4A4A4A);
-  mnD.fillRect(3, 5, 10, 8);
-  mnD.fillRect(5, 3, 6, 2);
-  mnD.fillRect(4, 13, 8, 2);
-  mnD.fillStyle(0x333333);
-  mnD.fillRect(6, 7, 1, 3);
-  mnD.fillRect(9, 8, 1, 2);
-  mnD.generateTexture('tile_mining_node_depleted', 16, 16);
-  mnD.destroy();
-
-  // Building - Kitchen (warm stone with orange-lit window)
-  const kit = scene.make.graphics({ x: 0, y: 0, add: false });
-  kit.fillStyle(0x7A6548);
-  kit.fillRect(2, 4, 12, 10);
-  kit.fillStyle(0x5C4A33);
-  kit.fillRect(1, 2, 14, 3);
-  // Window with orange fire glow
-  kit.fillStyle(0xFF8C00);
-  kit.fillRect(5, 6, 4, 4);
-  kit.fillStyle(0xFFCC44);
-  kit.fillRect(6, 7, 2, 2);
-  // Door
-  kit.fillStyle(0x3E2723);
-  kit.fillRect(7, 10, 3, 4);
-  // Chimney smoke (white pixel)
-  kit.fillStyle(0xFFFFFF);
-  kit.fillRect(11, 1, 2, 2);
-  kit.generateTexture('tile_building_kitchen', 16, 16);
-  kit.destroy();
+// ---------------------------------------------------------------------------
+// Helper: create graphics, draw, generate texture, destroy
+// ---------------------------------------------------------------------------
+function makeTex(scene, key, w, h, drawFn) {
+  const g = scene.make.graphics({ x: 0, y: 0, add: false });
+  drawFn(g);
+  g.generateTexture(key, w, h);
+  g.destroy();
 }
 
+function tex32(scene, key, drawFn) {
+  makeTex(scene, key, 32, 32, drawFn);
+}
+
+function dither(g, noiseColor, density) {
+  for (let x = 0; x < 32; x += 2) {
+    for (let y = 0; y < 32; y += 2) {
+      if (Math.random() < density) {
+        g.fillStyle(noiseColor, 1);
+        g.fillRect(x, y, 2, 2);
+      }
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// TILE TEXTURES (32×32)
+// ---------------------------------------------------------------------------
+function generateTileTextures(scene) {
+  // tile_town_ground (prompt: tile_grass)
+  tex32(scene, 'tile_town_ground', (g) => {
+    g.fillStyle(0x4A7C3F);
+    g.fillRect(0, 0, 32, 32);
+    dither(g, 0x3D6B34, 0.2);
+    dither(g, 0x5A8C4F, 0.1);
+    g.fillStyle(0x5A9C4F);
+    g.fillRect(4, 6, 2, 4);
+    g.fillRect(18, 14, 2, 4);
+    g.fillRect(26, 24, 2, 4);
+  });
+
+  // tile_town_path (prompt: tile_path)
+  tex32(scene, 'tile_town_path', (g) => {
+    g.fillStyle(0x8B8878);
+    g.fillRect(0, 0, 32, 32);
+    g.fillStyle(0x7A7768);
+    for (let x = 0; x < 32; x += 8) g.fillRect(x, 0, 1, 32);
+    for (let y = 0; y < 32; y += 8) g.fillRect(0, y, 32, 1);
+    g.fillStyle(0x6A6758);
+    for (let y = 0; y < 32; y += 16) {
+      g.fillRect(4, y + 8, 1, 8);
+      g.fillRect(12, y + 8, 1, 8);
+      g.fillRect(20, y + 8, 1, 8);
+      g.fillRect(28, y + 8, 1, 8);
+    }
+    dither(g, 0x9A9888, 0.08);
+  });
+
+  // tile_forest_ground (prompt: tile_forest_grass)
+  tex32(scene, 'tile_forest_ground', (g) => {
+    g.fillStyle(0x2D5A27);
+    g.fillRect(0, 0, 32, 32);
+    dither(g, 0x1A3A15, 0.25);
+    dither(g, 0x3A6A34, 0.12);
+    g.fillStyle(0x4A3A20);
+    g.fillRect(6, 10, 4, 2);
+    g.fillRect(20, 22, 4, 2);
+  });
+
+  // tile_tree (prompt: tile_tree — key matches)
+  tex32(scene, 'tile_tree', (g) => {
+    g.fillStyle(0x1A3A15);
+    g.fillRect(0, 0, 32, 32);
+    g.fillStyle(0x4A3220);
+    g.fillRect(12, 18, 8, 14);
+    g.fillStyle(0x3A2210);
+    g.fillRect(12, 18, 2, 14);
+    g.fillStyle(0x1D4A17);
+    g.fillRect(2, 2, 28, 20);
+    g.fillStyle(0x2D5A27);
+    g.fillRect(4, 4, 24, 16);
+    g.fillStyle(0x3A6A34);
+    g.fillRect(8, 6, 16, 10);
+    g.fillStyle(0x4A7C3F);
+    g.fillRect(10, 8, 4, 4);
+    g.fillRect(18, 6, 4, 4);
+    g.fillRect(14, 10, 4, 2);
+    g.fillStyle(0x1A3A15);
+    g.fillRect(6, 10, 4, 4);
+    g.fillRect(22, 12, 4, 4);
+  });
+
+  // tile_cave_ground (prompt: tile_cave_floor)
+  tex32(scene, 'tile_cave_ground', (g) => {
+    g.fillStyle(0x36393F);
+    g.fillRect(0, 0, 32, 32);
+    dither(g, 0x2A2D33, 0.2);
+    dither(g, 0x40434A, 0.12);
+    g.fillStyle(0x2A2D33);
+    g.fillRect(4, 10, 12, 1);
+    g.fillRect(18, 22, 10, 1);
+  });
+
+  // tile_cave_wall (prompt: tile_cave_wall — key matches)
+  tex32(scene, 'tile_cave_wall', (g) => {
+    g.fillStyle(0x2A2D33);
+    g.fillRect(0, 0, 32, 32);
+    g.fillStyle(0x36393F);
+    g.fillRect(2, 4, 10, 8);
+    g.fillRect(14, 2, 14, 6);
+    g.fillRect(6, 16, 12, 10);
+    g.fillRect(20, 14, 10, 8);
+    g.fillStyle(0x1A1D23);
+    g.fillRect(12, 4, 2, 6);
+    g.fillRect(4, 14, 8, 2);
+    g.fillRect(18, 12, 2, 8);
+    g.fillStyle(0x4A4D53);
+    g.fillRect(4, 4, 2, 2);
+    g.fillRect(22, 16, 2, 2);
+  });
+
+  // tile_water (prompt: tile_water — key matches)
+  tex32(scene, 'tile_water', (g) => {
+    g.fillStyle(0x2266AA);
+    g.fillRect(0, 0, 32, 32);
+    dither(g, 0x1A5599, 0.15);
+    g.fillStyle(0x3388CC);
+    g.fillRect(2, 8, 12, 2);
+    g.fillRect(16, 16, 14, 2);
+    g.fillRect(6, 24, 10, 2);
+    g.fillStyle(0x55AADD);
+    g.fillRect(8, 6, 4, 2);
+    g.fillRect(20, 14, 4, 2);
+  });
+
+  // tile_building_tavern (prompt: tile_tavern)
+  tex32(scene, 'tile_building_tavern', (g) => {
+    g.fillStyle(0x8B7355);
+    g.fillRect(0, 0, 32, 32);
+    g.fillStyle(0x7A6345);
+    g.fillRect(2, 6, 28, 24);
+    g.fillStyle(0x4A3220);
+    g.fillRect(0, 0, 32, 8);
+    g.fillStyle(0x3A2210);
+    g.fillRect(2, 2, 28, 4);
+    g.fillStyle(0x4A3520);
+    g.fillRect(12, 18, 8, 12);
+    g.fillStyle(0xDAA520);
+    g.fillRect(18, 24, 2, 2);
+    g.fillStyle(0xDAA520);
+    g.fillRect(4, 12, 6, 6);
+    g.fillStyle(0x3A2210);
+    g.fillRect(7, 12, 1, 6);
+    g.fillRect(4, 15, 6, 1);
+    g.fillStyle(0xDAA520);
+    g.fillRect(22, 12, 6, 6);
+    g.fillStyle(0x3A2210);
+    g.fillRect(25, 12, 1, 6);
+    g.fillRect(22, 15, 6, 1);
+    g.fillStyle(0x6B4226);
+    g.fillRect(24, 6, 6, 5);
+    g.fillStyle(0xDAA520);
+    g.fillRect(26, 7, 2, 3);
+  });
+
+  // tile_building_shop (prompt: tile_shop)
+  tex32(scene, 'tile_building_shop', (g) => {
+    g.fillStyle(0x8B7355);
+    g.fillRect(0, 0, 32, 32);
+    g.fillStyle(0x7A6345);
+    g.fillRect(2, 6, 28, 24);
+    g.fillStyle(0x2D5A27);
+    g.fillRect(0, 0, 32, 8);
+    g.fillStyle(0x3A6A34);
+    g.fillRect(0, 6, 32, 3);
+    for (let x = 0; x < 32; x += 8) {
+      g.fillStyle(0x2D5A27);
+      g.fillRect(x + 2, 8, 4, 2);
+    }
+    g.fillStyle(0x4A3520);
+    g.fillRect(12, 18, 8, 12);
+    g.fillStyle(0xDAA520);
+    g.fillRect(18, 24, 2, 2);
+    g.fillStyle(0xDAA520);
+    g.fillRect(4, 12, 6, 6);
+    g.fillRect(22, 12, 6, 6);
+    g.fillStyle(0xCC3333);
+    g.fillRect(5, 14, 2, 2);
+    g.fillStyle(0x3366CC);
+    g.fillRect(8, 14, 2, 2);
+    g.fillStyle(0xCCCC33);
+    g.fillRect(23, 14, 2, 2);
+  });
+
+  // tile_building_home (prompt: tile_home)
+  tex32(scene, 'tile_building_home', (g) => {
+    g.fillStyle(0x8B7355);
+    g.fillRect(0, 0, 32, 32);
+    g.fillStyle(0x7A6345);
+    g.fillRect(2, 6, 28, 24);
+    g.fillStyle(0x6B4226);
+    g.fillRect(0, 0, 32, 8);
+    g.fillStyle(0x5A3218);
+    g.fillRect(2, 2, 28, 4);
+    g.fillStyle(0x4A3520);
+    g.fillRect(12, 18, 8, 12);
+    g.fillStyle(0xDAA520);
+    g.fillRect(14, 24, 2, 2);
+    g.fillStyle(0xDAA520);
+    g.fillRect(4, 12, 6, 6);
+    g.fillRect(22, 12, 6, 6);
+    g.fillStyle(0x6B4226);
+    g.fillRect(4, 18, 6, 2);
+    g.fillStyle(0xFF6688);
+    g.fillRect(5, 17, 2, 2);
+    g.fillStyle(0xFFDD44);
+    g.fillRect(8, 17, 2, 2);
+  });
+
+  // tile_crystal (prompt: tile_crystal — key matches)
+  tex32(scene, 'tile_crystal', (g) => {
+    g.fillStyle(0x36393F);
+    g.fillRect(0, 0, 32, 32);
+    dither(g, 0x2A2D33, 0.15);
+    g.fillStyle(0x5B8FA8);
+    g.fillRect(12, 6, 8, 20);
+    g.fillRect(10, 10, 12, 14);
+    g.fillRect(14, 2, 4, 6);
+    g.fillRect(22, 12, 6, 14);
+    g.fillRect(24, 8, 4, 6);
+    g.fillRect(4, 18, 4, 10);
+    g.fillRect(6, 14, 2, 6);
+    g.fillStyle(0x8BBFD8);
+    g.fillRect(14, 8, 2, 8);
+    g.fillRect(24, 14, 2, 6);
+    g.fillRect(6, 20, 2, 4);
+    g.fillStyle(0xAADDEE);
+    g.fillRect(14, 10, 2, 4);
+  });
+
+  // tile_fishing_dock (prompt: tile_dock)
+  tex32(scene, 'tile_fishing_dock', (g) => {
+    g.fillStyle(0x6B4226);
+    g.fillRect(0, 0, 32, 32);
+    g.fillStyle(0x5A3218);
+    for (let y = 0; y < 32; y += 8) g.fillRect(0, y, 32, 1);
+    g.fillStyle(0x7B5236);
+    g.fillRect(4, 2, 2, 6);
+    g.fillRect(16, 10, 2, 6);
+    g.fillRect(24, 18, 2, 6);
+    g.fillRect(10, 26, 2, 4);
+    g.fillStyle(0x888888);
+    g.fillRect(2, 2, 2, 2);
+    g.fillRect(28, 2, 2, 2);
+    g.fillRect(2, 18, 2, 2);
+    g.fillRect(28, 18, 2, 2);
+  });
+
+  // tile_mining_node_copper (prompt: tile_mining_copper)
+  tex32(scene, 'tile_mining_node_copper', (g) => {
+    g.fillStyle(0x36393F);
+    g.fillRect(0, 0, 32, 32);
+    dither(g, 0x2A2D33, 0.15);
+    g.fillStyle(0x4A4A4A);
+    g.fillRect(6, 10, 20, 18);
+    g.fillRect(8, 8, 16, 4);
+    g.fillStyle(0xB87333);
+    g.fillRect(10, 14, 4, 6);
+    g.fillRect(18, 12, 6, 4);
+    g.fillRect(14, 20, 4, 4);
+    g.fillStyle(0xDA8A43);
+    g.fillRect(10, 14, 2, 2);
+    g.fillRect(20, 12, 2, 2);
+  });
+
+  // tile_mining_node_iron (prompt: tile_mining_iron)
+  tex32(scene, 'tile_mining_node_iron', (g) => {
+    g.fillStyle(0x36393F);
+    g.fillRect(0, 0, 32, 32);
+    dither(g, 0x2A2D33, 0.15);
+    g.fillStyle(0x4A4A4A);
+    g.fillRect(6, 10, 20, 18);
+    g.fillRect(8, 8, 16, 4);
+    g.fillStyle(0x8A8A8A);
+    g.fillRect(8, 12, 6, 4);
+    g.fillRect(18, 16, 6, 6);
+    g.fillRect(12, 22, 4, 4);
+    g.fillStyle(0xAAAAAA);
+    g.fillRect(10, 12, 2, 2);
+    g.fillRect(20, 18, 2, 2);
+  });
+
+  // tile_mining_node_crystal (prompt: tile_mining_crystal)
+  tex32(scene, 'tile_mining_node_crystal', (g) => {
+    g.fillStyle(0x36393F);
+    g.fillRect(0, 0, 32, 32);
+    dither(g, 0x2A2D33, 0.15);
+    g.fillStyle(0x4A4A4A);
+    g.fillRect(6, 12, 20, 16);
+    g.fillRect(8, 10, 16, 4);
+    g.fillStyle(0x5B8FA8);
+    g.fillRect(10, 6, 4, 12);
+    g.fillRect(18, 4, 4, 10);
+    g.fillRect(14, 8, 4, 8);
+    g.fillStyle(0x8BBFD8);
+    g.fillRect(11, 6, 2, 4);
+    g.fillRect(19, 4, 2, 4);
+    g.fillRect(15, 8, 2, 4);
+    g.fillStyle(0xAADDEE);
+    g.fillRect(12, 8, 2, 2);
+    g.fillRect(20, 6, 2, 2);
+  });
+
+  // tile_mining_node_depleted (prompt: tile_mining_depleted)
+  tex32(scene, 'tile_mining_node_depleted', (g) => {
+    g.fillStyle(0x36393F);
+    g.fillRect(0, 0, 32, 32);
+    dither(g, 0x2A2D33, 0.15);
+    g.fillStyle(0x3A3A3A);
+    g.fillRect(8, 14, 16, 12);
+    g.fillRect(10, 12, 12, 4);
+    g.fillStyle(0x2A2D33);
+    g.fillRect(12, 16, 4, 2);
+    g.fillRect(18, 20, 2, 4);
+  });
+
+  // tile_building_kitchen (prompt: tile_kitchen)
+  tex32(scene, 'tile_building_kitchen', (g) => {
+    g.fillStyle(0x7A6548);
+    g.fillRect(0, 0, 32, 32);
+    g.fillStyle(0x6A5538);
+    g.fillRect(2, 6, 28, 24);
+    g.fillStyle(0x5A4528);
+    g.fillRect(0, 0, 32, 8);
+    g.fillStyle(0x8B7355);
+    g.fillRect(22, 0, 6, 10);
+    g.fillStyle(0xDDDDDD);
+    g.fillRect(24, 0, 2, 2);
+    g.fillStyle(0xFF8833);
+    g.fillRect(4, 12, 10, 8);
+    g.fillStyle(0xFFAA00);
+    g.fillRect(6, 14, 6, 4);
+    g.fillStyle(0x4A3520);
+    g.fillRect(4, 12, 10, 1);
+    g.fillRect(4, 19, 10, 1);
+    g.fillRect(4, 12, 1, 8);
+    g.fillRect(13, 12, 1, 8);
+    g.fillRect(9, 12, 1, 8);
+    g.fillStyle(0x4A3520);
+    g.fillRect(18, 18, 8, 12);
+    g.fillStyle(0xDAA520);
+    g.fillRect(24, 24, 2, 2);
+    g.fillStyle(0x8B4513);
+    g.fillRect(16, 10, 4, 3);
+    g.fillRect(15, 13, 6, 2);
+  });
+}
+
+// ---------------------------------------------------------------------------
+// ENTITY TEXTURES (32×32)
+// ---------------------------------------------------------------------------
 function generateEntityTextures(scene) {
   const directions = ['down', 'up', 'left', 'right'];
 
-  // Player - blue character
+  // Player - directional sprites
   directions.forEach(dir => {
-    const g = scene.make.graphics({ x: 0, y: 0, add: false });
-    g.fillStyle(0x2196F3);
-    // Head
-    g.fillRect(5, 1, 6, 5);
-    // Body
-    g.fillStyle(0x1565C0);
-    g.fillRect(4, 6, 8, 5);
-    // Legs
-    g.fillStyle(0x0D47A1);
-    if (dir === 'down' || dir === 'up') {
-      g.fillRect(4, 11, 3, 4);
-      g.fillRect(9, 11, 3, 4);
-    } else if (dir === 'left') {
-      g.fillRect(3, 11, 3, 4);
-      g.fillRect(7, 11, 3, 4);
-    } else {
-      g.fillRect(6, 11, 3, 4);
-      g.fillRect(10, 11, 3, 4);
-    }
-    // Eyes
-    if (dir === 'down') {
-      g.fillStyle(0xFFFFFF);
-      g.fillRect(6, 3, 2, 2);
-      g.fillRect(9, 3, 2, 2);
-    }
-    g.generateTexture(`entity_player_${dir}`, 16, 16);
-    g.destroy();
+    tex32(scene, `entity_player_${dir}`, (g) => {
+      // Boots
+      g.fillStyle(0x4A3220);
+      if (dir === 'left') {
+        g.fillRect(8, 26, 5, 6);
+        g.fillRect(15, 26, 5, 6);
+      } else if (dir === 'right') {
+        g.fillRect(12, 26, 5, 6);
+        g.fillRect(19, 26, 5, 6);
+      } else {
+        g.fillRect(10, 26, 5, 6);
+        g.fillRect(17, 26, 5, 6);
+      }
+      // Pants
+      g.fillStyle(0x3A4A6A);
+      if (dir === 'left') {
+        g.fillRect(9, 20, 4, 7);
+        g.fillRect(16, 20, 4, 7);
+      } else if (dir === 'right') {
+        g.fillRect(13, 20, 4, 7);
+        g.fillRect(20, 20, 4, 7);
+      } else {
+        g.fillRect(11, 20, 4, 7);
+        g.fillRect(18, 20, 4, 7);
+      }
+      // Tunic
+      g.fillStyle(0x2266AA);
+      g.fillRect(9, 10, 14, 11);
+      // Belt
+      g.fillStyle(0x6B4226);
+      g.fillRect(9, 18, 14, 2);
+      g.fillStyle(0xDAA520);
+      g.fillRect(15, 18, 2, 2);
+      // Arms
+      g.fillStyle(0x2266AA);
+      if (dir === 'left') {
+        g.fillRect(4, 12, 5, 8);
+        g.fillRect(23, 12, 3, 8);
+      } else if (dir === 'right') {
+        g.fillRect(6, 12, 3, 8);
+        g.fillRect(23, 12, 5, 8);
+      } else {
+        g.fillRect(5, 12, 4, 8);
+        g.fillRect(23, 12, 4, 8);
+      }
+      // Hands
+      g.fillStyle(0xE8C8A0);
+      if (dir === 'left') {
+        g.fillRect(4, 19, 4, 3);
+        g.fillRect(23, 19, 3, 3);
+      } else if (dir === 'right') {
+        g.fillRect(6, 19, 3, 3);
+        g.fillRect(24, 19, 4, 3);
+      } else {
+        g.fillRect(5, 19, 4, 3);
+        g.fillRect(23, 19, 4, 3);
+      }
+      // Head
+      g.fillStyle(0xE8C8A0);
+      g.fillRect(11, 2, 10, 9);
+      // Hair
+      g.fillStyle(0x4A3220);
+      g.fillRect(10, 1, 12, 4);
+      if (dir === 'up') {
+        g.fillRect(10, 1, 12, 6);
+      } else if (dir === 'left') {
+        g.fillRect(10, 1, 2, 7);
+        g.fillRect(10, 1, 6, 4);
+      } else if (dir === 'right') {
+        g.fillRect(20, 1, 2, 7);
+        g.fillRect(16, 1, 6, 4);
+      } else {
+        g.fillRect(10, 1, 2, 7);
+      }
+      // Eyes and mouth
+      if (dir === 'down') {
+        g.fillStyle(0x1A1A2E);
+        g.fillRect(13, 5, 2, 2);
+        g.fillRect(18, 5, 2, 2);
+        g.fillStyle(0xC8A888);
+        g.fillRect(14, 8, 4, 1);
+      } else if (dir === 'left') {
+        g.fillStyle(0x1A1A2E);
+        g.fillRect(12, 5, 2, 2);
+        g.fillStyle(0xC8A888);
+        g.fillRect(12, 8, 3, 1);
+      } else if (dir === 'right') {
+        g.fillStyle(0x1A1A2E);
+        g.fillRect(19, 5, 2, 2);
+        g.fillStyle(0xC8A888);
+        g.fillRect(18, 8, 3, 1);
+      }
+    });
   });
 
-  // Agent - green character with backpack
+  // Agent - directional sprites
   directions.forEach(dir => {
-    const g = scene.make.graphics({ x: 0, y: 0, add: false });
-    g.fillStyle(0x4CAF50);
-    g.fillRect(5, 1, 6, 5);
-    g.fillStyle(0x388E3C);
-    g.fillRect(4, 6, 8, 5);
-    // Backpack
-    g.fillStyle(0x795548);
-    if (dir === 'up') {
-      g.fillRect(5, 6, 6, 4);
-    } else {
-      g.fillRect(11, 6, 3, 4);
-    }
-    g.fillStyle(0x2E7D32);
-    if (dir === 'down' || dir === 'up') {
-      g.fillRect(4, 11, 3, 4);
-      g.fillRect(9, 11, 3, 4);
-    } else if (dir === 'left') {
-      g.fillRect(3, 11, 3, 4);
-      g.fillRect(7, 11, 3, 4);
-    } else {
-      g.fillRect(6, 11, 3, 4);
-      g.fillRect(10, 11, 3, 4);
-    }
-    if (dir === 'down') {
-      g.fillStyle(0xFFFFFF);
-      g.fillRect(6, 3, 2, 2);
-      g.fillRect(9, 3, 2, 2);
-    }
-    g.generateTexture(`entity_agent_${dir}`, 16, 16);
-    g.destroy();
+    tex32(scene, `entity_agent_${dir}`, (g) => {
+      // Boots
+      g.fillStyle(0x3A3A3A);
+      if (dir === 'left') {
+        g.fillRect(8, 26, 5, 6);
+        g.fillRect(15, 26, 5, 6);
+      } else if (dir === 'right') {
+        g.fillRect(12, 26, 5, 6);
+        g.fillRect(19, 26, 5, 6);
+      } else {
+        g.fillRect(10, 26, 5, 6);
+        g.fillRect(17, 26, 5, 6);
+      }
+      // Legs
+      g.fillStyle(0x3A3A3A);
+      if (dir === 'left') {
+        g.fillRect(9, 20, 4, 7);
+        g.fillRect(16, 20, 4, 7);
+      } else if (dir === 'right') {
+        g.fillRect(13, 20, 4, 7);
+        g.fillRect(20, 20, 4, 7);
+      } else {
+        g.fillRect(11, 20, 4, 7);
+        g.fillRect(18, 20, 4, 7);
+      }
+      // Dark armor body
+      g.fillStyle(0x4A4A5A);
+      g.fillRect(9, 10, 14, 11);
+      // Chest plate
+      if (dir !== 'up') {
+        g.fillStyle(0x6A6A7A);
+        g.fillRect(11, 12, 10, 6);
+        g.fillStyle(0x5A5A6A);
+        g.fillRect(13, 13, 6, 4);
+      }
+      // Belt
+      g.fillStyle(0x4A3220);
+      g.fillRect(9, 18, 14, 2);
+      // Arms
+      g.fillStyle(0x4A4A5A);
+      if (dir === 'left') {
+        g.fillRect(4, 12, 5, 8);
+        g.fillRect(23, 12, 3, 8);
+      } else if (dir === 'right') {
+        g.fillRect(6, 12, 3, 8);
+        g.fillRect(23, 12, 5, 8);
+      } else {
+        g.fillRect(5, 12, 4, 8);
+        g.fillRect(23, 12, 4, 8);
+      }
+      // Pauldrons
+      g.fillStyle(0x6A6A7A);
+      g.fillRect(4, 10, 6, 3);
+      g.fillRect(22, 10, 6, 3);
+      // Gauntlets
+      g.fillStyle(0x3A3A3A);
+      g.fillRect(5, 19, 4, 3);
+      g.fillRect(23, 19, 4, 3);
+      // Sword
+      if (dir === 'up') {
+        g.fillStyle(0xCCCCCC);
+        g.fillRect(14, 6, 2, 14);
+        g.fillStyle(0xDAA520);
+        g.fillRect(13, 18, 4, 2);
+      } else if (dir === 'left') {
+        g.fillStyle(0xCCCCCC);
+        g.fillRect(4, 10, 2, 12);
+        g.fillStyle(0xDAA520);
+        g.fillRect(3, 18, 4, 2);
+      } else if (dir === 'right') {
+        g.fillStyle(0xCCCCCC);
+        g.fillRect(26, 10, 2, 12);
+        g.fillStyle(0xDAA520);
+        g.fillRect(25, 18, 4, 2);
+      }
+      // Helmet
+      g.fillStyle(0x5A5A6A);
+      g.fillRect(10, 1, 12, 10);
+      // Visor
+      if (dir === 'down') {
+        g.fillStyle(0x1A1A2E);
+        g.fillRect(12, 5, 8, 2);
+      } else if (dir === 'left') {
+        g.fillStyle(0x1A1A2E);
+        g.fillRect(11, 5, 5, 2);
+      } else if (dir === 'right') {
+        g.fillStyle(0x1A1A2E);
+        g.fillRect(17, 5, 5, 2);
+      }
+      // Crest
+      g.fillStyle(0xCC3333);
+      g.fillRect(14, 0, 4, 3);
+    });
   });
 
-  // Slime
-  const slime = scene.make.graphics({ x: 0, y: 0, add: false });
-  slime.fillStyle(0x66BB6A);
-  slime.fillRect(3, 6, 10, 8);
-  slime.fillRect(4, 5, 8, 1);
-  slime.fillRect(5, 4, 6, 1);
-  slime.fillStyle(0x43A047);
-  slime.fillRect(4, 10, 8, 4);
-  slime.fillStyle(0xFFFFFF);
-  slime.fillRect(5, 7, 2, 2);
-  slime.fillRect(9, 7, 2, 2);
-  slime.fillStyle(0x1B5E20);
-  slime.fillRect(6, 8, 1, 1);
-  slime.fillRect(10, 8, 1, 1);
-  slime.generateTexture('mob_slime', 16, 16);
-  slime.destroy();
+  // Slime (prompt: mob_slime — key matches)
+  tex32(scene, 'mob_slime', (g) => {
+    g.fillStyle(0x44BB44);
+    g.fillRect(6, 12, 20, 16);
+    g.fillRect(8, 10, 16, 2);
+    g.fillRect(10, 8, 12, 2);
+    g.fillRect(4, 16, 2, 8);
+    g.fillRect(26, 16, 2, 8);
+    g.fillStyle(0x66DD66);
+    g.fillRect(10, 12, 6, 4);
+    g.fillRect(8, 14, 4, 2);
+    g.fillStyle(0x228822);
+    g.fillRect(16, 22, 8, 4);
+    g.fillRect(6, 26, 20, 2);
+    g.fillStyle(0xFFFFFF);
+    g.fillRect(11, 14, 4, 4);
+    g.fillRect(19, 14, 4, 4);
+    g.fillStyle(0x1A1A2E);
+    g.fillRect(13, 15, 2, 3);
+    g.fillRect(21, 15, 2, 3);
+  });
 
-  // Wolf
-  const wolf = scene.make.graphics({ x: 0, y: 0, add: false });
-  wolf.fillStyle(0x9E9E9E);
-  // Body
-  wolf.fillRect(3, 6, 10, 5);
-  // Head
-  wolf.fillStyle(0xBDBDBD);
-  wolf.fillRect(10, 4, 5, 4);
-  // Ears
-  wolf.fillStyle(0x757575);
-  wolf.fillRect(12, 2, 2, 2);
-  // Legs
-  wolf.fillStyle(0x616161);
-  wolf.fillRect(4, 11, 2, 4);
-  wolf.fillRect(8, 11, 2, 4);
-  // Eye
-  wolf.fillStyle(0xFFEB3B);
-  wolf.fillRect(13, 5, 1, 1);
-  // Tail
-  wolf.fillStyle(0x757575);
-  wolf.fillRect(1, 5, 3, 2);
-  wolf.generateTexture('mob_wolf', 16, 16);
-  wolf.destroy();
+  // Wolf (NOT in prompt — scale up old 16×16 by 2x)
+  tex32(scene, 'mob_wolf', (g) => {
+    g.fillStyle(0x9E9E9E);
+    g.fillRect(6, 12, 20, 10);
+    g.fillStyle(0xBDBDBD);
+    g.fillRect(20, 8, 10, 8);
+    g.fillStyle(0x757575);
+    g.fillRect(24, 4, 4, 4);
+    g.fillStyle(0x616161);
+    g.fillRect(8, 22, 4, 8);
+    g.fillRect(16, 22, 4, 8);
+    g.fillStyle(0xFFEB3B);
+    g.fillRect(26, 10, 2, 2);
+    g.fillStyle(0x757575);
+    g.fillRect(2, 10, 6, 4);
+  });
 
-  // Cave Bat
-  const bat = scene.make.graphics({ x: 0, y: 0, add: false });
-  bat.fillStyle(0x6A1B9A);
-  // Body
-  bat.fillRect(6, 6, 4, 5);
-  // Wings
-  bat.fillStyle(0x8E24AA);
-  bat.fillRect(1, 5, 5, 4);
-  bat.fillRect(10, 5, 5, 4);
-  // Wing tips
-  bat.fillStyle(0x6A1B9A);
-  bat.fillRect(1, 4, 2, 1);
-  bat.fillRect(13, 4, 2, 1);
-  // Eyes
-  bat.fillStyle(0xFF1744);
-  bat.fillRect(7, 7, 1, 1);
-  bat.fillRect(9, 7, 1, 1);
-  bat.generateTexture('mob_bat', 16, 16);
-  bat.destroy();
+  // Bat (prompt: mob_bat — key matches)
+  tex32(scene, 'mob_bat', (g) => {
+    g.fillStyle(0x3A2A3A);
+    g.fillRect(12, 12, 8, 8);
+    g.fillStyle(0x4A3A4A);
+    g.fillRect(2, 10, 10, 6);
+    g.fillRect(0, 12, 4, 3);
+    g.fillRect(4, 8, 4, 3);
+    g.fillRect(20, 10, 10, 6);
+    g.fillRect(28, 12, 4, 3);
+    g.fillRect(24, 8, 4, 3);
+    g.fillStyle(0x5A4A5A);
+    g.fillRect(4, 11, 2, 4);
+    g.fillRect(8, 10, 2, 5);
+    g.fillRect(22, 10, 2, 5);
+    g.fillRect(26, 11, 2, 4);
+    g.fillStyle(0xFF3333);
+    g.fillRect(13, 13, 2, 2);
+    g.fillRect(18, 13, 2, 2);
+    g.fillStyle(0x3A2A3A);
+    g.fillRect(13, 9, 2, 4);
+    g.fillRect(18, 9, 2, 4);
+    g.fillStyle(0xFFFFFF);
+    g.fillRect(14, 18, 1, 2);
+    g.fillRect(17, 18, 1, 2);
+  });
 }
 
+// ---------------------------------------------------------------------------
+// FARM TEXTURES (32×32)
+// ---------------------------------------------------------------------------
+function generateFarmTextures(scene) {
+  function makeSoil(g) {
+    g.fillStyle(0x5A3A1A);
+    g.fillRect(0, 0, 32, 32);
+    g.fillStyle(0x4A2A0A);
+    for (let y = 0; y < 32; y += 8) g.fillRect(0, y, 32, 2);
+    dither(g, 0x6A4A2A, 0.08);
+  }
+
+  tex32(scene, 'tile_farm_empty', (g) => { makeSoil(g); });
+
+  tex32(scene, 'tile_farm_planted', (g) => {
+    makeSoil(g);
+    g.fillStyle(0x44AA44);
+    g.fillRect(14, 14, 4, 4);
+  });
+
+  tex32(scene, 'tile_farm_growing', (g) => {
+    makeSoil(g);
+    g.fillStyle(0x33AA33);
+    g.fillRect(15, 10, 2, 14);
+    g.fillRect(10, 12, 6, 3);
+    g.fillRect(11, 11, 4, 2);
+    g.fillRect(16, 14, 6, 3);
+    g.fillRect(17, 13, 4, 2);
+  });
+
+  tex32(scene, 'tile_farm_ready_wheat', (g) => {
+    makeSoil(g);
+    for (const sx of [8, 15, 22]) {
+      g.fillStyle(0x7A8A3A);
+      g.fillRect(sx, 10, 2, 18);
+      g.fillStyle(0xDAA520);
+      g.fillRect(sx - 1, 6, 4, 6);
+      g.fillStyle(0xCCAA10);
+      g.fillRect(sx, 7, 2, 3);
+    }
+  });
+
+  tex32(scene, 'tile_farm_ready_carrot', (g) => {
+    makeSoil(g);
+    g.fillStyle(0x44AA44);
+    g.fillRect(10, 6, 4, 8);
+    g.fillRect(18, 8, 4, 6);
+    g.fillRect(12, 4, 3, 4);
+    g.fillRect(20, 6, 3, 4);
+    g.fillStyle(0xFF6622);
+    g.fillRect(12, 14, 3, 4);
+    g.fillRect(20, 14, 3, 4);
+  });
+
+  tex32(scene, 'tile_farm_ready_tomato', (g) => {
+    makeSoil(g);
+    g.fillStyle(0x44AA44);
+    g.fillRect(15, 4, 2, 20);
+    g.fillRect(10, 8, 12, 2);
+    g.fillStyle(0xCC2222);
+    g.fillRect(8, 12, 6, 6);
+    g.fillRect(18, 10, 6, 6);
+    g.fillRect(12, 18, 6, 6);
+    g.fillStyle(0xFF4444);
+    g.fillRect(9, 13, 2, 2);
+    g.fillRect(19, 11, 2, 2);
+    g.fillRect(13, 19, 2, 2);
+  });
+
+  tex32(scene, 'tile_farm_ready_golden_wheat', (g) => {
+    makeSoil(g);
+    for (const sx of [8, 15, 22]) {
+      g.fillStyle(0x9AAA3A);
+      g.fillRect(sx, 10, 2, 18);
+      g.fillStyle(0xFFDD00);
+      g.fillRect(sx - 1, 4, 4, 8);
+      g.fillStyle(0xFFFF88);
+      g.fillRect(sx, 5, 2, 2);
+    }
+    g.fillStyle(0xFFFFAA);
+    g.fillRect(6, 8, 2, 2);
+    g.fillRect(26, 6, 2, 2);
+    g.fillRect(14, 2, 2, 2);
+  });
+
+  tex32(scene, 'tile_farm_ready_moonberry', (g) => {
+    makeSoil(g);
+    g.fillStyle(0x2A3A2A);
+    g.fillRect(14, 6, 2, 20);
+    g.fillRect(8, 10, 16, 2);
+    g.fillStyle(0x6644AA);
+    g.fillRect(8, 12, 4, 4);
+    g.fillRect(12, 14, 4, 4);
+    g.fillRect(20, 10, 4, 4);
+    g.fillRect(18, 16, 4, 4);
+    g.fillStyle(0x8866CC);
+    g.fillRect(9, 13, 2, 2);
+    g.fillRect(21, 11, 2, 2);
+  });
+
+  tex32(scene, 'tile_farm_ready_starfruit', (g) => {
+    makeSoil(g);
+    g.fillStyle(0x44AA44);
+    g.fillRect(15, 10, 2, 16);
+    g.fillStyle(0xFFDD00);
+    g.fillRect(12, 6, 8, 8);
+    g.fillRect(10, 8, 12, 4);
+    g.fillRect(14, 4, 4, 12);
+    g.fillStyle(0xFFFF44);
+    g.fillRect(14, 8, 4, 4);
+    g.fillStyle(0xFFFF88);
+    g.fillRect(10, 4, 12, 12);
+  });
+}
+
+// ---------------------------------------------------------------------------
+// UI TEXTURES
+// ---------------------------------------------------------------------------
 function generateUITextures(scene) {
-  // Button circle
+  // Button circle (60×60 — screen-space UI, keep same)
   const btn = scene.make.graphics({ x: 0, y: 0, add: false });
   btn.fillStyle(COLORS.UI_BUTTON_BG);
   btn.fillCircle(30, 30, 30);
@@ -371,7 +763,7 @@ function generateUITextures(scene) {
   btn.generateTexture('ui_btn_circle', 60, 60);
   btn.destroy();
 
-  // Button small
+  // Button small (44×44 — screen-space UI, keep same)
   const btnSm = scene.make.graphics({ x: 0, y: 0, add: false });
   btnSm.fillStyle(COLORS.UI_BUTTON_BG);
   btnSm.fillCircle(22, 22, 22);
@@ -380,174 +772,166 @@ function generateUITextures(scene) {
   btnSm.generateTexture('ui_btn_small', 44, 44);
   btnSm.destroy();
 
-  // Joystick outer ring
+  // Joystick ring (80×80 — screen-space UI, keep same)
   const joyOuter = scene.make.graphics({ x: 0, y: 0, add: false });
   joyOuter.lineStyle(3, 0x555577, 0.5);
   joyOuter.strokeCircle(40, 40, 38);
   joyOuter.generateTexture('ui_joystick_ring', 80, 80);
   joyOuter.destroy();
 
-  // Joystick nub
+  // Joystick nub (30×30 — screen-space UI, keep same)
   const joyNub = scene.make.graphics({ x: 0, y: 0, add: false });
   joyNub.fillStyle(0x888899, 0.7);
   joyNub.fillCircle(15, 15, 15);
   joyNub.generateTexture('ui_joystick_nub', 30, 30);
   joyNub.destroy();
 
-  // HP bar background
+  // HP bar background (scaled 32×4 → 64×8)
   const hpBg = scene.make.graphics({ x: 0, y: 0, add: false });
   hpBg.fillStyle(COLORS.UI_HP_RED);
-  hpBg.fillRect(0, 0, 32, 4);
-  hpBg.generateTexture('ui_hp_bg', 32, 4);
+  hpBg.fillRect(0, 0, 64, 8);
+  hpBg.generateTexture('ui_hp_bg', 64, 8);
   hpBg.destroy();
 
-  // HP bar fill
+  // HP bar fill (scaled 32×4 → 64×8)
   const hpFill = scene.make.graphics({ x: 0, y: 0, add: false });
   hpFill.fillStyle(COLORS.UI_HP_GREEN);
-  hpFill.fillRect(0, 0, 32, 4);
-  hpFill.generateTexture('ui_hp_fill', 32, 4);
+  hpFill.fillRect(0, 0, 64, 8);
+  hpFill.generateTexture('ui_hp_fill', 64, 8);
   hpFill.destroy();
 
-  // Inventory slot
+  // Inventory slot (scaled 40×40 → 80×80)
   const slot = scene.make.graphics({ x: 0, y: 0, add: false });
   slot.fillStyle(0x2A2A3E, 0.9);
-  slot.fillRect(0, 0, 40, 40);
-  slot.lineStyle(1, 0x555577);
-  slot.strokeRect(0, 0, 40, 40);
-  slot.generateTexture('ui_inv_slot', 40, 40);
+  slot.fillRect(0, 0, 80, 80);
+  slot.lineStyle(2, 0x555577);
+  slot.strokeRect(0, 0, 80, 80);
+  slot.generateTexture('ui_inv_slot', 80, 80);
   slot.destroy();
 }
 
+// ---------------------------------------------------------------------------
+// GEAR TEXTURES (32×32 — scaled up from 16×16)
+// ---------------------------------------------------------------------------
 function generateGearTextures(scene) {
-  // Wooden Sword (16x16): brown handle + gray blade
-  const ws = scene.make.graphics({ x: 0, y: 0, add: false });
-  ws.fillStyle(0x8B4513);
-  ws.fillRect(7, 9, 2, 6);   // handle
-  ws.fillStyle(0x888888);
-  ws.fillRect(7, 2, 2, 7);   // blade lower
-  ws.fillStyle(0xAAAAAA);
-  ws.fillRect(7, 1, 2, 1);   // blade tip
-  ws.fillStyle(0xC0A060);
-  ws.fillRect(6, 9, 4, 1);   // guard
-  ws.generateTexture('gear_wooden_sword', 16, 16);
-  ws.destroy();
+  // Wooden Sword
+  tex32(scene, 'gear_wooden_sword', (g) => {
+    g.fillStyle(0x8B4513);
+    g.fillRect(14, 18, 4, 12);
+    g.fillStyle(0x888888);
+    g.fillRect(14, 4, 4, 14);
+    g.fillStyle(0xAAAAAA);
+    g.fillRect(14, 2, 4, 2);
+    g.fillStyle(0xC0A060);
+    g.fillRect(12, 18, 8, 2);
+  });
 
-  // Iron Dagger (16x16): gray handle + silver blade
-  const id = scene.make.graphics({ x: 0, y: 0, add: false });
-  id.fillStyle(0x777777);
-  id.fillRect(7, 10, 2, 5);  // handle
-  id.fillStyle(0xC0C0C0);
-  id.fillRect(7, 4, 2, 6);   // blade
-  id.fillStyle(0xE8E8E8);
-  id.fillRect(7, 3, 2, 1);   // tip
-  id.fillStyle(0x999999);
-  id.fillRect(6, 10, 4, 1);  // guard
-  id.generateTexture('gear_iron_dagger', 16, 16);
-  id.destroy();
+  // Iron Dagger
+  tex32(scene, 'gear_iron_dagger', (g) => {
+    g.fillStyle(0x777777);
+    g.fillRect(14, 20, 4, 10);
+    g.fillStyle(0xC0C0C0);
+    g.fillRect(14, 8, 4, 12);
+    g.fillStyle(0xE8E8E8);
+    g.fillRect(14, 6, 4, 2);
+    g.fillStyle(0x999999);
+    g.fillRect(12, 20, 8, 2);
+  });
 
-  // Shadow Blade (16x16): dark purple + black blade with blue edge
-  const sb = scene.make.graphics({ x: 0, y: 0, add: false });
-  sb.fillStyle(0x4A1A6A);
-  sb.fillRect(7, 10, 2, 5);  // handle
-  sb.fillStyle(0x111122);
-  sb.fillRect(7, 2, 2, 8);   // blade
-  sb.fillStyle(0x2255AA);
-  sb.fillRect(7, 1, 1, 1);   // blue tip edge
-  sb.fillRect(8, 2, 1, 6);   // blue side edge
-  sb.generateTexture('gear_shadow_blade', 16, 16);
-  sb.destroy();
+  // Shadow Blade
+  tex32(scene, 'gear_shadow_blade', (g) => {
+    g.fillStyle(0x4A1A6A);
+    g.fillRect(14, 20, 4, 10);
+    g.fillStyle(0x111122);
+    g.fillRect(14, 4, 4, 16);
+    g.fillStyle(0x2255AA);
+    g.fillRect(14, 2, 2, 2);
+    g.fillRect(16, 4, 2, 12);
+  });
 
-  // Leather Cap (16x16): brown dome
-  const lc = scene.make.graphics({ x: 0, y: 0, add: false });
-  lc.fillStyle(0x8B6914);
-  lc.fillRect(4, 6, 8, 5);   // main dome
-  lc.fillRect(3, 7, 10, 3);  // wide brim area
-  lc.fillStyle(0x6B4A0A);
-  lc.fillRect(4, 10, 8, 1);  // brim shadow
-  lc.generateTexture('gear_leather_cap', 16, 16);
-  lc.destroy();
+  // Leather Cap
+  tex32(scene, 'gear_leather_cap', (g) => {
+    g.fillStyle(0x8B6914);
+    g.fillRect(8, 12, 16, 10);
+    g.fillRect(6, 14, 20, 6);
+    g.fillStyle(0x6B4A0A);
+    g.fillRect(8, 20, 16, 2);
+  });
 
-  // Iron Helm (16x16): gray dome with darker visor
-  const ih = scene.make.graphics({ x: 0, y: 0, add: false });
-  ih.fillStyle(0x999999);
-  ih.fillRect(4, 5, 8, 6);   // dome
-  ih.fillRect(3, 6, 10, 4);  // wide
-  ih.fillStyle(0x666666);
-  ih.fillRect(4, 9, 8, 2);   // visor
-  ih.fillStyle(0xAAAAAA);
-  ih.fillRect(5, 6, 6, 2);   // highlight
-  ih.generateTexture('gear_iron_helm', 16, 16);
-  ih.destroy();
+  // Iron Helm
+  tex32(scene, 'gear_iron_helm', (g) => {
+    g.fillStyle(0x999999);
+    g.fillRect(8, 10, 16, 12);
+    g.fillRect(6, 12, 20, 8);
+    g.fillStyle(0x666666);
+    g.fillRect(8, 18, 16, 4);
+    g.fillStyle(0xAAAAAA);
+    g.fillRect(10, 12, 12, 4);
+  });
 
-  // Cloth Tunic (16x16): brown rectangle body
-  const ct = scene.make.graphics({ x: 0, y: 0, add: false });
-  ct.fillStyle(0xA0785A);
-  ct.fillRect(3, 3, 10, 10);
-  ct.fillStyle(0x886040);
-  ct.fillRect(3, 12, 10, 1);  // hem
-  ct.fillRect(7, 3, 2, 10);   // center seam
-  ct.generateTexture('gear_cloth_tunic', 16, 16);
-  ct.destroy();
+  // Cloth Tunic
+  tex32(scene, 'gear_cloth_tunic', (g) => {
+    g.fillStyle(0xA0785A);
+    g.fillRect(6, 6, 20, 20);
+    g.fillStyle(0x886040);
+    g.fillRect(6, 24, 20, 2);
+    g.fillRect(14, 6, 4, 20);
+  });
 
-  // Chainmail (16x16): gray rectangle with crosshatch pixel pattern
-  const cm = scene.make.graphics({ x: 0, y: 0, add: false });
-  cm.fillStyle(0x888888);
-  cm.fillRect(3, 3, 10, 11);
-  cm.fillStyle(0x666666);
-  for (let y = 3; y < 14; y += 2) {
-    for (let x = 3; x < 13; x += 2) {
-      cm.fillRect(x, y, 1, 1);
+  // Chainmail
+  tex32(scene, 'gear_chainmail', (g) => {
+    g.fillStyle(0x888888);
+    g.fillRect(6, 6, 20, 22);
+    g.fillStyle(0x666666);
+    for (let y = 6; y < 28; y += 4) {
+      for (let x = 6; x < 26; x += 4) {
+        g.fillRect(x, y, 2, 2);
+      }
     }
-  }
-  cm.generateTexture('gear_chainmail', 16, 16);
-  cm.destroy();
+  });
 
-  // Sandals (16x16): two brown L-shapes
-  const snd = scene.make.graphics({ x: 0, y: 0, add: false });
-  snd.fillStyle(0x8B6914);
-  snd.fillRect(2, 10, 4, 3);   // left sandal base
-  snd.fillRect(2, 9, 1, 1);    // left strap
-  snd.fillRect(10, 10, 4, 3);  // right sandal base
-  snd.fillRect(13, 9, 1, 1);   // right strap
-  snd.generateTexture('gear_sandals', 16, 16);
-  snd.destroy();
+  // Sandals
+  tex32(scene, 'gear_sandals', (g) => {
+    g.fillStyle(0x8B6914);
+    g.fillRect(4, 20, 8, 6);
+    g.fillRect(4, 18, 2, 2);
+    g.fillRect(20, 20, 8, 6);
+    g.fillRect(26, 18, 2, 2);
+  });
 
-  // Iron Greaves (16x16): gray boot shapes with darker sole
-  const ig = scene.make.graphics({ x: 0, y: 0, add: false });
-  ig.fillStyle(0x888888);
-  ig.fillRect(2, 8, 4, 6);    // left boot
-  ig.fillRect(10, 8, 4, 6);   // right boot
-  ig.fillStyle(0x555555);
-  ig.fillRect(2, 13, 4, 1);   // left sole
-  ig.fillRect(10, 13, 4, 1);  // right sole
-  ig.fillStyle(0xAAAAAA);
-  ig.fillRect(3, 8, 2, 4);    // left highlight
-  ig.generateTexture('gear_iron_greaves', 16, 16);
-  ig.destroy();
+  // Iron Greaves
+  tex32(scene, 'gear_iron_greaves', (g) => {
+    g.fillStyle(0x888888);
+    g.fillRect(4, 16, 8, 12);
+    g.fillRect(20, 16, 8, 12);
+    g.fillStyle(0x555555);
+    g.fillRect(4, 26, 8, 2);
+    g.fillRect(20, 26, 8, 2);
+    g.fillStyle(0xAAAAAA);
+    g.fillRect(6, 16, 4, 8);
+  });
 
-  // Bone Ring (16x16): white circle with gap
-  const br = scene.make.graphics({ x: 0, y: 0, add: false });
-  br.lineStyle(2, 0xEEEEEE);
-  br.strokeCircle(8, 8, 4);
-  br.fillStyle(0x000000, 0);   // transparent fill
-  br.fillRect(8, 4, 2, 2);     // gap at top
-  br.generateTexture('gear_bone_ring', 16, 16);
-  br.destroy();
+  // Bone Ring
+  tex32(scene, 'gear_bone_ring', (g) => {
+    g.lineStyle(4, 0xEEEEEE);
+    g.strokeCircle(16, 16, 8);
+    g.fillStyle(0xEEEEEE);
+    g.fillRect(14, 6, 4, 4);
+  });
 
-  // Echo Pendant (16x16): blue circle with chain above
-  const ep = scene.make.graphics({ x: 0, y: 0, add: false });
-  ep.fillStyle(0x2196F3);
-  ep.fillCircle(8, 10, 4);
-  ep.fillStyle(0x88CCFF);
-  ep.fillCircle(8, 10, 2);     // inner glow
-  ep.lineStyle(1, 0x888888);
-  ep.strokeRect(7, 2, 2, 4);   // chain link
-  ep.fillStyle(0x888888);
-  ep.fillRect(7, 6, 2, 2);     // chain bottom
-  ep.generateTexture('gear_echo_pendant', 16, 16);
-  ep.destroy();
+  // Echo Pendant
+  tex32(scene, 'gear_echo_pendant', (g) => {
+    g.fillStyle(0x2196F3);
+    g.fillCircle(16, 20, 8);
+    g.fillStyle(0x88CCFF);
+    g.fillCircle(16, 20, 4);
+    g.lineStyle(2, 0x888888);
+    g.strokeRect(14, 4, 4, 8);
+    g.fillStyle(0x888888);
+    g.fillRect(14, 12, 4, 4);
+  });
 
-  // Equip slot backgrounds for each rarity (48x48)
+  // Gear slot backgrounds (48×48 — UI, keep same size)
   const rarityColors = {
     COMMON:   0xAAAAAA,
     UNCOMMON: 0x4CAF50,
@@ -564,7 +948,7 @@ function generateGearTextures(scene) {
     slotBg.destroy();
   });
 
-  // Empty gear slot (48x48)
+  // Empty gear slot (48×48)
   const emptySlot = scene.make.graphics({ x: 0, y: 0, add: false });
   emptySlot.fillStyle(0x1A1A2E, 1);
   emptySlot.fillRect(0, 0, 48, 48);
@@ -574,466 +958,354 @@ function generateGearTextures(scene) {
   emptySlot.destroy();
 }
 
-function generateFarmTextures(scene) {
-  // Shared soil base helper
-  function makeSoil(g) {
-    g.fillStyle(0x5A3A1A);
-    g.fillRect(0, 0, 16, 16);
-    // Furrow lines
-    g.fillStyle(0x4A2A10);
-    for (let row = 2; row < 16; row += 4) {
-      g.fillRect(0, row, 16, 1);
-    }
-  }
-
-  // tile_farm_empty
-  const fe = scene.make.graphics({ x: 0, y: 0, add: false });
-  makeSoil(fe);
-  fe.generateTexture('tile_farm_empty', 16, 16);
-  fe.destroy();
-
-  // tile_farm_planted (soil + 2x2 green seedling dot)
-  const fp = scene.make.graphics({ x: 0, y: 0, add: false });
-  makeSoil(fp);
-  fp.fillStyle(0x4CAF50);
-  fp.fillRect(7, 7, 2, 2);
-  fp.generateTexture('tile_farm_planted', 16, 16);
-  fp.destroy();
-
-  // tile_farm_growing (soil + sprout)
-  const fg = scene.make.graphics({ x: 0, y: 0, add: false });
-  makeSoil(fg);
-  fg.fillStyle(0x4CAF50);
-  fg.fillRect(7, 6, 2, 6); // stem
-  fg.fillStyle(0x66BB6A);
-  fg.fillRect(5, 7, 2, 2); // left leaf
-  fg.fillRect(9, 8, 2, 2); // right leaf
-  fg.generateTexture('tile_farm_growing', 16, 16);
-  fg.destroy();
-
-  // tile_farm_ready_wheat
-  const frw = scene.make.graphics({ x: 0, y: 0, add: false });
-  makeSoil(frw);
-  frw.fillStyle(0x8B6914);
-  frw.fillRect(5, 4, 2, 8);
-  frw.fillRect(8, 4, 2, 8);
-  frw.fillRect(11, 4, 2, 8);
-  frw.fillStyle(0xDAA520);
-  frw.fillRect(5, 2, 2, 3);
-  frw.fillRect(8, 3, 2, 3);
-  frw.fillRect(11, 2, 2, 3);
-  frw.generateTexture('tile_farm_ready_wheat', 16, 16);
-  frw.destroy();
-
-  // tile_farm_ready_carrot
-  const frc = scene.make.graphics({ x: 0, y: 0, add: false });
-  makeSoil(frc);
-  frc.fillStyle(0xFF7043);
-  frc.fillRect(6, 8, 4, 5);
-  frc.fillStyle(0x4CAF50);
-  frc.fillRect(6, 5, 2, 4);
-  frc.fillRect(8, 4, 2, 4);
-  frc.fillRect(10, 5, 2, 4);
-  frc.generateTexture('tile_farm_ready_carrot', 16, 16);
-  frc.destroy();
-
-  // tile_farm_ready_tomato
-  const frt = scene.make.graphics({ x: 0, y: 0, add: false });
-  makeSoil(frt);
-  frt.fillStyle(0x2E7D32);
-  frt.fillRect(6, 4, 4, 6); // vine
-  frt.fillStyle(0xE53935);
-  frt.fillRect(4, 6, 3, 3);
-  frt.fillRect(9, 7, 3, 3);
-  frt.generateTexture('tile_farm_ready_tomato', 16, 16);
-  frt.destroy();
-
-  // tile_farm_ready_golden_wheat (brighter gold + sparkle)
-  const frgw = scene.make.graphics({ x: 0, y: 0, add: false });
-  makeSoil(frgw);
-  frgw.fillStyle(0xBB8A00);
-  frgw.fillRect(5, 4, 2, 8);
-  frgw.fillRect(8, 4, 2, 8);
-  frgw.fillRect(11, 4, 2, 8);
-  frgw.fillStyle(0xFFD700);
-  frgw.fillRect(5, 2, 2, 3);
-  frgw.fillRect(8, 3, 2, 3);
-  frgw.fillRect(11, 2, 2, 3);
-  frgw.fillStyle(0xFFFFFF);
-  frgw.fillRect(4, 1, 1, 1);
-  frgw.fillRect(13, 3, 1, 1);
-  frgw.generateTexture('tile_farm_ready_golden_wheat', 16, 16);
-  frgw.destroy();
-
-  // tile_farm_ready_moonberry (purple-blue berries)
-  const frmb = scene.make.graphics({ x: 0, y: 0, add: false });
-  makeSoil(frmb);
-  frmb.fillStyle(0x4A148C);
-  frmb.fillRect(6, 5, 4, 7);
-  frmb.fillStyle(0x7B1FA2);
-  frmb.fillRect(4, 7, 3, 3);
-  frmb.fillRect(9, 6, 3, 3);
-  frmb.fillStyle(0xCE93D8);
-  frmb.fillRect(5, 7, 1, 1);
-  frmb.fillRect(10, 7, 1, 1);
-  frmb.generateTexture('tile_farm_ready_moonberry', 16, 16);
-  frmb.destroy();
-
-  // tile_farm_ready_starfruit (yellow star shape)
-  const frsf = scene.make.graphics({ x: 0, y: 0, add: false });
-  makeSoil(frsf);
-  frsf.fillStyle(0x4CAF50);
-  frsf.fillRect(7, 8, 2, 5);
-  frsf.fillStyle(0xFFEB3B);
-  frsf.fillRect(7, 3, 2, 5);   // top
-  frsf.fillRect(5, 5, 6, 2);   // horizontal
-  frsf.fillRect(5, 4, 2, 1);   // upper-left
-  frsf.fillRect(9, 4, 2, 1);   // upper-right
-  frsf.generateTexture('tile_farm_ready_starfruit', 16, 16);
-  frsf.destroy();
-}
-
+// ---------------------------------------------------------------------------
+// FOOD ITEM TEXTURES (32×32)
+// ---------------------------------------------------------------------------
 function generateItemTextures(scene) {
-  // Food item icons (16x16)
-  // basic_stew - brown bowl with steam
-  const is1 = scene.make.graphics({ x: 0, y: 0, add: false });
-  is1.fillStyle(0x5D4037);
-  is1.fillRect(4, 8, 8, 5);
-  is1.fillRect(3, 9, 10, 3);
-  is1.fillStyle(0x795548);
-  is1.fillRect(5, 7, 6, 2);
-  is1.fillStyle(0xFFFFFF);
-  is1.fillRect(6, 4, 1, 2);
-  is1.fillRect(9, 3, 1, 3);
-  is1.generateTexture('food_basic_stew', 16, 16);
-  is1.destroy();
+  // food_basic_stew (prompt: item_basic_stew)
+  tex32(scene, 'food_basic_stew', (g) => {
+    g.fillStyle(0x8B6344);
+    g.fillRect(6, 14, 20, 12);
+    g.fillRect(8, 12, 16, 4);
+    g.fillRect(4, 18, 24, 6);
+    g.fillStyle(0x7A5334);
+    g.fillRect(8, 14, 16, 4);
+    g.fillStyle(0xFFFFFF);
+    g.fillRect(12, 6, 2, 6);
+    g.fillRect(18, 4, 2, 8);
+    g.fillRect(15, 8, 2, 4);
+  });
 
-  // carrot_soup - orange bowl
-  const is2 = scene.make.graphics({ x: 0, y: 0, add: false });
-  is2.fillStyle(0xFF8F00);
-  is2.fillRect(4, 8, 8, 5);
-  is2.fillRect(3, 9, 10, 3);
-  is2.fillStyle(0xFFCC02);
-  is2.fillRect(5, 7, 6, 2);
-  is2.fillStyle(0xFFFFFF);
-  is2.fillRect(7, 4, 1, 2);
-  is2.fillRect(10, 3, 1, 3);
-  is2.generateTexture('food_carrot_soup', 16, 16);
-  is2.destroy();
+  // food_carrot_soup (prompt: item_carrot_soup)
+  tex32(scene, 'food_carrot_soup', (g) => {
+    g.fillStyle(0x8B6344);
+    g.fillRect(6, 14, 20, 12);
+    g.fillRect(8, 12, 16, 4);
+    g.fillRect(4, 18, 24, 6);
+    g.fillStyle(0xDD8833);
+    g.fillRect(8, 14, 16, 4);
+    g.fillStyle(0xFFFFFF);
+    g.fillRect(12, 6, 2, 6);
+    g.fillRect(18, 4, 2, 8);
+  });
 
-  // grilled_fish - fish shape on plate
-  const is3 = scene.make.graphics({ x: 0, y: 0, add: false });
-  is3.fillStyle(0xBDBDBD);
-  is3.fillRect(3, 11, 10, 2);
-  is3.fillStyle(0xFF8A65);
-  is3.fillRect(4, 7, 8, 4);
-  is3.fillRect(4, 8, 2, 2);
-  is3.fillStyle(0x6D4C41);
-  is3.fillRect(4, 9, 8, 1);
-  is3.generateTexture('food_grilled_fish', 16, 16);
-  is3.destroy();
+  // food_grilled_fish (prompt: item_grilled_fish)
+  tex32(scene, 'food_grilled_fish', (g) => {
+    g.fillStyle(0xAA9988);
+    g.fillRect(4, 16, 24, 10);
+    g.fillRect(6, 14, 20, 4);
+    g.fillStyle(0x8B6344);
+    g.fillRect(8, 12, 14, 8);
+    g.fillRect(10, 10, 10, 4);
+    g.fillRect(20, 14, 4, 6);
+    g.fillStyle(0x5A3A1A);
+    g.fillRect(10, 14, 10, 1);
+    g.fillRect(10, 17, 10, 1);
+  });
 
-  // hearty_chowder - large yellow bowl
-  const is4 = scene.make.graphics({ x: 0, y: 0, add: false });
-  is4.fillStyle(0x5D4037);
-  is4.fillRect(3, 8, 10, 5);
-  is4.fillRect(2, 9, 12, 3);
-  is4.fillStyle(0xFFD54F);
-  is4.fillRect(4, 7, 8, 3);
-  is4.fillStyle(0xFFFFFF);
-  is4.fillRect(6, 4, 1, 2);
-  is4.fillRect(9, 3, 1, 3);
-  is4.generateTexture('food_hearty_chowder', 16, 16);
-  is4.destroy();
+  // food_hearty_chowder (prompt: item_hearty_chowder)
+  tex32(scene, 'food_hearty_chowder', (g) => {
+    g.fillStyle(0x8B6344);
+    g.fillRect(4, 12, 24, 14);
+    g.fillRect(6, 10, 20, 4);
+    g.fillRect(2, 16, 28, 8);
+    g.fillStyle(0xDDCC88);
+    g.fillRect(6, 12, 20, 4);
+    g.fillStyle(0xFFFFFF);
+    g.fillRect(10, 4, 2, 6);
+    g.fillRect(16, 2, 2, 8);
+    g.fillRect(22, 4, 2, 6);
+  });
 
-  // miners_meal - brown plate
-  const is5 = scene.make.graphics({ x: 0, y: 0, add: false });
-  is5.fillStyle(0xBDBDBD);
-  is5.fillRect(3, 11, 10, 2);
-  is5.fillStyle(0xBF360C);
-  is5.fillRect(4, 7, 8, 5);
-  is5.fillStyle(0xFF8A65);
-  is5.fillRect(5, 8, 3, 2);
-  is5.fillRect(9, 9, 2, 2);
-  is5.generateTexture('food_miners_meal', 16, 16);
-  is5.destroy();
+  // food_miners_meal (prompt: item_miners_meal)
+  tex32(scene, 'food_miners_meal', (g) => {
+    g.fillStyle(0xAA9988);
+    g.fillRect(4, 16, 24, 10);
+    g.fillRect(6, 14, 20, 4);
+    g.fillStyle(0xDD6633);
+    g.fillRect(8, 12, 8, 6);
+    g.fillStyle(0xCC4422);
+    g.fillRect(18, 14, 6, 4);
+    g.fillStyle(0xDAA520);
+    g.fillRect(10, 18, 8, 3);
+  });
 
-  // golden_bread - golden loaf
-  const is6 = scene.make.graphics({ x: 0, y: 0, add: false });
-  is6.fillStyle(0xE65100);
-  is6.fillRect(3, 9, 10, 4);
-  is6.fillStyle(0xFFB300);
-  is6.fillRect(4, 6, 8, 5);
-  is6.fillRect(3, 8, 10, 2);
-  is6.fillStyle(0xFFD54F);
-  is6.fillRect(5, 6, 6, 2);
-  is6.generateTexture('food_golden_bread', 16, 16);
-  is6.destroy();
+  // food_golden_bread (prompt: item_golden_bread)
+  tex32(scene, 'food_golden_bread', (g) => {
+    g.fillStyle(0xDAA520);
+    g.fillRect(6, 12, 20, 12);
+    g.fillRect(8, 10, 16, 4);
+    g.fillStyle(0xCCA520);
+    g.fillRect(8, 14, 16, 6);
+    g.fillStyle(0xB8952A);
+    g.fillRect(10, 12, 1, 10);
+    g.fillRect(16, 12, 1, 10);
+    g.fillRect(22, 12, 1, 10);
+    g.fillStyle(0xFFDD44);
+    g.fillRect(10, 10, 6, 2);
+  });
 
-  // anglers_feast - fancy fish plate
-  const is7 = scene.make.graphics({ x: 0, y: 0, add: false });
-  is7.fillStyle(0xE0E0E0);
-  is7.fillRect(3, 11, 10, 2);
-  is7.fillStyle(0x4CAF50);
-  is7.fillRect(4, 10, 1, 1);
-  is7.fillRect(11, 10, 1, 1);
-  is7.fillStyle(0xFF8A65);
-  is7.fillRect(4, 7, 8, 4);
-  is7.fillStyle(0x795548);
-  is7.fillRect(5, 8, 6, 1);
-  is7.fillStyle(0xFFFFFF);
-  is7.fillRect(11, 7, 1, 1);
-  is7.generateTexture('food_anglers_feast', 16, 16);
-  is7.destroy();
+  // food_anglers_feast (prompt: item_anglers_feast)
+  tex32(scene, 'food_anglers_feast', (g) => {
+    g.fillStyle(0xAA9988);
+    g.fillRect(2, 16, 28, 10);
+    g.fillRect(4, 14, 24, 4);
+    g.fillStyle(0xBBAA99);
+    g.fillRect(4, 16, 24, 1);
+    g.fillStyle(0x6688AA);
+    g.fillRect(8, 10, 14, 8);
+    g.fillRect(20, 12, 4, 6);
+    g.fillStyle(0x44AA44);
+    g.fillRect(6, 14, 3, 3);
+    g.fillRect(24, 12, 3, 3);
+    g.fillStyle(0xFFDD00);
+    g.fillRect(12, 8, 2, 2);
+  });
 
-  // moonberry_tart - purple pie
-  const is8 = scene.make.graphics({ x: 0, y: 0, add: false });
-  is8.fillStyle(0x8D6E63);
-  is8.fillRect(3, 10, 10, 3);
-  is8.fillStyle(0x6A1B9A);
-  is8.fillRect(4, 6, 8, 6);
-  is8.fillStyle(0xCE93D8);
-  is8.fillRect(5, 7, 2, 2);
-  is8.fillRect(9, 8, 2, 2);
-  is8.generateTexture('food_moonberry_tart', 16, 16);
-  is8.destroy();
+  // food_moonberry_tart (prompt: item_moonberry_tart)
+  tex32(scene, 'food_moonberry_tart', (g) => {
+    g.fillStyle(0xCCAA77);
+    g.fillRect(6, 12, 20, 14);
+    g.fillRect(8, 10, 16, 4);
+    g.fillStyle(0xBB9966);
+    g.fillRect(6, 24, 20, 2);
+    g.fillRect(4, 14, 2, 10);
+    g.fillRect(26, 14, 2, 10);
+    g.fillStyle(0x6644AA);
+    g.fillRect(8, 12, 16, 10);
+    g.fillStyle(0x8866CC);
+    g.fillRect(10, 14, 4, 4);
+    g.fillRect(16, 16, 4, 4);
+  });
 
-  // abyssal_broth - dark bowl with blue-green steam
-  const is9 = scene.make.graphics({ x: 0, y: 0, add: false });
-  is9.fillStyle(0x212121);
-  is9.fillRect(3, 8, 10, 5);
-  is9.fillRect(2, 9, 12, 3);
-  is9.fillStyle(0x00897B);
-  is9.fillRect(5, 7, 2, 2);
-  is9.fillRect(9, 6, 2, 3);
-  is9.fillStyle(0x00BCD4);
-  is9.fillRect(6, 5, 1, 2);
-  is9.fillRect(10, 4, 1, 2);
-  is9.generateTexture('food_abyssal_broth', 16, 16);
-  is9.destroy();
+  // food_abyssal_broth (prompt: item_abyssal_broth)
+  tex32(scene, 'food_abyssal_broth', (g) => {
+    g.fillStyle(0x4A3A30);
+    g.fillRect(6, 14, 20, 12);
+    g.fillRect(8, 12, 16, 4);
+    g.fillRect(4, 18, 24, 6);
+    g.fillStyle(0x2A3A4A);
+    g.fillRect(8, 14, 16, 4);
+    g.fillStyle(0x44AAAA);
+    g.fillRect(12, 4, 2, 8);
+    g.fillRect(18, 2, 2, 10);
+    g.fillStyle(0x44CCCC);
+    g.fillRect(15, 6, 2, 6);
+  });
 
-  // starfruit_elixir - yellow potion bottle
-  const is10 = scene.make.graphics({ x: 0, y: 0, add: false });
-  is10.fillStyle(0x7B1FA2);
-  is10.fillRect(7, 1, 2, 2); // neck top
-  is10.fillStyle(0x555577);
-  is10.fillRect(6, 3, 4, 1);  // stopper
-  is10.fillStyle(0xFFEB3B);
-  is10.fillRect(4, 4, 8, 9);
-  is10.fillStyle(0xFFD700);
-  is10.fillRect(5, 5, 2, 2);
-  is10.fillStyle(0xFFFFFF);
-  is10.fillRect(6, 5, 1, 3);
-  // star
-  is10.fillStyle(0xFFFFFF);
-  is10.fillRect(7, 7, 1, 1);
-  is10.generateTexture('food_starfruit_elixir', 16, 16);
-  is10.destroy();
+  // food_starfruit_elixir (prompt: item_starfruit_elixir)
+  tex32(scene, 'food_starfruit_elixir', (g) => {
+    g.fillStyle(0xFFDD00);
+    g.fillRect(10, 12, 12, 14);
+    g.fillRect(8, 16, 16, 8);
+    g.fillStyle(0xCCCC88);
+    g.fillRect(13, 6, 6, 8);
+    g.fillStyle(0x8B6344);
+    g.fillRect(14, 4, 4, 4);
+    g.fillStyle(0xFFFF44);
+    g.fillRect(14, 18, 4, 4);
+    g.fillRect(12, 19, 8, 2);
+    g.fillRect(15, 16, 2, 8);
+    g.fillStyle(0xFFFFAA);
+    g.fillRect(12, 14, 8, 4);
+  });
 }
 
+// ---------------------------------------------------------------------------
+// PHASE 7 TEXTURES (nocturnal mobs, NPC, companions, eggs, extra gear)
+// ---------------------------------------------------------------------------
 function generatePhase7Textures(scene) {
-  // === Nocturnal Mob Sprites ===
+  // === Nocturnal Mob Sprites (scaled 16→32) ===
 
-  // Shadow Wisp - flickering dark purple-blue orb
-  const sw = scene.make.graphics({ x: 0, y: 0, add: false });
-  sw.fillStyle(0x8866CC);
-  sw.fillCircle(8, 8, 5);
-  sw.fillStyle(0x6644AA);
-  sw.fillCircle(8, 8, 3);
-  sw.fillStyle(0xAA88EE);
-  sw.fillRect(7, 7, 2, 2);
-  sw.fillStyle(0x4422AA, 0.6);
-  sw.fillRect(5, 12, 6, 2);
-  sw.generateTexture('mob_shadow_wisp', 16, 16);
-  sw.destroy();
+  // Shadow Wisp
+  tex32(scene, 'mob_shadow_wisp', (g) => {
+    g.fillStyle(0x8866CC);
+    g.fillCircle(16, 16, 10);
+    g.fillStyle(0x6644AA);
+    g.fillCircle(16, 16, 6);
+    g.fillStyle(0xAA88EE);
+    g.fillRect(14, 14, 4, 4);
+    g.fillStyle(0x4422AA);
+    g.fillRect(10, 24, 12, 4);
+  });
 
-  // Night Stalker - crouching dark shape with yellow eyes
-  const ns = scene.make.graphics({ x: 0, y: 0, add: false });
-  ns.fillStyle(0x1A1A1A);
-  ns.fillRect(3, 8, 10, 5);
-  ns.fillRect(5, 6, 6, 3);
-  ns.fillStyle(0x2A2A2A);
-  ns.fillRect(4, 7, 8, 4);
-  ns.fillStyle(0xFFCC00);
-  ns.fillRect(6, 7, 2, 2);
-  ns.fillRect(10, 7, 2, 2);
-  ns.fillStyle(0x1A1A1A);
-  ns.fillRect(4, 5, 2, 2);
-  ns.fillRect(10, 5, 2, 2);
-  ns.generateTexture('mob_night_stalker', 16, 16);
-  ns.destroy();
+  // Night Stalker
+  tex32(scene, 'mob_night_stalker', (g) => {
+    g.fillStyle(0x1A1A1A);
+    g.fillRect(6, 16, 20, 10);
+    g.fillRect(10, 12, 12, 6);
+    g.fillStyle(0x2A2A2A);
+    g.fillRect(8, 14, 16, 8);
+    g.fillStyle(0xFFCC00);
+    g.fillRect(12, 14, 4, 4);
+    g.fillRect(20, 14, 4, 4);
+    g.fillStyle(0x1A1A1A);
+    g.fillRect(8, 10, 4, 4);
+    g.fillRect(20, 10, 4, 4);
+  });
 
-  // Moon Beetle - round armored bug with glowing spots
-  const mb = scene.make.graphics({ x: 0, y: 0, add: false });
-  mb.fillStyle(0x2A3A5A);
-  mb.fillCircle(8, 9, 5);
-  mb.fillStyle(0x1A2A4A);
-  mb.fillCircle(8, 9, 3);
-  mb.fillStyle(0x88BBFF);
-  mb.fillRect(5, 7, 2, 2);
-  mb.fillRect(9, 7, 2, 2);
-  mb.fillRect(7, 10, 2, 2);
-  mb.fillStyle(0x2A3A5A);
-  mb.fillRect(6, 4, 1, 3);
-  mb.fillRect(9, 4, 1, 3);
-  mb.generateTexture('mob_moon_beetle', 16, 16);
-  mb.destroy();
+  // Moon Beetle
+  tex32(scene, 'mob_moon_beetle', (g) => {
+    g.fillStyle(0x2A3A5A);
+    g.fillCircle(16, 18, 10);
+    g.fillStyle(0x1A2A4A);
+    g.fillCircle(16, 18, 6);
+    g.fillStyle(0x88BBFF);
+    g.fillRect(10, 14, 4, 4);
+    g.fillRect(18, 14, 4, 4);
+    g.fillRect(14, 20, 4, 4);
+    g.fillStyle(0x2A3A5A);
+    g.fillRect(12, 8, 2, 6);
+    g.fillRect(18, 8, 2, 6);
+  });
 
-  // Ember Wraith - ghostly fire figure
-  const ew = scene.make.graphics({ x: 0, y: 0, add: false });
-  ew.fillStyle(0xCC4400);
-  ew.fillRect(5, 3, 6, 8);
-  ew.fillStyle(0xFFAA00);
-  ew.fillRect(6, 5, 4, 4);
-  ew.fillStyle(0xFF6600);
-  ew.fillRect(7, 4, 2, 2);
-  ew.fillStyle(0xCC4400, 0.6);
-  ew.fillRect(4, 11, 8, 3);
-  ew.fillRect(5, 13, 6, 2);
-  ew.fillStyle(0xFFDD00);
-  ew.fillRect(7, 6, 2, 2);
-  ew.generateTexture('mob_ember_wraith', 16, 16);
-  ew.destroy();
+  // Ember Wraith
+  tex32(scene, 'mob_ember_wraith', (g) => {
+    g.fillStyle(0xCC4400);
+    g.fillRect(10, 6, 12, 16);
+    g.fillStyle(0xFFAA00);
+    g.fillRect(12, 10, 8, 8);
+    g.fillStyle(0xFF6600);
+    g.fillRect(14, 8, 4, 4);
+    g.fillStyle(0xCC4400);
+    g.fillRect(8, 22, 16, 6);
+    g.fillRect(10, 26, 12, 4);
+    g.fillStyle(0xFFDD00);
+    g.fillRect(14, 12, 4, 4);
+  });
 
-  // === Merchant NPC Sprite ===
-  const mn = scene.make.graphics({ x: 0, y: 0, add: false });
-  mn.fillStyle(0x5A4020);
-  mn.fillRect(4, 2, 8, 12);
-  mn.fillStyle(0x4A3018);
-  mn.fillRect(5, 3, 6, 4);
-  mn.fillStyle(0xDAA520);
-  mn.fillRect(4, 2, 8, 1);
-  mn.fillStyle(0x6B5030);
-  mn.fillRect(10, 7, 4, 5);
-  mn.fillStyle(0xFFDD44);
-  mn.fillRect(2, 10, 2, 2);
-  mn.fillStyle(0xDDCCBB);
-  mn.fillRect(6, 5, 1, 1);
-  mn.fillRect(7, 6, 2, 1);
-  mn.generateTexture('npc_merchant', 16, 16);
-  mn.destroy();
+  // === Merchant NPC (scaled 16→32) ===
+  tex32(scene, 'npc_merchant', (g) => {
+    g.fillStyle(0x5A4020);
+    g.fillRect(8, 4, 16, 24);
+    g.fillStyle(0x4A3018);
+    g.fillRect(10, 6, 12, 8);
+    g.fillStyle(0xDAA520);
+    g.fillRect(8, 4, 16, 2);
+    g.fillStyle(0x6B5030);
+    g.fillRect(20, 14, 8, 10);
+    g.fillStyle(0xFFDD44);
+    g.fillRect(4, 20, 4, 4);
+    g.fillStyle(0xDDCCBB);
+    g.fillRect(12, 10, 2, 2);
+    g.fillRect(14, 12, 4, 2);
+  });
 
-  // === Companion Sprites ===
+  // === Companion Sprites (scaled 16→32) ===
 
-  // Fox - orange-red with white belly
-  const cf = scene.make.graphics({ x: 0, y: 0, add: false });
-  cf.fillStyle(0xCC5500);
-  cf.fillRect(3, 6, 10, 6);
-  cf.fillStyle(0xFFFFFF);
-  cf.fillRect(5, 9, 6, 3);
-  cf.fillStyle(0xCC5500);
-  cf.fillRect(4, 4, 3, 3);
-  cf.fillRect(9, 4, 3, 3);
-  cf.fillStyle(0x1A1A1A);
-  cf.fillRect(5, 5, 1, 1);
-  cf.fillRect(10, 5, 1, 1);
-  cf.fillRect(7, 7, 2, 1);
-  cf.fillStyle(0xCC5500);
-  cf.fillRect(12, 8, 3, 2);
-  cf.generateTexture('companion_fox', 16, 16);
-  cf.destroy();
+  // Fox
+  tex32(scene, 'companion_fox', (g) => {
+    g.fillStyle(0xCC5500);
+    g.fillRect(6, 12, 20, 12);
+    g.fillStyle(0xFFFFFF);
+    g.fillRect(10, 18, 12, 6);
+    g.fillStyle(0xCC5500);
+    g.fillRect(8, 8, 6, 6);
+    g.fillRect(18, 8, 6, 6);
+    g.fillStyle(0x1A1A1A);
+    g.fillRect(10, 10, 2, 2);
+    g.fillRect(20, 10, 2, 2);
+    g.fillRect(14, 14, 4, 2);
+    g.fillStyle(0xCC5500);
+    g.fillRect(24, 16, 6, 4);
+  });
 
-  // Owl - round brown with big yellow eyes
-  const co = scene.make.graphics({ x: 0, y: 0, add: false });
-  co.fillStyle(0x7A5A30);
-  co.fillCircle(8, 8, 5);
-  co.fillStyle(0xAA8850);
-  co.fillRect(5, 8, 6, 4);
-  co.fillStyle(0xFFD700);
-  co.fillCircle(6, 6, 2);
-  co.fillCircle(10, 6, 2);
-  co.fillStyle(0x000000);
-  co.fillRect(6, 6, 1, 1);
-  co.fillRect(10, 6, 1, 1);
-  co.fillStyle(0xCC8800);
-  co.fillRect(7, 8, 2, 1);
-  co.fillStyle(0x7A5A30);
-  co.fillRect(5, 3, 2, 2);
-  co.fillRect(9, 3, 2, 2);
-  co.generateTexture('companion_owl', 16, 16);
-  co.destroy();
+  // Owl
+  tex32(scene, 'companion_owl', (g) => {
+    g.fillStyle(0x7A5A30);
+    g.fillCircle(16, 16, 10);
+    g.fillStyle(0xAA8850);
+    g.fillRect(10, 16, 12, 8);
+    g.fillStyle(0xFFD700);
+    g.fillCircle(12, 12, 4);
+    g.fillCircle(20, 12, 4);
+    g.fillStyle(0x000000);
+    g.fillRect(12, 12, 2, 2);
+    g.fillRect(20, 12, 2, 2);
+    g.fillStyle(0xCC8800);
+    g.fillRect(14, 16, 4, 2);
+    g.fillStyle(0x7A5A30);
+    g.fillRect(10, 6, 4, 4);
+    g.fillRect(18, 6, 4, 4);
+  });
 
-  // Frog - green with bulging eyes
-  const cg = scene.make.graphics({ x: 0, y: 0, add: false });
-  cg.fillStyle(0x3A7A3A);
-  cg.fillRect(3, 7, 10, 6);
-  cg.fillStyle(0x55AA55);
-  cg.fillRect(4, 9, 8, 3);
-  cg.fillStyle(0x3A7A3A);
-  cg.fillRect(4, 4, 3, 3);
-  cg.fillRect(9, 4, 3, 3);
-  cg.fillStyle(0xFFFFFF);
-  cg.fillRect(5, 4, 2, 2);
-  cg.fillRect(10, 4, 2, 2);
-  cg.fillStyle(0x000000);
-  cg.fillRect(5, 5, 1, 1);
-  cg.fillRect(10, 5, 1, 1);
-  cg.fillStyle(0x55AA55);
-  cg.fillRect(6, 8, 4, 1);
-  cg.generateTexture('companion_frog', 16, 16);
-  cg.destroy();
+  // Frog
+  tex32(scene, 'companion_frog', (g) => {
+    g.fillStyle(0x3A7A3A);
+    g.fillRect(6, 14, 20, 12);
+    g.fillStyle(0x55AA55);
+    g.fillRect(8, 18, 16, 6);
+    g.fillStyle(0x3A7A3A);
+    g.fillRect(8, 8, 6, 6);
+    g.fillRect(18, 8, 6, 6);
+    g.fillStyle(0xFFFFFF);
+    g.fillRect(10, 8, 4, 4);
+    g.fillRect(20, 8, 4, 4);
+    g.fillStyle(0x000000);
+    g.fillRect(10, 10, 2, 2);
+    g.fillRect(20, 10, 2, 2);
+    g.fillStyle(0x55AA55);
+    g.fillRect(12, 16, 8, 2);
+  });
 
-  // Mole - small brown with big claws
-  const cm = scene.make.graphics({ x: 0, y: 0, add: false });
-  cm.fillStyle(0x5A4030);
-  cm.fillCircle(8, 9, 5);
-  cm.fillStyle(0x4A3020);
-  cm.fillCircle(8, 9, 3);
-  cm.fillStyle(0x000000);
-  cm.fillRect(6, 7, 1, 1);
-  cm.fillRect(10, 7, 1, 1);
-  cm.fillStyle(0xFFAAAA);
-  cm.fillRect(8, 8, 1, 1);
-  cm.fillStyle(0xFFCCCC);
-  cm.fillRect(3, 11, 2, 2);
-  cm.fillRect(11, 11, 2, 2);
-  cm.fillStyle(0x5A4030);
-  cm.fillRect(12, 9, 2, 1);
-  cm.generateTexture('companion_mole', 16, 16);
-  cm.destroy();
+  // Mole
+  tex32(scene, 'companion_mole', (g) => {
+    g.fillStyle(0x5A4030);
+    g.fillCircle(16, 18, 10);
+    g.fillStyle(0x4A3020);
+    g.fillCircle(16, 18, 6);
+    g.fillStyle(0x000000);
+    g.fillRect(12, 14, 2, 2);
+    g.fillRect(20, 14, 2, 2);
+    g.fillStyle(0xFFAAAA);
+    g.fillRect(16, 16, 2, 2);
+    g.fillStyle(0xFFCCCC);
+    g.fillRect(6, 22, 4, 4);
+    g.fillRect(22, 22, 4, 4);
+    g.fillStyle(0x5A4030);
+    g.fillRect(24, 18, 4, 2);
+  });
 
-  // Wolf - dark gray with yellow eyes
-  const cw = scene.make.graphics({ x: 0, y: 0, add: false });
-  cw.fillStyle(0x4A4A5A);
-  cw.fillRect(3, 6, 10, 7);
-  cw.fillStyle(0x6A6A7A);
-  cw.fillRect(4, 8, 4, 3);
-  cw.fillStyle(0x4A4A5A);
-  cw.fillRect(3, 4, 4, 3);
-  cw.fillRect(3, 3, 2, 2);
-  cw.fillRect(8, 3, 2, 2);
-  cw.fillStyle(0xFFCC00);
-  cw.fillRect(4, 5, 1, 1);
-  cw.fillRect(7, 5, 1, 1);
-  cw.fillStyle(0x4A4A5A);
-  cw.fillRect(12, 8, 3, 2);
-  cw.fillRect(13, 7, 2, 1);
-  cw.generateTexture('companion_wolf', 16, 16);
-  cw.destroy();
+  // Companion Wolf
+  tex32(scene, 'companion_wolf', (g) => {
+    g.fillStyle(0x4A4A5A);
+    g.fillRect(6, 12, 20, 14);
+    g.fillStyle(0x6A6A7A);
+    g.fillRect(8, 16, 8, 6);
+    g.fillStyle(0x4A4A5A);
+    g.fillRect(6, 8, 8, 6);
+    g.fillRect(6, 6, 4, 4);
+    g.fillRect(16, 6, 4, 4);
+    g.fillStyle(0xFFCC00);
+    g.fillRect(8, 10, 2, 2);
+    g.fillRect(14, 10, 2, 2);
+    g.fillStyle(0x4A4A5A);
+    g.fillRect(24, 16, 6, 4);
+    g.fillRect(26, 14, 4, 2);
+  });
 
-  // Toad - warty green-brown
-  const ct = scene.make.graphics({ x: 0, y: 0, add: false });
-  ct.fillStyle(0x4A5A2A);
-  ct.fillRect(2, 7, 12, 6);
-  ct.fillStyle(0x5A6A3A);
-  ct.fillRect(3, 9, 10, 3);
-  ct.fillStyle(0x3A4A1A);
-  ct.fillRect(4, 8, 2, 2);
-  ct.fillRect(8, 8, 2, 2);
-  ct.fillRect(6, 11, 2, 2);
-  ct.fillStyle(0xFFDD00);
-  ct.fillRect(4, 5, 2, 2);
-  ct.fillRect(10, 5, 2, 2);
-  ct.fillStyle(0x000000);
-  ct.fillRect(5, 5, 1, 1);
-  ct.fillRect(11, 5, 1, 1);
-  ct.fillStyle(0x4A5A2A);
-  ct.fillRect(3, 12, 4, 1);
-  ct.fillRect(9, 12, 4, 1);
-  ct.generateTexture('companion_toad', 16, 16);
-  ct.destroy();
+  // Toad
+  tex32(scene, 'companion_toad', (g) => {
+    g.fillStyle(0x4A5A2A);
+    g.fillRect(4, 14, 24, 12);
+    g.fillStyle(0x5A6A3A);
+    g.fillRect(6, 18, 20, 6);
+    g.fillStyle(0x3A4A1A);
+    g.fillRect(8, 16, 4, 4);
+    g.fillRect(16, 16, 4, 4);
+    g.fillRect(12, 22, 4, 4);
+    g.fillStyle(0xFFDD00);
+    g.fillRect(8, 10, 4, 4);
+    g.fillRect(20, 10, 4, 4);
+    g.fillStyle(0x000000);
+    g.fillRect(10, 10, 2, 2);
+    g.fillRect(22, 10, 2, 2);
+    g.fillStyle(0x4A5A2A);
+    g.fillRect(6, 24, 8, 2);
+    g.fillRect(18, 24, 8, 2);
+  });
 
-  // === Companion Eggs (6 with tinted colors) ===
+  // === Companion Eggs (scaled 16→32) ===
   const eggColors = [
     { key: 'egg_fox',  color: 0xCC7733 },
     { key: 'egg_owl',  color: 0x8B7355 },
@@ -1043,60 +1315,56 @@ function generatePhase7Textures(scene) {
     { key: 'egg_toad', color: 0x5A6A3A },
   ];
   for (const { key, color } of eggColors) {
-    const eg = scene.make.graphics({ x: 0, y: 0, add: false });
-    eg.fillStyle(color);
-    eg.fillRect(5, 3, 6, 10);
-    eg.fillRect(6, 2, 4, 1);
-    eg.fillRect(6, 13, 4, 1);
-    eg.fillStyle(0xFFFFFF, 0.3);
-    eg.fillRect(7, 4, 2, 3);
-    eg.fillStyle(0x000000, 0.2);
-    eg.fillRect(6, 8, 4, 1);
-    eg.generateTexture(key, 16, 16);
-    eg.destroy();
+    tex32(scene, key, (g) => {
+      g.fillStyle(color);
+      g.fillRect(10, 6, 12, 20);
+      g.fillRect(12, 4, 8, 2);
+      g.fillRect(12, 26, 8, 2);
+      g.fillStyle(0xFFFFFF, 0.3);
+      g.fillRect(14, 8, 4, 6);
+      g.fillStyle(0x000000, 0.2);
+      g.fillRect(12, 16, 8, 2);
+    });
   }
 
-  // Companion Nest tile
-  const nest = scene.make.graphics({ x: 0, y: 0, add: false });
-  nest.fillStyle(0x6B4226);
-  nest.fillCircle(8, 10, 6);
-  nest.fillStyle(0x8B6226);
-  nest.fillCircle(8, 10, 4);
-  nest.fillStyle(0xFFEEDD);
-  nest.fillCircle(8, 10, 3);
-  nest.fillStyle(0x6B4226);
-  nest.fillRect(2, 12, 12, 2);
-  nest.generateTexture('tile_companion_nest', 16, 16);
-  nest.destroy();
+  // Companion Nest (scaled 16→32)
+  tex32(scene, 'tile_companion_nest', (g) => {
+    g.fillStyle(0x6B4226);
+    g.fillCircle(16, 20, 12);
+    g.fillStyle(0x8B6226);
+    g.fillCircle(16, 20, 8);
+    g.fillStyle(0xFFEEDD);
+    g.fillCircle(16, 20, 6);
+    g.fillStyle(0x6B4226);
+    g.fillRect(4, 24, 24, 4);
+  });
 
-  // === Gear textures ===
+  // === Extra Gear (scaled 16→32) ===
 
   // Moonstone Ring
-  const mr = scene.make.graphics({ x: 0, y: 0, add: false });
-  mr.fillStyle(0xC0C0C0);
-  mr.fillCircle(8, 8, 5);
-  mr.fillStyle(0x1A1A2E);
-  mr.fillCircle(8, 8, 3);
-  mr.fillStyle(0xB0C4DE);
-  mr.fillRect(7, 3, 2, 3);
-  mr.fillStyle(0xE0E8FF);
-  mr.fillRect(7, 4, 2, 1);
-  mr.generateTexture('gear_moonstone_ring', 16, 16);
-  mr.destroy();
+  tex32(scene, 'gear_moonstone_ring', (g) => {
+    g.fillStyle(0xC0C0C0);
+    g.fillCircle(16, 16, 10);
+    g.fillStyle(0x1A1A2E);
+    g.fillCircle(16, 16, 6);
+    g.fillStyle(0xB0C4DE);
+    g.fillRect(14, 6, 4, 6);
+    g.fillStyle(0xE0E8FF);
+    g.fillRect(14, 8, 4, 2);
+  });
 
   // Lantern
-  const lt = scene.make.graphics({ x: 0, y: 0, add: false });
-  lt.fillStyle(0xDAA520);
-  lt.fillRect(5, 2, 6, 1);
-  lt.fillRect(4, 3, 1, 10);
-  lt.fillRect(11, 3, 1, 10);
-  lt.fillRect(5, 12, 6, 1);
-  lt.fillStyle(0xFFAA00);
-  lt.fillRect(5, 3, 6, 9);
-  lt.fillStyle(0xFFDD00);
-  lt.fillRect(6, 5, 4, 5);
-  lt.fillStyle(0xFFFFAA);
-  lt.fillRect(7, 6, 2, 3);
-  lt.generateTexture('gear_lantern', 16, 16);
-  lt.destroy();
+  tex32(scene, 'gear_lantern', (g) => {
+    g.fillStyle(0xDAA520);
+    g.fillRect(10, 4, 12, 2);
+    g.fillRect(8, 6, 2, 20);
+    g.fillRect(22, 6, 2, 20);
+    g.fillRect(10, 24, 12, 2);
+    g.fillStyle(0xFFAA00);
+    g.fillRect(10, 6, 12, 18);
+    g.fillStyle(0xFFDD00);
+    g.fillRect(12, 10, 8, 10);
+    g.fillStyle(0xFFFFAA);
+    g.fillRect(14, 12, 4, 6);
+  });
 }
