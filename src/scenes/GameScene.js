@@ -177,28 +177,36 @@ export class GameScene extends Phaser.Scene {
     });
     this.events.on('skillLevelUp', (data) => {
       const unlockStr = data.unlock ? ` ${data.unlock.description}` : '';
-      this.combatLog.addEntry({
+      const entry = {
         type: 'skill_levelup',
         message: `${data.skillId} reached Level ${data.newLevel}!${unlockStr}`,
-      });
+      };
+      this.combatLog.addEntry(entry);
+      this.events.emit('combatLogEntry', entry);
     });
     this.events.on('levelUp', (data) => {
-      this.combatLog.addEntry({
+      const entry = {
         type: 'level_up',
         message: `Level up! You are now Level ${data?.level || '?'}`,
-      });
+      };
+      this.combatLog.addEntry(entry);
+      this.events.emit('combatLogEntry', entry);
     });
     this.events.on('activeBuffsChanged', (buffs) => {
       if (buffs.length === 0) {
-        this.combatLog.addEntry({ type: 'buff_expire', message: 'Food buff expired' });
+        const entry = { type: 'buff_expire', message: 'Food buff expired' };
+        this.combatLog.addEntry(entry);
+        this.events.emit('combatLogEntry', entry);
       }
     });
     this.events.on('cookingComplete', (data) => {
       const foodDef = ITEMS[data?.item];
-      this.combatLog.addEntry({
+      const entry = {
         type: 'cooking',
         message: `Cooked ${foodDef?.name || data?.item}`,
-      });
+      };
+      this.combatLog.addEntry(entry);
+      this.events.emit('combatLogEntry', entry);
     });
   }
 
