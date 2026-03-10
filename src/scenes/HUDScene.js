@@ -723,11 +723,6 @@ export class HUDScene extends Phaser.Scene {
       fontSize: '18px', fontFamily: 'monospace', color: '#DAA520', fontStyle: 'bold',
     }).setOrigin(0.5).setScrollFactor(0).setDepth(501);
     this.zoneTransDash.setVisible(false);
-
-    this.zoneTransName = this.add.text(w / 2, ty, '', {
-      fontSize: '18px', fontFamily: 'monospace', color: '#F5E6C8', fontStyle: 'bold',
-    }).setOrigin(0.5).setScrollFactor(0).setDepth(501);
-    this.zoneTransName.setVisible(false);
   }
 
   _showZoneTransition(zone) {
