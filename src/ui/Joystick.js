@@ -32,6 +32,7 @@ export class Joystick {
     this.zone.setInteractive();
 
     this.zone.on('pointerdown', (pointer) => {
+      if (this.isActive) return;
       this.isActive = true;
       this.pointerId = pointer.id;
       this.baseX = pointer.x;

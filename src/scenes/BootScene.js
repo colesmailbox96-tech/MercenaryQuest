@@ -26,6 +26,7 @@ export class BootScene extends Phaser.Scene {
     const canvasTexture = this.textures.createCanvas(key, w, h);
     const ctx = canvasTexture.getContext();
     ctx.imageSmoothingEnabled = false;
+    ctx.clearRect(0, 0, w, h);
     drawFn(ctx, w, h);
     canvasTexture.refresh();
   }
