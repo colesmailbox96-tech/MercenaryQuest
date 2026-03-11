@@ -48,8 +48,6 @@ export class CombatLogPanel extends Phaser.Scene {
     const panelH = Math.floor(h * 0.4);
     const panelY = h - panelH;
 
-    const panelW = Math.min(w - 20, 370);
-
     // Semi-transparent backdrop
     this.backdrop = this.add.rectangle(w / 2, panelY + panelH / 2, w, panelH, 0x1A1A2E, 0.92);
     this.backdrop.setScrollFactor(0);

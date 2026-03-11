@@ -150,6 +150,7 @@ export class HUDScene extends Phaser.Scene {
     });
     this.agentStatus.setScrollFactor(0);
     this.agentStatus.setDepth(101);
+    this.agentStatus.setVisible(false); // Hidden by default, shown in agent view
   }
 
   createStatsBars(w) {
