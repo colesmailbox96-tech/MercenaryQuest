@@ -41,9 +41,11 @@ export class FishingPanel extends Phaser.Scene {
     }).setOrigin(0.5, 0);
 
     this.closeBtn = this.add.text(panelX + panelW - 12, panelY + 10, '✕', {
-      fontSize: '20px', fontFamily: 'monospace', color: '#F5E6C8',
-    }).setOrigin(0.5, 0).setInteractive({ useHandCursor: true, hitArea: new Phaser.Geom.Rectangle(-22, -22, 44, 44), hitAreaCallback: Phaser.Geom.Rectangle.Contains });
+      fontSize: '20px', fontFamily: 'monospace', color: '#F5E6C8', fontStyle: 'bold',
+    }).setOrigin(0.5, 0).setInteractive({ useHandCursor: true, hitArea: new Phaser.Geom.Rectangle(-24, -24, 48, 48), hitAreaCallback: Phaser.Geom.Rectangle.Contains });
     this.closeBtn.on('pointerdown', () => this.closePanel());
+    this.closeBtn.on('pointerover', () => this.closeBtn.setColor('#FF6B6B'));
+    this.closeBtn.on('pointerout', () => this.closeBtn.setColor('#F5E6C8'));
 
     this.contentElements = [];
     this._renderContent();

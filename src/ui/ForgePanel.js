@@ -108,9 +108,11 @@ export class ForgePanel extends Phaser.Scene {
     );
 
     const closeBtn = this.add.text(panelX + panelW - 12, panelY + 12, '✕', {
-      fontSize: '20px', fontFamily: 'monospace', color: '#F5E6C8',
-    }).setOrigin(0.5, 0).setInteractive({ useHandCursor: true, hitArea: new Phaser.Geom.Rectangle(-22, -22, 44, 44), hitAreaCallback: Phaser.Geom.Rectangle.Contains });
+      fontSize: '20px', fontFamily: 'monospace', color: '#F5E6C8', fontStyle: 'bold',
+    }).setOrigin(0.5, 0).setInteractive({ useHandCursor: true, hitArea: new Phaser.Geom.Rectangle(-24, -24, 48, 48), hitAreaCallback: Phaser.Geom.Rectangle.Contains });
     closeBtn.on('pointerdown', () => this.scene.stop());
+    closeBtn.on('pointerover', () => closeBtn.setColor('#FF6B6B'));
+    closeBtn.on('pointerout', () => closeBtn.setColor('#F5E6C8'));
     this.elements.push(closeBtn);
 
     // Header separator
@@ -121,6 +123,7 @@ export class ForgePanel extends Phaser.Scene {
     this.elements.push(
       this.add.text(panelX + 12, panelY + 46, 'Craft powerful gear from rare materials', {
         fontSize: '12px', fontFamily: 'monospace', color: '#DAA520',
+        wordWrap: { width: panelW - 24 },
       })
     );
 
@@ -144,6 +147,7 @@ export class ForgePanel extends Phaser.Scene {
       this.elements.push(
         this.add.text(lx + 4, y, `${slotIcon} ${recipe.name}`, {
           fontSize: '13px', fontFamily: 'monospace', color: '#FFFFFF', fontStyle: 'bold',
+          wordWrap: { width: panelW - 24 },
         })
       );
       y += 18;
@@ -180,9 +184,11 @@ export class ForgePanel extends Phaser.Scene {
         const ingDef = ITEMS[ing.id];
         const color = ing.satisfied ? '#4CAF50' : '#FF6B6B';
         const ingName = `  ${ingDef?.emoji || '?'} ${ingDef?.name || ing.id} ×${ing.quantity}`;
+        const maxNameW = rightEdge - (lx + 20) - 60;
         this.elements.push(
           this.add.text(lx + 20, y, ingName, {
             fontSize: '11px', fontFamily: 'monospace', color,
+            wordWrap: { width: maxNameW },
           })
         );
         // Right-aligned count

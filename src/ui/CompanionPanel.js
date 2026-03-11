@@ -31,9 +31,11 @@ export class CompanionPanel extends Phaser.Scene {
 
     // Close
     const closeBtn = this.add.text(panelX + panelW / 2 - 15, panelY - panelH / 2 + 10, '✕', {
-      fontSize: '20px', color: '#F5E6C8',
-    }).setOrigin(0.5).setInteractive({ useHandCursor: true, hitArea: new Phaser.Geom.Rectangle(-22, -22, 44, 44), hitAreaCallback: Phaser.Geom.Rectangle.Contains });
+      fontSize: '20px', fontFamily: 'monospace', color: '#F5E6C8', fontStyle: 'bold',
+    }).setOrigin(0.5).setInteractive({ useHandCursor: true, hitArea: new Phaser.Geom.Rectangle(-24, -24, 48, 48), hitAreaCallback: Phaser.Geom.Rectangle.Contains });
     closeBtn.on('pointerdown', () => this.scene.stop());
+    closeBtn.on('pointerover', () => closeBtn.setColor('#FF6B6B'));
+    closeBtn.on('pointerout', () => closeBtn.setColor('#F5E6C8'));
 
     const cs = this.gameScene.companionSystem;
     if (!cs) { this.scene.stop(); return; }

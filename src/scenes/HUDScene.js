@@ -361,7 +361,11 @@ export class HUDScene extends Phaser.Scene {
     });
 
     this.gameScene.events.on('goldChanged', (gold) => {
-      this.goldLabel.setText(`🪙 ${gold}`);
+      let display;
+      if (gold >= 10000) display = (gold / 1000).toFixed(1) + 'K';
+      else if (gold >= 1000) display = gold.toLocaleString();
+      else display = gold.toString();
+      this.goldLabel.setText(`🪙 ${display}`);
     });
 
     this.gameScene.events.on('goldRateChanged', (gpm) => {
@@ -444,6 +448,9 @@ export class HUDScene extends Phaser.Scene {
         } else if (action.type === 'nest') {
           this.contextPrompt.setText('Tap ⚔️ to check nest 🥚');
           this.actionBtnLabel.setText('🥚');
+        } else if (action.type === 'mob') {
+          this.contextPrompt.setText(`Tap ⚔️ to attack ${action.name}`);
+          this.actionBtnLabel.setText('⚔️');
         } else if (action.type === 'building' && action.icon === '🍳') {
           this.contextPrompt.setText('Tap ⚔️ to cook 🍳');
           this.actionBtnLabel.setText('🍳');
@@ -456,6 +463,19 @@ export class HUDScene extends Phaser.Scene {
           this.contextPrompt.setAlpha(0);
           this.tweens.add({ targets: this.contextPrompt, alpha: 1, duration: 200 });
         }
+        // Pulse the action button to draw attention
+        if (!this._actionPulseTween) {
+          this.actionBtn.setStrokeStyle(2, 0xDAA520);
+          this._actionPulseTween = this.tweens.add({
+            targets: this.actionBtn,
+            scaleX: 1.05,
+            scaleY: 1.05,
+            duration: 750,
+            yoyo: true,
+            repeat: -1,
+            ease: 'Sine.easeInOut',
+          });
+        }
       } else {
         if (this.contextPrompt.visible) {
           this.tweens.add({
@@ -466,6 +486,13 @@ export class HUDScene extends Phaser.Scene {
           });
         }
         this.actionBtnLabel.setText('⚔️');
+        // Stop pulse
+        if (this._actionPulseTween) {
+          this._actionPulseTween.stop();
+          this._actionPulseTween = null;
+          this.actionBtn.setScale(1);
+          this.actionBtn.setStrokeStyle(1, 0x444444);
+        }
       }
     });
 
