@@ -73,6 +73,9 @@ export class Pathfinding {
 
         const tentativeG = gScore.get(currentKey) + 1;
 
+        // Max path length – skip neighbors that exceed 60 tiles
+        if (tentativeG > 60) continue;
+
         if (!gScore.has(nKey) || tentativeG < gScore.get(nKey)) {
           cameFrom.set(nKey, current);
           gScore.set(nKey, tentativeG);
@@ -82,9 +85,6 @@ export class Pathfinding {
           if (!openSet.find(n => n.x === neighbor.x && n.y === neighbor.y)) {
             openSet.push({ x: neighbor.x, y: neighbor.y, f });
           }
-
-          // Max path length
-          if (tentativeG > 60) continue;
         }
       }
     }

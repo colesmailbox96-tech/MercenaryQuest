@@ -134,7 +134,7 @@ export class TutorialSystem {
   }
 
   advanceStep() {
-    this.tooltip.destroy();
+    if (this.tooltip) this.tooltip.destroy();
     this.currentStep++;
     
     if (this.scene.saveSystem) {
@@ -150,7 +150,7 @@ export class TutorialSystem {
 
   completeTutorial() {
     this.complete = true;
-    this.tooltip.destroy();
+    if (this.tooltip) this.tooltip.destroy();
     this.cleanupListeners();
     if (this.scene.saveSystem) {
       this.scene.saveSystem.markDirty();
