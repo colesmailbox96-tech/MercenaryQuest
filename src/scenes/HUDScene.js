@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { COLORS, ZONE_DISPLAY_NAMES } from '../config/constants.js';
+import { ITEMS } from '../config/itemData.js';
 import { Joystick } from '../ui/Joystick.js';
 import { createHPBar, updateHPBar, createXPBar, updateXPBar } from '../ui/HUDComponents.js';
 import { MiniNotifications } from '../ui/MiniNotifications.js';
@@ -581,7 +582,25 @@ export class HUDScene extends Phaser.Scene {
 
     let xOff = 15;
     for (const item of last5) {
-      const txt = this.add.text(xOff, h - 40, `${item.emoji}×${item.quantity}`, {
+      const itemDef = ITEMS[item.id];
+
+      // Show image icon if available
+      if (itemDef && itemDef.iconKey && this.textures.exists(itemDef.iconKey)) {
+        const icon = this.add.image(xOff + 6, h - 36, itemDef.iconKey);
+        icon.setDisplaySize(12, 12);
+        icon.setScrollFactor(0);
+        icon.setDepth(201);
+        icon.setScale(0);
+        this.tweens.add({
+          targets: icon, scaleX: 12/32 * 1.1, scaleY: 12/32 * 1.1, duration: 150, ease: 'Power2',
+          onComplete: () => this.tweens.add({ targets: icon, scaleX: 12/32, scaleY: 12/32, duration: 100, ease: 'Power2' }),
+        });
+        this.miniInvItems.push(icon);
+        xOff += 16;
+      }
+
+      const prefix = (itemDef && itemDef.iconKey) ? '' : `${item.emoji}`;
+      const txt = this.add.text(xOff, h - 40, `${prefix}×${item.quantity}`, {
         fontSize: '9px',
         fontFamily: 'monospace',
         color: '#F5E6C8',

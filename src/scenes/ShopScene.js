@@ -135,8 +135,20 @@ export class ShopScene extends Phaser.Scene {
       this.itemRows.push({ text: empty, btn: null });
     } else {
       items.forEach(item => {
-        const rowText = this.add.text(panelX + 16, yOffset,
-          `${item.emoji} ${item.name} ×${item.quantity}  —  ${item.sellValue}g`, {
+        const itemDef = ITEMS[item.id];
+        let textX = panelX + 16;
+
+        // Render image icon if available
+        if (itemDef && itemDef.iconKey && this.textures.exists(itemDef.iconKey)) {
+          const icon = this.add.image(panelX + 24, yOffset + 8, itemDef.iconKey);
+          icon.setDisplaySize(16, 16);
+          this.itemRows.push({ text: icon, btn: null });
+          textX = panelX + 36;
+        }
+
+        const prefix = (itemDef && itemDef.iconKey) ? '' : `${item.emoji} `;
+        const rowText = this.add.text(textX, yOffset,
+          `${prefix}${item.name} ×${item.quantity}  —  ${item.sellValue}g`, {
           fontSize: '12px', fontFamily: 'monospace', color: '#F5E6C8',
         });
 

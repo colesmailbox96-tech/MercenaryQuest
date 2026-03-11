@@ -93,8 +93,21 @@ export class InventoryPanel {
       this.container.add(empty);
     } else {
       filtered.forEach(item => {
-        const row = this.scene.add.text(panelX + 16, yOffset,
-          `${item.emoji} ${item.name} ×${item.quantity}  —  ${item.sellValue}g`, {
+        const itemDef = ITEMS[item.id];
+        let textX = panelX + 16;
+
+        // Render image icon if available
+        if (itemDef && itemDef.iconKey && this.scene.textures.exists(itemDef.iconKey)) {
+          const icon = this.scene.add.image(panelX + 24, yOffset + 8, itemDef.iconKey);
+          icon.setDisplaySize(16, 16);
+          icon.setScrollFactor(0);
+          this.container.add(icon);
+          textX = panelX + 36;
+        }
+
+        const prefix = (itemDef && itemDef.iconKey) ? '' : `${item.emoji} `;
+        const row = this.scene.add.text(textX, yOffset,
+          `${prefix}${item.name} ×${item.quantity}  —  ${item.sellValue}g`, {
           fontSize: '12px', fontFamily: 'monospace', color: '#F5E6C8',
           wordWrap: { width: panelW - 110 },
         });

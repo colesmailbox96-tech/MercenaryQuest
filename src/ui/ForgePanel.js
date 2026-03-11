@@ -183,10 +183,21 @@ export class ForgePanel extends Phaser.Scene {
       for (const ing of ingChecks) {
         const ingDef = ITEMS[ing.id];
         const color = ing.satisfied ? '#4CAF50' : '#FF6B6B';
-        const ingName = `  ${ingDef?.emoji || '?'} ${ingDef?.name || ing.id} ×${ing.quantity}`;
-        const maxNameW = rightEdge - (lx + 20) - 60;
+        let ingTextX = lx + 20;
+
+        // Render image icon if available
+        if (ingDef && ingDef.iconKey && this.textures.exists(ingDef.iconKey)) {
+          const icon = this.add.image(lx + 28, y + 6, ingDef.iconKey);
+          icon.setDisplaySize(12, 12);
+          this.elements.push(icon);
+          ingTextX = lx + 38;
+        }
+
+        const prefix = (ingDef && ingDef.iconKey) ? '  ' : `  ${ingDef?.emoji || '?'} `;
+        const ingName = `${prefix}${ingDef?.name || ing.id} ×${ing.quantity}`;
+        const maxNameW = rightEdge - ingTextX - 60;
         this.elements.push(
-          this.add.text(lx + 20, y, ingName, {
+          this.add.text(ingTextX, y, ingName, {
             fontSize: '11px', fontFamily: 'monospace', color,
             wordWrap: { width: maxNameW },
           })
