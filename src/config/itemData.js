@@ -1,5 +1,5 @@
 export const ITEMS = {
-  slimeGel: { id: 'slimeGel', name: 'Slime Gel', emoji: '💚', sellValue: 2 },
+  slimeGel: { id: 'slimeGel', name: 'Slime Gel', emoji: '💚', sellValue: 2, iconKey: 'icon_slime_gel' },
   wolfPelt: { id: 'wolfPelt', name: 'Wolf Pelt', emoji: '🟤', sellValue: 5 },
   fang: { id: 'fang', name: 'Fang', emoji: '🦷', sellValue: 3 },
   batWing: { id: 'batWing', name: 'Bat Wing', emoji: '🖤', sellValue: 4 },
@@ -8,7 +8,7 @@ export const ITEMS = {
   // Fish
   small_fish: { id: 'small_fish', name: 'Small Fish', emoji: '🐟', sellValue: 3, category: 'fish' },
   large_fish: { id: 'large_fish', name: 'Large Fish', emoji: '🐠', sellValue: 7, category: 'fish' },
-  river_crab: { id: 'river_crab', name: 'River Crab', emoji: '🦀', sellValue: 5, category: 'fish' },
+  river_crab: { id: 'river_crab', name: 'River Crab', emoji: '🦀', sellValue: 5, category: 'fish', iconKey: 'icon_river_crab' },
   golden_carp: { id: 'golden_carp', name: 'Golden Carp', emoji: '✨', sellValue: 15, category: 'fish' },
   abyssal_eel: { id: 'abyssal_eel', name: 'Abyssal Eel', emoji: '🐍', sellValue: 12, category: 'fish' },
   old_boot: { id: 'old_boot', name: 'Old Boot', emoji: '👢', sellValue: 1, category: 'junk' },

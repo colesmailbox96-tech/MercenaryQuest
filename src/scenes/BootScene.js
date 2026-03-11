@@ -19,6 +19,7 @@ export class BootScene extends Phaser.Scene {
     this.generateGearTextures();
     this.generateFoodTextures();
     this.generateSeedTextures();
+    this.generateItemIconTextures();
     this.scene.start('GameScene');
   }
 
@@ -1702,5 +1703,103 @@ export class BootScene extends Phaser.Scene {
         ctx.fillRect(14, 17, 2, 2);
       });
     }
+  }
+
+  // ─── ITEM ICON TEXTURES ──────────────────────────────────────
+  generateItemIconTextures() {
+    // icon_slime_gel — glossy green slime blob (reference: dome-shaped with highlights)
+    this.makeTexture('icon_slime_gel', 32, 32, (ctx) => {
+      // Base blob shape — dark green bottom
+      ctx.fillStyle = '#2E7D32';
+      ctx.fillRect(4, 20, 24, 8);
+      ctx.fillRect(6, 18, 20, 10);
+      ctx.fillRect(2, 22, 28, 6);
+      // Main body — mid green dome
+      ctx.fillStyle = '#43A047';
+      ctx.fillRect(6, 14, 20, 10);
+      ctx.fillRect(8, 12, 16, 14);
+      ctx.fillRect(10, 10, 12, 16);
+      // Upper dome highlight — lighter green
+      ctx.fillStyle = '#66BB6A';
+      ctx.fillRect(10, 12, 12, 6);
+      ctx.fillRect(8, 14, 16, 4);
+      // Top highlight — bright green sheen
+      ctx.fillStyle = '#81C784';
+      ctx.fillRect(12, 12, 6, 4);
+      ctx.fillRect(10, 14, 4, 2);
+      // Specular highlight — white/light spot
+      ctx.fillStyle = '#A5D6A7';
+      ctx.fillRect(12, 12, 3, 2);
+      ctx.fillStyle = '#C8E6C9';
+      ctx.fillRect(13, 12, 2, 1);
+      // Drip details at base
+      ctx.fillStyle = '#388E3C';
+      ctx.fillRect(4, 26, 2, 2);
+      ctx.fillRect(26, 24, 2, 2);
+      ctx.fillRect(14, 28, 3, 2);
+      // Eyes
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(12, 16, 3, 3);
+      ctx.fillRect(18, 16, 3, 3);
+      ctx.fillStyle = '#1B5E20';
+      ctx.fillRect(13, 17, 2, 2);
+      ctx.fillRect(19, 17, 2, 2);
+    });
+
+    // icon_river_crab — orange crab with claws (reference: front-facing with raised pincers)
+    this.makeTexture('icon_river_crab', 32, 32, (ctx) => {
+      // Main body — orange oval
+      ctx.fillStyle = '#E65100';
+      ctx.fillRect(8, 12, 16, 10);
+      ctx.fillRect(10, 10, 12, 14);
+      ctx.fillRect(6, 14, 20, 6);
+      // Body highlight
+      ctx.fillStyle = '#FF6D00';
+      ctx.fillRect(10, 12, 12, 6);
+      ctx.fillRect(12, 10, 8, 2);
+      // Belly — lighter
+      ctx.fillStyle = '#FFAB91';
+      ctx.fillRect(12, 18, 8, 3);
+      // Eyes on stalks
+      ctx.fillStyle = '#E65100';
+      ctx.fillRect(12, 8, 2, 4);
+      ctx.fillRect(18, 8, 2, 4);
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(12, 8, 2, 2);
+      ctx.fillRect(18, 8, 2, 2);
+      // Left claw (raised)
+      ctx.fillStyle = '#E65100';
+      ctx.fillRect(2, 8, 6, 6);
+      ctx.fillRect(4, 6, 4, 4);
+      ctx.fillRect(6, 12, 2, 4);
+      ctx.fillStyle = '#BF360C';
+      ctx.fillRect(2, 10, 2, 2);
+      ctx.fillRect(4, 8, 2, 2);
+      // Right claw (raised)
+      ctx.fillStyle = '#E65100';
+      ctx.fillRect(24, 8, 6, 6);
+      ctx.fillRect(24, 6, 4, 4);
+      ctx.fillRect(24, 12, 2, 4);
+      ctx.fillStyle = '#BF360C';
+      ctx.fillRect(28, 10, 2, 2);
+      ctx.fillRect(26, 8, 2, 2);
+      // Legs — 3 pairs
+      ctx.fillStyle = '#BF360C';
+      ctx.fillRect(4, 16, 4, 2);
+      ctx.fillRect(2, 18, 2, 4);
+      ctx.fillRect(4, 20, 4, 2);
+      ctx.fillRect(2, 22, 2, 4);
+      ctx.fillRect(6, 24, 4, 2);
+      ctx.fillRect(4, 26, 2, 3);
+      ctx.fillRect(24, 16, 4, 2);
+      ctx.fillRect(28, 18, 2, 4);
+      ctx.fillRect(24, 20, 4, 2);
+      ctx.fillRect(28, 22, 2, 4);
+      ctx.fillRect(22, 24, 4, 2);
+      ctx.fillRect(26, 26, 2, 3);
+      // Mouth
+      ctx.fillStyle = '#BF360C';
+      ctx.fillRect(14, 20, 4, 1);
+    });
   }
 }

@@ -162,10 +162,21 @@ export class CookingPanel extends Phaser.Scene {
           const ingDef = ITEMS[ing.id];
           const color = ing.satisfied ? '#4CAF50' : '#FF6B6B';
           const rightEdge = panelX + panelW - 12;
-          const ingName = `  ${ingDef?.emoji || '?'} ${ingDef?.name || ing.id} ×${ing.quantity}`;
-          const maxIngW = rightEdge - (lx + 10) - 60;
+          let ingTextX = lx + 10;
+
+          // Render image icon if available
+          if (ingDef && ingDef.iconKey && this.textures.exists(ingDef.iconKey)) {
+            const icon = this.add.image(lx + 18, y + 6, ingDef.iconKey);
+            icon.setDisplaySize(12, 12);
+            this.elements.push(icon);
+            ingTextX = lx + 28;
+          }
+
+          const prefix = (ingDef && ingDef.iconKey) ? '  ' : `  ${ingDef?.emoji || '?'} `;
+          const ingName = `${prefix}${ingDef?.name || ing.id} ×${ing.quantity}`;
+          const maxIngW = rightEdge - ingTextX - 60;
           this.elements.push(
-            this.add.text(lx + 10, y, ingName, {
+            this.add.text(ingTextX, y, ingName, {
               fontSize: '11px', fontFamily: 'monospace', color,
               wordWrap: { width: maxIngW },
             })
