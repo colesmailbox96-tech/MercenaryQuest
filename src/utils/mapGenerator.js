@@ -210,6 +210,7 @@ function getCaveWallPositions() {
 
 export function getTileAt(map, x, y) {
   if (x < 0 || x >= MAP_WIDTH || y < 0 || y >= MAP_HEIGHT) return null;
+  if (!map || !map[y]) return null;
   return map[y][x];
 }
 

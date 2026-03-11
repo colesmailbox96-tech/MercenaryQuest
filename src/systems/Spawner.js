@@ -33,6 +33,7 @@ export class Spawner {
     if (!pos) return;
 
     const types = Object.entries(MOB_TYPES).filter(([, data]) => data.zone === zone);
+    if (types.length === 0) return;
     const [typeKey, typeData] = types[Math.floor(Math.random() * types.length)];
 
     const mob = new Mob(this.scene, pos.x, pos.y, typeKey, typeData);
@@ -54,8 +55,8 @@ export class Spawner {
     }
 
     for (let attempts = 0; attempts < 50; attempts++) {
-      const x = minX + Math.floor(Math.random() * (maxX - minX));
-      const y = minY + Math.floor(Math.random() * (maxY - minY));
+      const x = minX + Math.floor(Math.random() * (maxX - minX + 1));
+      const y = minY + Math.floor(Math.random() * (maxY - minY + 1));
 
       const tile = this.map[y][x];
       if (tile && tile.walkable && tile.zone === zone) {

@@ -716,7 +716,7 @@ export class GameScene extends Phaser.Scene {
     // Skill level-up banner
     this.events.on('skillLevelUp', ({ skillId, newLevel, unlock }) => {
       this.audioSystem.playSkillLevelUp();
-      if (this.player) {
+      if (this.player && this.juiceSystem) {
         this.juiceSystem.levelUpBurst(this.player.x, this.player.y, true);
       }
       const skillIcons = { fishing: '🎣', mining: '⛏', farming: '🌾', cooking: '🍳' };
@@ -856,7 +856,6 @@ export class GameScene extends Phaser.Scene {
     if (saveData.player) {
       this.player.stats.level = saveData.player.level ?? this.player.stats.level;
       this.player.stats.xp = saveData.player.xp ?? this.player.stats.xp;
-      this.player.stats.xpToNext = this.player.stats.xpToNext;
       this.player.stats.xpToNext = this._calcXpToNext(this.player.stats.level);
 
       this.lootSystem.gold = saveData.player.gold ?? this.lootSystem.gold;
@@ -1067,11 +1066,11 @@ export class GameScene extends Phaser.Scene {
 
     // Choose the nearest placement of this node type to the player
     let bestPlacement = placements[0];
-    let bestDist = distance(playerX, playerY, bestPlacement.x, bestPlacement.y);
+    let bestDist = distance(playerX, playerY, bestPlacement.tileX, bestPlacement.tileY);
 
     for (let i = 1; i < placements.length; i++) {
       const p = placements[i];
-      const d = distance(playerX, playerY, p.x, p.y);
+      const d = distance(playerX, playerY, p.tileX, p.tileY);
       if (d < bestDist) {
         bestDist = d;
         bestPlacement = p;

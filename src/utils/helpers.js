@@ -7,6 +7,7 @@ export function distance(x1, y1, x2, y2) {
 }
 
 export function weightedRandom(table) {
+  if (!table || table.length === 0) return null;
   const total = table.reduce((sum, entry) => sum + entry.weight, 0);
   let roll = Math.random() * total;
   for (const entry of table) {
