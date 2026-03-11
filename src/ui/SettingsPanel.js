@@ -140,6 +140,27 @@ export class SettingsPanel extends Phaser.Scene {
     });
     yOffset += 30;
 
+    // Movement mode toggle
+    const isJoystick = this.gameScene.movementMode !== 'tap';
+    const moveToggle = this.add.text(leftX, yOffset, `Movement: ${isJoystick ? '🕹️ Joystick' : '👆 Tap to Move'}`, {
+      fontSize: '12px',
+      fontFamily: 'monospace',
+      color: isJoystick ? '#4CAF50' : '#42A5F5',
+    });
+    moveToggle.setInteractive({ useHandCursor: true });
+    moveToggle.on('pointerdown', () => {
+      const newMode = this.gameScene.movementMode === 'tap' ? 'joystick' : 'tap';
+      this.gameScene.movementMode = newMode;
+      const hudScene = this.gameScene.scene.get('HUDScene');
+      if (hudScene && hudScene.joystick) {
+        hudScene.joystick.setVisible(newMode === 'joystick');
+      }
+      moveToggle.setText(`Movement: ${newMode === 'joystick' ? '🕹️ Joystick' : '👆 Tap to Move'}`);
+      moveToggle.setColor(newMode === 'joystick' ? '#4CAF50' : '#42A5F5');
+      if (this.gameScene.saveSystem) this.gameScene.saveSystem.markDirty();
+    });
+    yOffset += 30;
+
     // --- Info Section ---
     this.add.text(leftX, yOffset, 'ℹ️ Info', {
       fontSize: '15px',

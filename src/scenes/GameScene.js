@@ -31,6 +31,8 @@ const DISPLAY_TILE = TILE_SIZE * TILE_SCALE;
 const TAP_DRAG_THRESHOLD = 10;
 const HUD_TOP_ZONE_HEIGHT = 100;
 const HUD_BOTTOM_ZONE_RATIO = 0.75;
+const ZONE_GROUND = { town: 'tile_town_ground', forest: 'tile_forest_ground', caves: 'tile_cave_ground' };
+const OVERLAY_TILE_TYPES = new Set(['tree', 'building', 'mining_node']);
 
 export class GameScene extends Phaser.Scene {
   constructor() {
@@ -60,6 +62,7 @@ export class GameScene extends Phaser.Scene {
     this.viewTarget = 'player';
     this.activeBuffs = [];
     this.minimapVisible = true;
+    this.movementMode = 'joystick'; // 'joystick' (default) or 'tap'
 
     // Gold rate tracking (QOL Pass B)
     this.goldHistory = [];
@@ -234,13 +237,20 @@ export class GameScene extends Phaser.Scene {
     for (let y = 0; y < MAP_HEIGHT; y++) {
       for (let x = 0; x < MAP_WIDTH; x++) {
         const tile = this.mapData[y][x];
-        const img = this.add.image(
-          x * DISPLAY_TILE + DISPLAY_TILE / 2,
-          y * DISPLAY_TILE + DISPLAY_TILE / 2,
-          tile.textureKey
-        );
+        const px = x * DISPLAY_TILE + DISPLAY_TILE / 2;
+        const py = y * DISPLAY_TILE + DISPLAY_TILE / 2;
+
+        // For overlay tiles, render the zone ground tile first
+        if (OVERLAY_TILE_TYPES.has(tile.type)) {
+          const groundKey = ZONE_GROUND[tile.zone] || 'tile_town_ground';
+          const groundImg = this.add.image(px, py, groundKey);
+          groundImg.setDisplaySize(DISPLAY_TILE, DISPLAY_TILE);
+          groundImg.setDepth(0);
+        }
+
+        const img = this.add.image(px, py, tile.textureKey);
         img.setDisplaySize(DISPLAY_TILE, DISPLAY_TILE);
-        img.setDepth(0);
+        img.setDepth(OVERLAY_TILE_TYPES.has(tile.type) ? 1 : 0);
 
         if (tile.type === 'tree') {
           img._baseY = img.y;
@@ -294,8 +304,9 @@ export class GameScene extends Phaser.Scene {
     this.events.on('openInventory', () => this.events.emit('showInventory'));
     this.events.on('openEquipment', () => this.scene.launch('EquipmentPanel'));
 
-    // Tap-to-move / tap-to-interact on game viewport
+    // Tap-to-move / tap-to-interact on game viewport (only when movement mode is 'tap')
     this.input.on('pointerup', (pointer) => {
+      if (this.movementMode !== 'tap') return;
       if (this.player.inCombat) return;
 
       // Ignore if pointer traveled too far (was a drag, not a tap)
@@ -954,6 +965,11 @@ export class GameScene extends Phaser.Scene {
     // Minimap preference
     if (saveData.minimapVisible !== undefined) {
       this.minimapVisible = saveData.minimapVisible;
+    }
+
+    // Movement mode preference
+    if (saveData.movementMode !== undefined) {
+      this.movementMode = saveData.movementMode;
     }
 
     // Update gameState reference

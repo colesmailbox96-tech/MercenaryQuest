@@ -232,6 +232,9 @@ export class SaveSystem {
     // Minimap preference
     data.minimapVisible = this.scene.minimapVisible !== false;
 
+    // Movement mode preference
+    data.movementMode = this.scene.movementMode || 'joystick';
+
     return data;
   }
 }

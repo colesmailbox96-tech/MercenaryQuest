@@ -1,4 +1,4 @@
-export const SAVE_VERSION = 3;
+export const SAVE_VERSION = 4;
 // NOTE: SAVE_KEY intentionally keeps the original 'agentquest_save_v1' name
 // for backward compatibility with existing saves. Changing this key would
 // prevent older save data from being loaded.
@@ -37,6 +37,7 @@ export const DEFAULT_SAVE_STATE = {
   tutorialComplete: false,
   tutorialStep: 0,
   minimapVisible: true,
+  movementMode: 'joystick',
 };
 
 export const SCHEMA_MIGRATIONS = {
@@ -48,6 +49,11 @@ export const SCHEMA_MIGRATIONS = {
   2: (data) => {
     if (data.minimapVisible === undefined) data.minimapVisible = true;
     data.version = 3;
+    return data;
+  },
+  3: (data) => {
+    if (data.movementMode === undefined) data.movementMode = 'joystick';
+    data.version = 4;
     return data;
   },
 };
