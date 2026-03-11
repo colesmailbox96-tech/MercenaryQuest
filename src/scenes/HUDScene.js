@@ -169,6 +169,7 @@ export class HUDScene extends Phaser.Scene {
     this.hpBar = createHPBar(this, barX, barStartY, barW, 12);
     this.hpBar.bg.setDepth(100);
     this.hpBar.fill.setDepth(101);
+    if (this.hpBar.highlight) this.hpBar.highlight.setDepth(101);
 
     // HP text rendered INSIDE the bar
     this.hpText = this.add.text(barX + barW - 4, barStartY, 'HP 50/50', {
@@ -187,6 +188,7 @@ export class HUDScene extends Phaser.Scene {
     this.xpBar = createXPBar(this, barX, barStartY + 14, barW, 8);
     this.xpBar.bg.setDepth(100);
     this.xpBar.fill.setDepth(101);
+    if (this.xpBar.highlight) this.xpBar.highlight.setDepth(101);
 
     // XP text rendered INSIDE the bar
     this.xpText = this.add.text(barX + barW - 4, barStartY + 14, 'Lv.1 — 0/25 XP', {
@@ -227,11 +229,20 @@ export class HUDScene extends Phaser.Scene {
 
     primaryBtns.forEach((def, i) => {
       const bx = 12 + spacing * i + spacing / 2;
-      const bg = this.add.rectangle(bx, primaryY, btnSize, btnSize, 0x1A1A2E, 0.9);
+      // Rounded button using graphics
+      const btnGfx = this.add.graphics();
+      btnGfx.setScrollFactor(0);
+      btnGfx.setDepth(199);
+      btnGfx.fillStyle(0x1A1A2E, 0.92);
+      btnGfx.fillRoundedRect(bx - btnSize / 2, primaryY - btnSize / 2, btnSize, btnSize, 10);
+      btnGfx.lineStyle(1, 0x444444, 0.8);
+      btnGfx.strokeRoundedRect(bx - btnSize / 2, primaryY - btnSize / 2, btnSize, btnSize, 10);
+
+      const bg = this.add.rectangle(bx, primaryY, btnSize, btnSize, 0x000000, 0);
       bg.setScrollFactor(0);
       bg.setDepth(200);
-      bg.setStrokeStyle(1, 0x444444);
       bg.setInteractive({ useHandCursor: true });
+      bg._btnGfx = btnGfx;
 
       const label = this.add.text(bx, primaryY, def.icon, {
         fontSize: '20px',
@@ -242,7 +253,9 @@ export class HUDScene extends Phaser.Scene {
 
       bg.on('pointerdown', () => {
         bg.setScale(0.9);
-        bg.setStrokeStyle(1, 0xDAA520);
+        if (bg._btnGfx) {
+          bg._btnGfx.setScale(0.9);
+        }
         if (def.key === 'action') {
           this.gameScene.events.emit('actionButtonPressed');
         } else if (def.key === 'inv') {
@@ -260,7 +273,9 @@ export class HUDScene extends Phaser.Scene {
       });
       bg.on('pointerup', () => {
         bg.setScale(1);
-        bg.setStrokeStyle(1, 0x444444);
+        if (bg._btnGfx) {
+          bg._btnGfx.setScale(1);
+        }
       });
 
       if (def.key === 'action') {
@@ -466,9 +481,10 @@ export class HUDScene extends Phaser.Scene {
         }
         // Pulse the action button to draw attention
         if (!this._actionPulseTween) {
-          this.actionBtn.setStrokeStyle(2, 0xDAA520);
+          const pulseTargets = [this.actionBtn];
+          if (this.actionBtn._btnGfx) pulseTargets.push(this.actionBtn._btnGfx);
           this._actionPulseTween = this.tweens.add({
-            targets: this.actionBtn,
+            targets: pulseTargets,
             scaleX: 1.05,
             scaleY: 1.05,
             duration: 750,
@@ -492,7 +508,7 @@ export class HUDScene extends Phaser.Scene {
           this._actionPulseTween.stop();
           this._actionPulseTween = null;
           this.actionBtn.setScale(1);
-          this.actionBtn.setStrokeStyle(1, 0x444444);
+          if (this.actionBtn._btnGfx) this.actionBtn._btnGfx.setScale(1);
         }
       }
     });
@@ -681,9 +697,15 @@ export class HUDScene extends Phaser.Scene {
 
   _createZoneTransition(w, h) {
     const ty = Math.floor(h * 0.2);
-    this.zoneTransBg = this.add.rectangle(w / 2, ty, 300, 36, 0x1A1A2E, 0.7);
+    // Rounded zone transition banner
+    this.zoneTransGfx = this.add.graphics();
+    this.zoneTransGfx.setScrollFactor(0).setDepth(500);
+    this.zoneTransGfx.setVisible(false);
+    this._zoneTransY = ty;
+
+    // Keep the old bg for tween targeting (invisible)
+    this.zoneTransBg = this.add.rectangle(w / 2, ty, 300, 36, 0x000000, 0);
     this.zoneTransBg.setScrollFactor(0).setDepth(500);
-    this.zoneTransBg.setStrokeStyle(0);
     this.zoneTransBg.setVisible(false);
 
     this.zoneTransDash = this.add.text(w / 2, ty, '', {
@@ -696,23 +718,33 @@ export class HUDScene extends Phaser.Scene {
     const displayName = ZONE_DISPLAY_NAMES[zone] || zone;
     const fullText = `━━  ${displayName}  ━━`;
     this.zoneTransDash.setText(fullText);
-    const textWidth = this.zoneTransDash.width + 24;
-    this.zoneTransBg.width = textWidth;
+    const textWidth = this.zoneTransDash.width + 32;
+    const w = this.scale.width;
+    const ty = this._zoneTransY;
 
+    // Draw rounded banner
+    this.zoneTransGfx.clear();
+    this.zoneTransGfx.fillStyle(0x1A1A2E, 0.85);
+    this.zoneTransGfx.fillRoundedRect(w / 2 - textWidth / 2, ty - 18, textWidth, 36, 12);
+    this.zoneTransGfx.lineStyle(1, 0xDAA520, 0.4);
+    this.zoneTransGfx.strokeRoundedRect(w / 2 - textWidth / 2, ty - 18, textWidth, 36, 12);
+
+    this.zoneTransGfx.setVisible(true).setAlpha(0);
     this.zoneTransBg.setVisible(true).setAlpha(0);
     this.zoneTransDash.setVisible(true).setAlpha(0);
 
     this.tweens.add({
-      targets: [this.zoneTransBg, this.zoneTransDash],
+      targets: [this.zoneTransGfx, this.zoneTransBg, this.zoneTransDash],
       alpha: 1,
       duration: 200,
       onComplete: () => {
         this.time.delayedCall(1500, () => {
           this.tweens.add({
-            targets: [this.zoneTransBg, this.zoneTransDash],
+            targets: [this.zoneTransGfx, this.zoneTransBg, this.zoneTransDash],
             alpha: 0,
             duration: 500,
             onComplete: () => {
+              this.zoneTransGfx.setVisible(false);
               this.zoneTransBg.setVisible(false);
               this.zoneTransDash.setVisible(false);
             },

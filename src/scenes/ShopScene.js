@@ -3,6 +3,7 @@ import { COLORS } from '../config/constants.js';
 import { RARITY } from '../config/gearData.js';
 import { SEEDS } from '../config/farmData.js';
 import { ITEMS } from '../config/itemData.js';
+import { createPanelBackground } from '../ui/PanelUtils.js';
 
 export class ShopScene extends Phaser.Scene {
   constructor() {
@@ -28,14 +29,19 @@ export class ShopScene extends Phaser.Scene {
     this.backdrop.setInteractive();
     this.backdrop.on('pointerdown', () => this.closeShop());
 
-    // Panel
-    this.panel = this.add.rectangle(w / 2, h / 2, panelW, panelH, COLORS.UI_PANEL, 0.92);
-    this.panel.setStrokeStyle(2, COLORS.UI_GOLD, 0.6);
+    // Panel — rounded with gradient header
+    this.panelGfx = createPanelBackground(this, panelX, panelY, panelW, panelH, {
+      headerHeight: 34,
+    });
+    this.panelGfx.setDepth(1);
+
+    // Invisible interactive rect for blocking clicks through panel
+    this.panel = this.add.rectangle(w / 2, h / 2, panelW, panelH, 0x000000, 0);
     this.panel.setInteractive();
 
+    this.panelGfx.setAlpha(0);
     this.panel.setAlpha(0);
-    this.panel.y = h;
-    this.tweens.add({ targets: this.panel, y: h / 2, alpha: 1, duration: 300, ease: 'Power2' });
+    this.tweens.add({ targets: [this.panelGfx, this.panel], alpha: 1, duration: 300, ease: 'Power2' });
 
     // Title
     this.titleText = this.add.text(w / 2, panelY + 12, '🏪 Shop', {
@@ -44,7 +50,7 @@ export class ShopScene extends Phaser.Scene {
     this.titleText.setOrigin(0.5, 0);
 
     // Close button
-    this.closeBtn = this.add.text(panelX + panelW - 12, panelY + 10, '✕', {
+    this.closeBtn = this.add.text(panelX + panelW - 16, panelY + 10, '✕', {
       fontSize: '20px', fontFamily: 'monospace', color: '#F5E6C8', fontStyle: 'bold',
     });
     this.closeBtn.setOrigin(0.5, 0);
@@ -54,14 +60,14 @@ export class ShopScene extends Phaser.Scene {
     this.closeBtn.on('pointerout', () => this.closeBtn.setColor('#F5E6C8'));
 
     // Gold display
-    this.goldText = this.add.text(w / 2, panelY + 34, `🪙 ${this.gameScene.lootSystem.gold}`, {
+    this.goldText = this.add.text(w / 2, panelY + 36, `🪙 ${this.gameScene.lootSystem.gold}`, {
       fontSize: '14px', fontFamily: 'monospace', color: '#DAA520',
     });
     this.goldText.setOrigin(0.5, 0);
 
-    // Tabs — 4 tabs
-    const tabY = panelY + 57;
-    const tabW = panelW * 0.23;
+    // Tabs — 4 tabs with rounded tops
+    const tabY = panelY + 59;
+    const tabW = panelW * 0.22;
     const tabPositions = [0.125, 0.375, 0.625, 0.875];
     const tabDefs = [
       { id: 'materials', label: 'Materials' },
@@ -70,16 +76,29 @@ export class ShopScene extends Phaser.Scene {
       { id: 'food',      label: 'Food' },
     ];
     this.tabObjects = {};
+    this._tabGfx = [];
     tabDefs.forEach((tabDef, i) => {
       const tx = panelX + panelW * tabPositions[i];
       const isActive = this.activeTab === tabDef.id;
-      const rect = this.add.rectangle(tx, tabY, tabW, 22, isActive ? COLORS.UI_BUTTON_ACTIVE : COLORS.UI_BUTTON_BG, 1);
+
+      const gfx = this.add.graphics();
+      gfx.fillStyle(isActive ? 0x3A3A5E : 0x2A2A3E, 1);
+      gfx.fillRoundedRect(tx - tabW / 2, tabY - 11, tabW, 22, { tl: 6, tr: 6, bl: 0, br: 0 });
+      if (isActive) {
+        gfx.lineStyle(1, 0xDAA520, 0.4);
+        gfx.strokeRoundedRect(tx - tabW / 2, tabY - 11, tabW, 22, { tl: 6, tr: 6, bl: 0, br: 0 });
+      }
+      this._tabGfx.push(gfx);
+
       const label = this.add.text(tx, tabY, tabDef.label, {
-        fontSize: '11px', fontFamily: 'monospace', color: '#F5E6C8',
+        fontSize: '11px', fontFamily: 'monospace', color: isActive ? '#FFD700' : '#F5E6C8',
       }).setOrigin(0.5);
-      rect.setInteractive({ useHandCursor: true });
-      rect.on('pointerdown', () => this._switchTab(tabDef.id));
-      this.tabObjects[tabDef.id] = { rect, label };
+
+      // Invisible interactive rect for tab
+      const hitRect = this.add.rectangle(tx, tabY, tabW, 22, 0x000000, 0);
+      hitRect.setInteractive({ useHandCursor: true });
+      hitRect.on('pointerdown', () => this._switchTab(tabDef.id));
+      this.tabObjects[tabDef.id] = { gfx, label, hitRect };
     });
 
     // Sort button
@@ -95,8 +114,22 @@ export class ShopScene extends Phaser.Scene {
 
   _switchTab(tab) {
     this.activeTab = tab;
+    const tabW = this.panelW * 0.22;
+    const tabPositions = [0.125, 0.375, 0.625, 0.875];
+    const tabIds = ['materials', 'gear', 'seeds', 'food'];
     for (const [id, obj] of Object.entries(this.tabObjects)) {
-      obj.rect.fillColor = id === tab ? COLORS.UI_BUTTON_ACTIVE : COLORS.UI_BUTTON_BG;
+      const isActive = id === tab;
+      const i = tabIds.indexOf(id);
+      const tx = this.panelX + this.panelW * tabPositions[i];
+      const tabY = this.panelY + 59;
+      obj.gfx.clear();
+      obj.gfx.fillStyle(isActive ? 0x3A3A5E : 0x2A2A3E, 1);
+      obj.gfx.fillRoundedRect(tx - tabW / 2, tabY - 11, tabW, 22, { tl: 6, tr: 6, bl: 0, br: 0 });
+      if (isActive) {
+        obj.gfx.lineStyle(1, 0xDAA520, 0.4);
+        obj.gfx.strokeRoundedRect(tx - tabW / 2, tabY - 11, tabW, 22, { tl: 6, tr: 6, bl: 0, br: 0 });
+      }
+      obj.label.setColor(isActive ? '#FFD700' : '#F5E6C8');
     }
     this._renderContent();
   }
@@ -374,9 +407,9 @@ export class ShopScene extends Phaser.Scene {
 
   closeShop() {
     this._closeConfirmDialog();
+    const targets = [this.panelGfx, this.panel];
     this.tweens.add({
-      targets: this.panel,
-      y: this.scale.height,
+      targets,
       alpha: 0,
       duration: 200,
       ease: 'Power2',

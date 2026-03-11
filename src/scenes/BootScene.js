@@ -43,13 +43,54 @@ export class BootScene extends Phaser.Scene {
     }
   }
 
+  // Add a 1px dark outline around all non-transparent pixels for crisp pixel art
+  drawOutline(ctx, w, h, color = 'rgba(0,0,0,0.7)') {
+    const imageData = ctx.getImageData(0, 0, w, h);
+    const data = imageData.data;
+    const outlinePixels = [];
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const idx = (y * w + x) * 4;
+        if (data[idx + 3] === 0) {
+          const neighbors = [[x-1,y],[x+1,y],[x,y-1],[x,y+1]];
+          for (const [nx, ny] of neighbors) {
+            if (nx >= 0 && nx < w && ny >= 0 && ny < h) {
+              const nIdx = (ny * w + nx) * 4;
+              if (data[nIdx + 3] > 0) { outlinePixels.push([x, y]); break; }
+            }
+          }
+        }
+      }
+    }
+    ctx.fillStyle = color;
+    for (const [x, y] of outlinePixels) ctx.fillRect(x, y, 1, 1);
+  }
+
+  // Draw a rounded rectangle
+  drawRoundedRect(ctx, x, y, w, h, r, fill, stroke) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + h - r);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    ctx.lineTo(x + r, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
+    if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+    if (stroke) { ctx.strokeStyle = stroke; ctx.stroke(); }
+  }
+
 
   // ─── TERRAIN TILES ───────────────────────────────────────────
   generateTerrainTiles() {
-    // tile_town_ground
+    // tile_town_ground — cobblestone pattern
     this.makeTexture('tile_town_ground', 32, 32, (ctx) => {
       ctx.fillStyle = '#8B7355';
       ctx.fillRect(0, 0, 32, 32);
+      // Cobblestone pattern with varied tones
       ctx.fillStyle = '#7A6345';
       for (let x = 0; x < 32; x += 8) {
         ctx.fillRect(x, 0, 1, 32);
@@ -63,8 +104,21 @@ export class BootScene extends Phaser.Scene {
           ctx.fillRect(x + ox, y, 1, 8);
         }
       }
-      this.dither(ctx, '#7A6345', 0.08);
-      this.dither(ctx, '#9A8365', 0.05);
+      // Individual stone highlights
+      ctx.fillStyle = '#9A8365';
+      ctx.fillRect(2, 2, 4, 4);
+      ctx.fillRect(10, 10, 4, 4);
+      ctx.fillRect(22, 2, 4, 4);
+      ctx.fillRect(18, 18, 4, 4);
+      ctx.fillRect(6, 22, 4, 4);
+      // Grout shadows
+      ctx.fillStyle = '#6A5335';
+      ctx.fillRect(0, 0, 32, 1);
+      ctx.fillRect(0, 8, 32, 1);
+      ctx.fillRect(0, 16, 32, 1);
+      ctx.fillRect(0, 24, 32, 1);
+      this.dither(ctx, '#7A6345', 0.06);
+      this.dither(ctx, '#9A8365', 0.04);
     });
 
     // tile_town_path
@@ -97,21 +151,40 @@ export class BootScene extends Phaser.Scene {
 
     // tile_tree
     this.makeTexture('tile_tree', 32, 32, (ctx) => {
+      // Forest floor underneath
       ctx.fillStyle = '#1A3A15';
       ctx.fillRect(0, 0, 32, 32);
+      this.dither(ctx, '#2D5A27', 0.15);
+      // Trunk with bark detail
       ctx.fillStyle = '#6B4226';
       ctx.fillRect(13, 18, 6, 14);
       ctx.fillStyle = '#5A3520';
       ctx.fillRect(13, 18, 2, 14);
+      ctx.fillStyle = '#7B5236';
+      ctx.fillRect(17, 18, 2, 14); // bark highlight
+      ctx.fillStyle = '#4A2A15';
+      ctx.fillRect(14, 20, 1, 3);
+      ctx.fillRect(15, 24, 1, 2); // bark lines
+      // Crown - layered for depth
+      ctx.fillStyle = '#1B4D17';
+      ctx.fillRect(3, 6, 26, 16);
+      ctx.fillRect(5, 4, 22, 18);
       ctx.fillStyle = '#2D5A27';
-      ctx.fillRect(4, 4, 24, 18);
+      ctx.fillRect(5, 4, 22, 14);
+      ctx.fillRect(7, 2, 18, 16);
       ctx.fillStyle = '#4A7C3F';
-      ctx.fillRect(6, 2, 20, 10);
+      ctx.fillRect(7, 2, 18, 10);
+      ctx.fillRect(9, 0, 14, 12);
+      // Leaf clusters (brighter highlights)
+      ctx.fillStyle = '#5A8C4F';
+      ctx.fillRect(10, 2, 6, 4);
+      ctx.fillRect(18, 4, 4, 4);
+      ctx.fillRect(8, 8, 4, 3);
+      // Depth shadows in foliage
       ctx.fillStyle = '#1A3A15';
-      ctx.fillRect(8, 6, 4, 4);
-      ctx.fillRect(18, 8, 6, 4);
-      ctx.fillStyle = '#3A6A33';
-      ctx.fillRect(10, 4, 12, 6);
+      ctx.fillRect(6, 14, 6, 4);
+      ctx.fillRect(20, 12, 6, 4);
+      ctx.fillRect(12, 10, 4, 3);
     });
 
     // tile_cave_ground
@@ -126,26 +199,55 @@ export class BootScene extends Phaser.Scene {
     this.makeTexture('tile_cave_wall', 32, 32, (ctx) => {
       ctx.fillStyle = '#2A2D33';
       ctx.fillRect(0, 0, 32, 32);
+      // Stone texture
       ctx.fillStyle = '#36393F';
-      for (let i = 0; i < 5; i++) {
-        const x = Math.floor(Math.random() * 28);
-        const y = Math.floor(Math.random() * 28);
-        ctx.fillRect(x, y, Math.floor(Math.random() * 6) + 2, 1);
-      }
-      this.dither(ctx, '#1E2126', 0.1);
+      ctx.fillRect(2, 2, 12, 8);
+      ctx.fillRect(16, 4, 14, 10);
+      ctx.fillRect(4, 14, 10, 8);
+      ctx.fillRect(18, 16, 12, 6);
+      ctx.fillRect(2, 24, 14, 8);
+      ctx.fillRect(20, 24, 10, 8);
+      // Cracks
+      ctx.fillStyle = '#1E2126';
+      ctx.fillRect(14, 0, 1, 14);
+      ctx.fillRect(0, 12, 16, 1);
+      ctx.fillRect(16, 14, 1, 10);
+      ctx.fillRect(14, 22, 18, 1);
+      // Moisture highlights
+      ctx.fillStyle = '#3E4148';
+      ctx.fillRect(4, 4, 4, 2);
+      ctx.fillRect(20, 6, 3, 2);
+      ctx.fillRect(6, 16, 3, 2);
+      this.dither(ctx, '#1E2126', 0.08);
     });
 
     // tile_water
     this.makeTexture('tile_water', 32, 32, (ctx) => {
+      // Deep water base
+      ctx.fillStyle = '#142E5A';
+      ctx.fillRect(0, 0, 32, 32);
+      // Mid-tone waves
       ctx.fillStyle = '#1A3A6A';
       ctx.fillRect(0, 0, 32, 32);
+      this.dither(ctx, '#142E5A', 0.15);
+      // Wave pattern
       ctx.fillStyle = '#2A5A8A';
-      for (let y = 4; y < 32; y += 8) {
-        for (let x = 0; x < 32; x += 6) {
-          ctx.fillRect(x + (y % 16 === 4 ? 3 : 0), y, 4, 2);
+      for (let y = 2; y < 32; y += 6) {
+        for (let x = 0; x < 32; x += 5) {
+          const off = (y % 12 < 6) ? 2 : 0;
+          ctx.fillRect(x + off, y, 3, 1);
         }
       }
-      this.dither(ctx, '#2A5A8A', 0.06);
+      // Lighter wave highlights
+      ctx.fillStyle = '#3A6A9A';
+      for (let y = 4; y < 32; y += 10) {
+        ctx.fillRect(4 + (y % 20 < 10 ? 0 : 8), y, 6, 1);
+      }
+      // Subtle sparkle
+      ctx.fillStyle = '#5A8AAA';
+      ctx.fillRect(8, 6, 1, 1);
+      ctx.fillRect(20, 18, 1, 1);
+      ctx.fillRect(14, 26, 1, 1);
     });
 
     // tile_crystal
@@ -213,30 +315,53 @@ export class BootScene extends Phaser.Scene {
   generateBuildingTextures() {
     // tile_building_tavern
     this.makeTexture('tile_building_tavern', 32, 32, (ctx) => {
+      // Wall
       ctx.fillStyle = '#6B4226';
       ctx.fillRect(4, 12, 24, 18);
+      ctx.fillStyle = '#7B5236';
+      ctx.fillRect(4, 12, 24, 2); // wall top highlight
+      // Timber frame
+      ctx.fillStyle = '#5A3520';
+      ctx.fillRect(4, 12, 2, 18);
+      ctx.fillRect(26, 12, 2, 18);
+      ctx.fillRect(4, 20, 24, 1);
+      // Pitched roof with shading
       ctx.fillStyle = '#8B4513';
-      // Pitched roof
       ctx.fillRect(2, 10, 28, 4);
       ctx.fillRect(4, 8, 24, 4);
       ctx.fillRect(6, 6, 20, 4);
       ctx.fillRect(8, 4, 16, 4);
+      ctx.fillStyle = '#A05A23';
+      ctx.fillRect(4, 8, 12, 2); // roof highlight
+      ctx.fillRect(8, 4, 8, 2);
+      ctx.fillStyle = '#6A3510';
+      ctx.fillRect(16, 10, 12, 2); // roof shadow
+      // Windows with glow
+      ctx.fillStyle = '#1A1A2E';
+      ctx.fillRect(9, 15, 6, 5);
+      ctx.fillRect(19, 15, 6, 5);
+      ctx.fillStyle = '#FFCC44';
+      ctx.fillRect(10, 16, 4, 3);
+      ctx.fillRect(20, 16, 4, 3);
+      ctx.fillStyle = '#FFE088';
+      ctx.fillRect(11, 16, 2, 2);
+      ctx.fillRect(21, 16, 2, 2);
+      // Window frame
       ctx.fillStyle = '#5A3520';
-      ctx.fillRect(6, 12, 2, 18);
-      ctx.fillRect(24, 12, 2, 18);
-      // Window
-      ctx.fillStyle = '#DAA520';
-      ctx.fillRect(10, 16, 4, 4);
-      ctx.fillRect(20, 16, 4, 4);
+      ctx.fillRect(11, 15, 1, 5);
+      ctx.fillRect(21, 15, 1, 5);
       // Door
-      ctx.fillStyle = '#5A3520';
+      ctx.fillStyle = '#4A2A15';
       ctx.fillRect(14, 22, 6, 10);
+      ctx.fillStyle = '#5A3520';
+      ctx.fillRect(14, 22, 6, 1); // door top
       ctx.fillStyle = '#DAA520';
-      ctx.fillRect(18, 26, 1, 1);
-      // Lantern glow
+      ctx.fillRect(18, 26, 1, 1); // door handle
+      // Lantern
       ctx.fillStyle = '#FFAA00';
-      ctx.fillRect(8, 14, 2, 2);
-
+      ctx.fillRect(8, 13, 2, 2);
+      ctx.fillStyle = '#FFCC4466';
+      ctx.fillRect(7, 12, 4, 4); // glow
     });
 
     // tile_building_shop
@@ -528,23 +653,44 @@ export class BootScene extends Phaser.Scene {
       // Hair
       ctx.fillStyle = playerColors.hair;
       ctx.fillRect(11, 4, 10, 6);
+      ctx.fillStyle = '#4A2A18';
+      ctx.fillRect(11, 4, 10, 2); // hair top darker
       // Skin (face)
       ctx.fillStyle = playerColors.skin;
       ctx.fillRect(12, 6, 8, 6);
+      // Face shadow
+      ctx.fillStyle = '#E0C090';
+      ctx.fillRect(12, 10, 8, 2);
       // Eyes
-      ctx.fillStyle = '#000000';
+      ctx.fillStyle = '#FFFFFF';
       ctx.fillRect(14, 8, 2, 2);
       ctx.fillRect(18, 8, 2, 2);
+      ctx.fillStyle = '#1A1A3A';
+      ctx.fillRect(15, 8, 1, 2);
+      ctx.fillRect(19, 8, 1, 2);
       // Tunic
       ctx.fillStyle = playerColors.tunic;
       ctx.fillRect(10, 12, 12, 10);
+      // Tunic highlights
+      ctx.fillStyle = '#5A9EE8';
+      ctx.fillRect(10, 12, 4, 3);
+      ctx.fillRect(12, 14, 2, 2);
+      // Tunic shadows
+      ctx.fillStyle = '#2A6EB8';
+      ctx.fillRect(18, 18, 4, 4);
+      ctx.fillRect(10, 20, 2, 2);
       // Belt
       ctx.fillStyle = playerColors.belt;
       ctx.fillRect(10, 18, 12, 2);
+      ctx.fillStyle = '#FFCC44';
+      ctx.fillRect(15, 18, 2, 2); // buckle
       // Arms
       ctx.fillStyle = playerColors.tunic;
       ctx.fillRect(8, 14, 2, 6);
       ctx.fillRect(22, 14, 2, 6);
+      ctx.fillStyle = '#2A6EB8';
+      ctx.fillRect(8, 18, 2, 2);
+      ctx.fillRect(22, 18, 2, 2);
       // Hands
       ctx.fillStyle = playerColors.skin;
       ctx.fillRect(8, 20, 2, 2);
@@ -553,27 +699,35 @@ export class BootScene extends Phaser.Scene {
       ctx.fillStyle = '#4A3520';
       ctx.fillRect(12, 22, 4, 6);
       ctx.fillRect(18, 22, 4, 6);
+      ctx.fillStyle = '#3A2A15';
+      ctx.fillRect(14, 22, 2, 6); // inner leg shadow
       // Boots
       ctx.fillStyle = '#3A2510';
       ctx.fillRect(11, 26, 5, 4);
       ctx.fillRect(17, 26, 5, 4);
-      // Highlight
-      ctx.fillStyle = '#5A9EE8';
-      ctx.fillRect(10, 12, 2, 2);
-      // Shadow
-      ctx.fillStyle = '#2A6EB8';
-      ctx.fillRect(20, 20, 2, 2);
-
+      ctx.fillStyle = '#4A3520';
+      ctx.fillRect(11, 26, 5, 1); // boot top highlight
+      ctx.fillRect(17, 26, 5, 1);
+      // Outline
+      this.drawOutline(ctx, 32, 32);
     });
 
     // Player up
     this.makeTexture('entity_player_up', 32, 32, (ctx) => {
       ctx.fillStyle = playerColors.hair;
       ctx.fillRect(11, 4, 10, 8);
+      ctx.fillStyle = '#4A2A18';
+      ctx.fillRect(11, 4, 10, 2);
       ctx.fillStyle = playerColors.tunic;
       ctx.fillRect(10, 12, 12, 10);
+      ctx.fillStyle = '#5A9EE8';
+      ctx.fillRect(10, 12, 4, 3);
+      ctx.fillStyle = '#2A6EB8';
+      ctx.fillRect(18, 18, 4, 4);
       ctx.fillStyle = playerColors.belt;
       ctx.fillRect(10, 18, 12, 2);
+      ctx.fillStyle = '#FFCC44';
+      ctx.fillRect(15, 18, 2, 2);
       ctx.fillStyle = playerColors.tunic;
       ctx.fillRect(8, 14, 2, 6);
       ctx.fillRect(22, 14, 2, 6);
@@ -586,15 +740,18 @@ export class BootScene extends Phaser.Scene {
       ctx.fillStyle = '#3A2510';
       ctx.fillRect(11, 26, 5, 4);
       ctx.fillRect(17, 26, 5, 4);
-      ctx.fillStyle = '#5A9EE8';
-      ctx.fillRect(10, 12, 2, 2);
-
+      ctx.fillStyle = '#4A3520';
+      ctx.fillRect(11, 26, 5, 1);
+      ctx.fillRect(17, 26, 5, 1);
+      this.drawOutline(ctx, 32, 32);
     });
 
     // Player left
     this.makeTexture('entity_player_left', 32, 32, (ctx) => {
       ctx.fillStyle = playerColors.hair;
       ctx.fillRect(12, 4, 8, 7);
+      ctx.fillStyle = '#4A2A18';
+      ctx.fillRect(12, 4, 8, 2);
       ctx.fillStyle = playerColors.skin;
       ctx.fillRect(11, 6, 6, 6);
       ctx.fillStyle = '#000000';
@@ -613,19 +770,27 @@ export class BootScene extends Phaser.Scene {
       ctx.fillStyle = '#3A2510';
       ctx.fillRect(12, 26, 5, 4);
       ctx.fillRect(17, 26, 5, 4);
-
+      this.drawOutline(ctx, 32, 32);
     });
 
     // Player right
     this.makeTexture('entity_player_right', 32, 32, (ctx) => {
       ctx.fillStyle = playerColors.hair;
       ctx.fillRect(12, 4, 8, 7);
+      ctx.fillStyle = '#4A2A18';
+      ctx.fillRect(12, 4, 8, 2);
       ctx.fillStyle = playerColors.skin;
       ctx.fillRect(15, 6, 6, 6);
-      ctx.fillStyle = '#000000';
+      ctx.fillStyle = '#FFFFFF';
       ctx.fillRect(18, 8, 2, 2);
+      ctx.fillStyle = '#1A1A3A';
+      ctx.fillRect(18, 8, 1, 2);
       ctx.fillStyle = playerColors.tunic;
       ctx.fillRect(10, 12, 10, 10);
+      ctx.fillStyle = '#5A9EE8';
+      ctx.fillRect(10, 12, 4, 3);
+      ctx.fillStyle = '#2A6EB8';
+      ctx.fillRect(16, 18, 4, 4);
       ctx.fillStyle = playerColors.belt;
       ctx.fillRect(10, 18, 10, 2);
       ctx.fillStyle = playerColors.tunic;
@@ -638,59 +803,76 @@ export class BootScene extends Phaser.Scene {
       ctx.fillStyle = '#3A2510';
       ctx.fillRect(10, 26, 5, 4);
       ctx.fillRect(15, 26, 5, 4);
-
+      this.drawOutline(ctx, 32, 32);
     });
 
     // Agent down
     this.makeTexture('entity_agent_down', 32, 32, (ctx) => {
       ctx.fillStyle = agentColors.hood;
       ctx.fillRect(10, 2, 12, 10);
+      ctx.fillStyle = '#5A2A08';
+      ctx.fillRect(10, 2, 12, 2);
       ctx.fillStyle = agentColors.skin;
       ctx.fillRect(12, 6, 8, 6);
-      ctx.fillStyle = '#000000';
+      ctx.fillStyle = '#E0C090';
+      ctx.fillRect(12, 10, 8, 2);
+      ctx.fillStyle = '#FFFFFF';
       ctx.fillRect(14, 8, 2, 2);
       ctx.fillRect(18, 8, 2, 2);
+      ctx.fillStyle = '#1A1A3A';
+      ctx.fillRect(15, 8, 1, 2);
+      ctx.fillRect(19, 8, 1, 2);
       ctx.fillStyle = agentColors.cloak;
       ctx.fillRect(8, 12, 16, 14);
+      ctx.fillStyle = '#A05A23';
+      ctx.fillRect(8, 12, 4, 3);
+      ctx.fillStyle = '#6A3A10';
+      ctx.fillRect(20, 22, 4, 4);
       ctx.fillStyle = agentColors.sash;
       ctx.fillRect(14, 14, 4, 12);
+      ctx.fillStyle = '#DD4444';
+      ctx.fillRect(14, 14, 4, 2);
       ctx.fillStyle = agentColors.cloak;
       ctx.fillRect(6, 14, 2, 8);
       ctx.fillRect(24, 14, 2, 8);
       ctx.fillStyle = '#4A3520';
       ctx.fillRect(12, 26, 4, 4);
       ctx.fillRect(18, 26, 4, 4);
-      ctx.fillStyle = '#A05A23';
-      ctx.fillRect(8, 12, 2, 2);
-
+      this.drawOutline(ctx, 32, 32);
     });
 
     // Agent up
     this.makeTexture('entity_agent_up', 32, 32, (ctx) => {
       ctx.fillStyle = agentColors.hood;
       ctx.fillRect(10, 2, 12, 10);
+      ctx.fillStyle = '#5A2A08';
+      ctx.fillRect(10, 2, 12, 2);
       ctx.fillStyle = agentColors.cloak;
       ctx.fillRect(8, 12, 16, 14);
       ctx.fillRect(6, 14, 2, 8);
       ctx.fillRect(24, 14, 2, 8);
+      ctx.fillStyle = '#A05A23';
+      ctx.fillRect(8, 12, 4, 3);
       ctx.fillStyle = agentColors.sash;
       ctx.fillRect(14, 14, 4, 12);
       ctx.fillStyle = '#4A3520';
       ctx.fillRect(12, 26, 4, 4);
       ctx.fillRect(18, 26, 4, 4);
-      ctx.fillStyle = '#A05A23';
-      ctx.fillRect(8, 12, 2, 2);
-
+      this.drawOutline(ctx, 32, 32);
     });
 
     // Agent left
     this.makeTexture('entity_agent_left', 32, 32, (ctx) => {
       ctx.fillStyle = agentColors.hood;
       ctx.fillRect(11, 2, 10, 10);
+      ctx.fillStyle = '#5A2A08';
+      ctx.fillRect(11, 2, 10, 2);
       ctx.fillStyle = agentColors.skin;
       ctx.fillRect(10, 6, 6, 6);
-      ctx.fillStyle = '#000000';
+      ctx.fillStyle = '#FFFFFF';
       ctx.fillRect(11, 8, 2, 2);
+      ctx.fillStyle = '#1A1A3A';
+      ctx.fillRect(12, 8, 1, 2);
       ctx.fillStyle = agentColors.cloak;
       ctx.fillRect(10, 12, 14, 14);
       ctx.fillRect(8, 14, 2, 8);
@@ -699,17 +881,21 @@ export class BootScene extends Phaser.Scene {
       ctx.fillStyle = '#4A3520';
       ctx.fillRect(12, 26, 4, 4);
       ctx.fillRect(18, 26, 4, 4);
-
+      this.drawOutline(ctx, 32, 32);
     });
 
     // Agent right
     this.makeTexture('entity_agent_right', 32, 32, (ctx) => {
       ctx.fillStyle = agentColors.hood;
       ctx.fillRect(11, 2, 10, 10);
+      ctx.fillStyle = '#5A2A08';
+      ctx.fillRect(11, 2, 10, 2);
       ctx.fillStyle = agentColors.skin;
       ctx.fillRect(16, 6, 6, 6);
-      ctx.fillStyle = '#000000';
+      ctx.fillStyle = '#FFFFFF';
       ctx.fillRect(19, 8, 2, 2);
+      ctx.fillStyle = '#1A1A3A';
+      ctx.fillRect(19, 8, 1, 2);
       ctx.fillStyle = agentColors.cloak;
       ctx.fillRect(8, 12, 14, 14);
       ctx.fillRect(22, 14, 2, 8);
@@ -718,7 +904,7 @@ export class BootScene extends Phaser.Scene {
       ctx.fillStyle = '#4A3520';
       ctx.fillRect(12, 26, 4, 4);
       ctx.fillRect(18, 26, 4, 4);
-
+      this.drawOutline(ctx, 32, 32);
     });
 
     // npc_merchant
@@ -746,7 +932,7 @@ export class BootScene extends Phaser.Scene {
       ctx.fillStyle = '#4A3520';
       ctx.fillRect(12, 26, 4, 4);
       ctx.fillRect(18, 26, 4, 4);
-
+      this.drawOutline(ctx, 32, 32);
     });
   }
 
@@ -760,6 +946,12 @@ export class BootScene extends Phaser.Scene {
       ctx.fillRect(10, 10, 12, 20);
       ctx.fillStyle = '#66BB6A';
       ctx.fillRect(10, 12, 6, 4);
+      ctx.fillRect(12, 10, 8, 4);
+      // Glossy highlight
+      ctx.fillStyle = '#81C784';
+      ctx.fillRect(12, 10, 4, 3);
+      ctx.fillStyle = '#A5D6A7';
+      ctx.fillRect(13, 10, 2, 2);
       ctx.fillStyle = '#1B5E20';
       ctx.fillRect(12, 24, 8, 4);
       ctx.fillRect(8, 26, 16, 2);
@@ -770,7 +962,7 @@ export class BootScene extends Phaser.Scene {
       ctx.fillStyle = '#000000';
       ctx.fillRect(13, 17, 2, 2);
       ctx.fillRect(19, 17, 2, 2);
-
+      this.drawOutline(ctx, 32, 32);
     });
 
     // mob_wolf
@@ -805,7 +997,7 @@ export class BootScene extends Phaser.Scene {
       ctx.fillRect(14, 22, 3, 6);
       ctx.fillRect(20, 22, 3, 6);
       ctx.fillRect(24, 22, 3, 6);
-
+      this.drawOutline(ctx, 32, 32);
     });
 
     // mob_bat
@@ -831,7 +1023,7 @@ export class BootScene extends Phaser.Scene {
       ctx.fillStyle = '#4A4458';
       ctx.fillRect(14, 10, 2, 4);
       ctx.fillRect(18, 10, 2, 4);
-
+      this.drawOutline(ctx, 32, 32);
     });
 
     // mob_shadow_wisp
@@ -849,7 +1041,7 @@ export class BootScene extends Phaser.Scene {
       ctx.fillRect(10, 24, 2, 4);
       ctx.fillRect(16, 26, 2, 4);
       ctx.fillRect(20, 24, 2, 3);
-
+      this.drawOutline(ctx, 32, 32, 'rgba(100,50,150,0.5)');
     });
 
     // mob_night_stalker
@@ -873,7 +1065,7 @@ export class BootScene extends Phaser.Scene {
       ctx.fillStyle = '#1A1A1A';
       ctx.fillRect(10, 24, 4, 6);
       ctx.fillRect(18, 24, 4, 6);
-
+      this.drawOutline(ctx, 32, 32);
     });
 
     // mob_moon_beetle
@@ -905,7 +1097,7 @@ export class BootScene extends Phaser.Scene {
       ctx.fillRect(22, 14, 4, 2);
       ctx.fillRect(6, 20, 4, 2);
       ctx.fillRect(22, 20, 4, 2);
-
+      this.drawOutline(ctx, 32, 32);
     });
 
     // mob_ember_wraith
@@ -927,7 +1119,7 @@ export class BootScene extends Phaser.Scene {
       ctx.fillRect(12, 4, 2, 4);
       ctx.fillRect(18, 4, 2, 4);
       ctx.fillRect(15, 2, 2, 4);
-
+      this.drawOutline(ctx, 32, 32, 'rgba(200,80,0,0.5)');
     });
   }
 
@@ -961,7 +1153,7 @@ export class BootScene extends Phaser.Scene {
       ctx.fillStyle = '#AA4400';
       ctx.fillRect(12, 22, 3, 6);
       ctx.fillRect(19, 22, 3, 6);
-
+      this.drawOutline(ctx, 32, 32);
     });
 
     // companion_owl
@@ -993,7 +1185,7 @@ export class BootScene extends Phaser.Scene {
       ctx.fillStyle = '#DAA520';
       ctx.fillRect(12, 24, 3, 2);
       ctx.fillRect(18, 24, 3, 2);
-
+      this.drawOutline(ctx, 32, 32);
     });
 
     // companion_frog
@@ -1020,7 +1212,7 @@ export class BootScene extends Phaser.Scene {
       // Back legs
       ctx.fillRect(8, 24, 6, 4);
       ctx.fillRect(18, 24, 6, 4);
-
+      this.drawOutline(ctx, 32, 32);
     });
 
     // companion_mole
@@ -1050,7 +1242,7 @@ export class BootScene extends Phaser.Scene {
       ctx.fillStyle = '#4A3020';
       ctx.fillRect(12, 24, 3, 4);
       ctx.fillRect(18, 24, 3, 4);
-
+      this.drawOutline(ctx, 32, 32);
     });
 
     // companion_wolf
@@ -1081,7 +1273,7 @@ export class BootScene extends Phaser.Scene {
       ctx.fillRect(10, 22, 3, 6);
       ctx.fillRect(16, 22, 3, 6);
       ctx.fillRect(22, 22, 3, 6);
-
+      this.drawOutline(ctx, 32, 32);
     });
 
     // companion_toad
@@ -1109,7 +1301,7 @@ export class BootScene extends Phaser.Scene {
       ctx.fillRect(22, 22, 4, 4);
       ctx.fillRect(10, 26, 4, 4);
       ctx.fillRect(18, 26, 4, 4);
-
+      this.drawOutline(ctx, 32, 32);
     });
 
     // Eggs
@@ -1148,7 +1340,16 @@ export class BootScene extends Phaser.Scene {
   generateUITextures() {
     // ui_btn_circle
     this.makeTexture('ui_btn_circle', 60, 60, (ctx, w, h) => {
-      ctx.fillStyle = '#2A2A3E';
+      // Shadow
+      ctx.fillStyle = '#1A1A2E';
+      ctx.beginPath();
+      ctx.arc(30, 31, 28, 0, Math.PI * 2);
+      ctx.fill();
+      // Main
+      const grad = ctx.createRadialGradient(26, 26, 4, 30, 30, 28);
+      grad.addColorStop(0, '#3A3A5E');
+      grad.addColorStop(1, '#2A2A3E');
+      ctx.fillStyle = grad;
       ctx.beginPath();
       ctx.arc(30, 30, 28, 0, Math.PI * 2);
       ctx.fill();
@@ -1161,7 +1362,14 @@ export class BootScene extends Phaser.Scene {
 
     // ui_btn_small
     this.makeTexture('ui_btn_small', 44, 44, (ctx) => {
-      ctx.fillStyle = '#2A2A3E';
+      ctx.fillStyle = '#1A1A2E';
+      ctx.beginPath();
+      ctx.arc(22, 23, 20, 0, Math.PI * 2);
+      ctx.fill();
+      const grad = ctx.createRadialGradient(18, 18, 4, 22, 22, 20);
+      grad.addColorStop(0, '#3A3A5E');
+      grad.addColorStop(1, '#2A2A3E');
+      ctx.fillStyle = grad;
       ctx.beginPath();
       ctx.arc(22, 22, 20, 0, Math.PI * 2);
       ctx.fill();
@@ -1195,25 +1403,42 @@ export class BootScene extends Phaser.Scene {
 
     // ui_hp_bg
     this.makeTexture('ui_hp_bg', 64, 8, (ctx) => {
-      ctx.fillStyle = '#B71C1C';
+      ctx.fillStyle = '#1A1A1A';
       ctx.fillRect(0, 0, 64, 8);
-      ctx.strokeStyle = '#000000';
+      ctx.fillStyle = '#B71C1C';
+      ctx.fillRect(1, 1, 62, 6);
+      ctx.fillStyle = '#8B1111';
+      ctx.fillRect(1, 4, 62, 3);
+      ctx.strokeStyle = '#111111';
       ctx.lineWidth = 1;
       ctx.strokeRect(0, 0, 64, 8);
     });
 
     // ui_hp_fill
     this.makeTexture('ui_hp_fill', 64, 8, (ctx) => {
-      ctx.fillStyle = '#4CAF50';
+      const grad = ctx.createLinearGradient(0, 0, 0, 8);
+      grad.addColorStop(0, '#66BB6A');
+      grad.addColorStop(0.4, '#4CAF50');
+      grad.addColorStop(1, '#2E7D32');
+      ctx.fillStyle = grad;
       ctx.fillRect(0, 0, 64, 8);
-      ctx.fillStyle = '#66BB6A';
-      ctx.fillRect(0, 0, 64, 3);
+      // Top highlight
+      ctx.fillStyle = 'rgba(255,255,255,0.15)';
+      ctx.fillRect(0, 0, 64, 2);
     });
 
     // ui_inv_slot
     this.makeTexture('ui_inv_slot', 80, 80, (ctx) => {
-      ctx.fillStyle = '#2A2A3E';
+      const grad = ctx.createLinearGradient(0, 0, 0, 80);
+      grad.addColorStop(0, '#2E2E48');
+      grad.addColorStop(1, '#22223A');
+      ctx.fillStyle = grad;
       ctx.fillRect(0, 0, 80, 80);
+      // Inner shadow
+      ctx.fillStyle = 'rgba(0,0,0,0.2)';
+      ctx.fillRect(2, 2, 76, 76);
+      ctx.fillStyle = grad;
+      ctx.fillRect(3, 3, 74, 74);
       ctx.strokeStyle = '#555577';
       ctx.lineWidth = 2;
       ctx.strokeRect(1, 1, 78, 78);
@@ -1229,8 +1454,16 @@ export class BootScene extends Phaser.Scene {
     ];
     for (const { key, border } of gearSlots) {
       this.makeTexture(key, 48, 48, (ctx) => {
-        ctx.fillStyle = '#2A2A3E';
+        const grad = ctx.createLinearGradient(0, 0, 0, 48);
+        grad.addColorStop(0, '#2E2E48');
+        grad.addColorStop(1, '#22223A');
+        ctx.fillStyle = grad;
         ctx.fillRect(0, 0, 48, 48);
+        // Inner bevel
+        ctx.fillStyle = 'rgba(0,0,0,0.15)';
+        ctx.fillRect(2, 2, 44, 44);
+        ctx.fillStyle = grad;
+        ctx.fillRect(3, 3, 42, 42);
         ctx.strokeStyle = border;
         ctx.lineWidth = 2;
         ctx.strokeRect(1, 1, 46, 46);
