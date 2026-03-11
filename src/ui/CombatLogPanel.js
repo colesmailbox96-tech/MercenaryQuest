@@ -49,9 +49,10 @@ export class CombatLogPanel extends Phaser.Scene {
     const panelY = h - panelH;
 
     // Semi-transparent backdrop
-    this.backdrop = this.add.rectangle(w / 2, panelY + panelH / 2, w, panelH, 0x1A1A2E, 0.85);
+    this.backdrop = this.add.rectangle(w / 2, panelY + panelH / 2, w, panelH, 0x1A1A2E, 0.92);
     this.backdrop.setScrollFactor(0);
     this.backdrop.setDepth(300);
+    this.backdrop.setStrokeStyle(2, 0xDAA520, 0.6);
     this.backdrop.setInteractive();
 
     // Header bar
@@ -60,7 +61,7 @@ export class CombatLogPanel extends Phaser.Scene {
     this.headerBg.setDepth(301);
 
     this.titleText = this.add.text(12, panelY + 6, '📜 Activity Log', {
-      fontSize: '12px', fontFamily: 'monospace', color: '#F5E6C8',
+      fontSize: '18px', fontFamily: 'monospace', color: '#F5E6C8', fontStyle: 'bold',
     });
     this.titleText.setScrollFactor(0);
     this.titleText.setDepth(302);
@@ -71,7 +72,7 @@ export class CombatLogPanel extends Phaser.Scene {
     this.closeBtn.setOrigin(1, 0);
     this.closeBtn.setScrollFactor(0);
     this.closeBtn.setDepth(302);
-    this.closeBtn.setInteractive({ useHandCursor: true });
+    this.closeBtn.setInteractive({ useHandCursor: true, hitArea: new Phaser.Geom.Rectangle(-22, -22, 44, 44), hitAreaCallback: Phaser.Geom.Rectangle.Contains });
     this.closeBtn.on('pointerdown', () => this.scene.stop());
 
     // Log entries area

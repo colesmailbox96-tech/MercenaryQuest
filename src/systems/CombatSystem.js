@@ -37,6 +37,9 @@ export function calculateDamage(attacker, defender, attackerBuffs = [], defender
     isCrit = true;
   }
 
+  // Final NaN safety net
+  if (!Number.isFinite(finalDamage) || finalDamage < 0) finalDamage = 0;
+
   return { damage: finalDamage, isCrit, isMiss: false, isDodge: false, variance };
 }
 
@@ -103,10 +106,13 @@ export class CombatSystem {
       if (dmgBonus > 0) dmgToDefender = Math.ceil(dmgToDefender * (1 + dmgBonus));
     }
 
+    if (!Number.isFinite(dmgToDefender) || dmgToDefender < 0) dmgToDefender = 0;
+
     if (typeof defender.takeDamage === 'function') {
       defender.takeDamage(dmgToDefender);
     } else {
       defender.stats.hp = Math.max(0, defender.stats.hp - dmgToDefender);
+      if (!Number.isFinite(defender.stats.hp)) defender.stats.hp = 0;
       if (defender.updateHPBar) defender.updateHPBar();
     }
 
@@ -154,7 +160,10 @@ export class CombatSystem {
       if (dmgReduce > 0) dmgToAttacker = Math.max(1, Math.ceil(dmgToAttacker * (1 - dmgReduce)));
     }
 
+    if (!Number.isFinite(dmgToAttacker) || dmgToAttacker < 0) dmgToAttacker = 0;
+
     attacker.stats.hp = Math.max(0, attacker.stats.hp - dmgToAttacker);
+    if (!Number.isFinite(attacker.stats.hp)) attacker.stats.hp = 0;
     if (attacker.updateHPBar) attacker.updateHPBar();
 
     if (defResult.isCrit) {

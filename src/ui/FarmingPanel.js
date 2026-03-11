@@ -12,8 +12,8 @@ export class FarmingPanel extends Phaser.Scene {
     this.selectedPlot = null;
     const w = this.scale.width;
     const h = this.scale.height;
-    const panelW = w * 0.92;
-    const panelH = h * 0.82;
+    const panelW = Math.min(w - 20, 370);
+    const panelH = Math.min(h * 0.85, h - 40);
     const panelX = (w - panelW) / 2;
     const panelY = (h - panelH) / 2;
     this.panelX = panelX;
@@ -21,11 +21,12 @@ export class FarmingPanel extends Phaser.Scene {
     this.panelW = panelW;
     this.panelH = panelH;
 
-    this.backdrop = this.add.rectangle(w / 2, h / 2, w, h, 0x000000, 0.6);
+    this.backdrop = this.add.rectangle(w / 2, h / 2, w, h, 0x000000, 0.7);
     this.backdrop.setInteractive();
     this.backdrop.on('pointerdown', () => this.scene.stop());
 
-    this.panel = this.add.rectangle(w / 2, h / 2, panelW, panelH, COLORS.UI_PANEL, 0.97);
+    this.panel = this.add.rectangle(w / 2, h / 2, panelW, panelH, COLORS.UI_PANEL, 0.92);
+    this.panel.setStrokeStyle(2, COLORS.UI_GOLD, 0.6);
     this.panel.setInteractive();
     this.panel.setAlpha(0);
     this.panel.y = h;
@@ -65,27 +66,32 @@ export class FarmingPanel extends Phaser.Scene {
 
     // Title
     const title = this.add.text(w / 2, panelY + 14, '🌾 Farm', {
-      fontSize: '15px', fontFamily: 'monospace', color: '#F5E6C8',
+      fontSize: '18px', fontFamily: 'monospace', color: '#F5E6C8', fontStyle: 'bold',
     }).setOrigin(0.5, 0);
     this.elements.push(title);
 
     const closeBtn = this.add.text(panelX + panelW - 12, panelY + 12, '✕', {
       fontSize: '20px', fontFamily: 'monospace', color: '#F5E6C8',
-    }).setOrigin(0.5, 0).setInteractive({ useHandCursor: true });
+    }).setOrigin(0.5, 0).setInteractive({ useHandCursor: true, hitArea: new Phaser.Geom.Rectangle(-22, -22, 44, 44), hitAreaCallback: Phaser.Geom.Rectangle.Contains });
     closeBtn.on('pointerdown', () => this.scene.stop());
     this.elements.push(closeBtn);
+
+    // Header separator
+    this.elements.push(
+      this.add.rectangle(w / 2, panelY + 40, panelW - 24, 1, COLORS.UI_GOLD, 0.3)
+    );
 
     // Skill info
     const farmLevel = skillSys.getLevel('farming');
     const prog = skillSys.getSkillProgress('farming');
     const xpStr = prog.isMax ? 'MAX' : `${prog.progressXP}/${prog.neededXP} XP`;
-    const infoText = this.add.text(panelX + 12, panelY + 36,
+    const infoText = this.add.text(panelX + 12, panelY + 46,
       `Farm Level: ${farmLevel}  (${xpStr})   Plots: ${farmSys.maxPlots}`, {
-      fontSize: '11px', fontFamily: 'monospace', color: '#88CC88',
+      fontSize: '12px', fontFamily: 'monospace', color: '#DAA520',
     });
     this.elements.push(infoText);
 
-    let y = panelY + 54;
+    let y = panelY + 64;
 
     // Plot grid (up to 9 plots in 3-column grid)
     const cellSize = 46;

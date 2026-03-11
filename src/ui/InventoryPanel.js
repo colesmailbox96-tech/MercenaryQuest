@@ -18,8 +18,8 @@ export class InventoryPanel {
   _buildUI(stash) {
     const w = this.scene.scale.width;
     const h = this.scene.scale.height;
-    const panelW = w * 0.88;
-    const panelH = h * 0.76;
+    const panelW = Math.min(w - 20, 370);
+    const panelH = Math.min(h * 0.85, h - 40);
     const panelX = (w - panelW) / 2;
     const panelY = (h - panelH) / 2;
 
@@ -28,21 +28,22 @@ export class InventoryPanel {
     this.container.setScrollFactor(0);
 
     // Backdrop
-    const backdrop = this.scene.add.rectangle(w / 2, h / 2, w, h, 0x000000, 0.6);
+    const backdrop = this.scene.add.rectangle(w / 2, h / 2, w, h, 0x000000, 0.7);
     backdrop.setScrollFactor(0);
     backdrop.setInteractive();
     backdrop.on('pointerdown', () => this.hide());
     this.container.add(backdrop);
 
     // Panel
-    const panel = this.scene.add.rectangle(w / 2, h / 2, panelW, panelH, 0x1A1A2E, 0.95);
+    const panel = this.scene.add.rectangle(w / 2, h / 2, panelW, panelH, 0x1A1A2E, 0.92);
     panel.setScrollFactor(0);
+    panel.setStrokeStyle(2, 0xDAA520, 0.6);
     panel.setInteractive();
     this.container.add(panel);
 
     // Title
     const title = this.scene.add.text(w / 2, panelY + 14, '📦 Inventory', {
-      fontSize: '16px', fontFamily: 'monospace', color: '#F5E6C8',
+      fontSize: '18px', fontFamily: 'monospace', color: '#F5E6C8', fontStyle: 'bold',
     });
     title.setOrigin(0.5, 0).setScrollFactor(0);
     this.container.add(title);

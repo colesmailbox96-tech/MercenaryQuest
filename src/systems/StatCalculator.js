@@ -8,17 +8,18 @@ export function calculatePowerScore(entity, activeBuffs = []) {
 }
 
 export function getEffectiveStats(entity, activeBuffs = []) {
+  const stats = entity.stats || {};
   const base = {
-    maxHp: entity.stats.maxHp,
-    atk: entity.stats.atk,
-    def: entity.stats.def,
+    maxHp: stats.maxHp || 20,
+    atk: stats.atk || 1,
+    def: stats.def || 0,
   };
   const gear = entity.equipment || {};
   const gearBonus = { maxHp: 0, atk: 0, def: 0 };
   for (const slot of Object.values(gear)) {
-    if (slot !== null && slot !== undefined) {
+    if (slot !== null && slot !== undefined && slot.stats) {
       for (const [stat, value] of Object.entries(slot.stats)) {
-        if (gearBonus[stat] !== undefined) {
+        if (gearBonus[stat] !== undefined && Number.isFinite(value)) {
           gearBonus[stat] += value;
         }
       }
@@ -30,15 +31,19 @@ export function getEffectiveStats(entity, activeBuffs = []) {
   for (const buff of activeBuffs) {
     if (buff.stats) {
       for (const [stat, value] of Object.entries(buff.stats)) {
-        if (buffBonus[stat] !== undefined) buffBonus[stat] += value;
+        if (buffBonus[stat] !== undefined && Number.isFinite(value)) buffBonus[stat] += value;
       }
     }
   }
 
+  let atk = base.atk + gearBonus.atk + buffBonus.atk;
+  let def = base.def + gearBonus.def + buffBonus.def;
+  let maxHp = base.maxHp + gearBonus.maxHp + buffBonus.maxHp;
+
   return {
-    maxHp: base.maxHp + gearBonus.maxHp + buffBonus.maxHp,
-    atk: base.atk + gearBonus.atk + buffBonus.atk,
-    def: base.def + gearBonus.def + buffBonus.def,
+    maxHp: Number.isFinite(maxHp) ? maxHp : 20,
+    atk: Number.isFinite(atk) ? atk : 1,
+    def: Number.isFinite(def) ? def : 0,
     baseAtk: base.atk,
     baseDef: base.def,
     baseMaxHp: base.maxHp,

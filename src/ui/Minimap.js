@@ -1,6 +1,6 @@
 import { MAP_WIDTH, MAP_HEIGHT } from '../config/constants.js';
 
-const MINIMAP_SIZE = 80;
+const MINIMAP_SIZE = 72;
 const TILE_PX = MINIMAP_SIZE / Math.max(MAP_WIDTH, MAP_HEIGHT);
 
 const ZONE_COLORS = {
@@ -19,26 +19,26 @@ export class Minimap {
 
     const w = scene.scale.width;
     this.x = w - MINIMAP_SIZE - 8;
-    this.y = 66;
+    this.y = 62; // 8px below top HUD bars
 
     this.container = scene.add.container(this.x, this.y);
     this.container.setScrollFactor(0);
     this.container.setDepth(150);
 
-    this.bg = scene.add.rectangle(0, 0, MINIMAP_SIZE + 2, MINIMAP_SIZE + 2, 0x000000, 0.7);
+    this.bg = scene.add.rectangle(0, 0, MINIMAP_SIZE + 2, MINIMAP_SIZE + 2, 0x000000, 0.8);
     this.bg.setOrigin(0, 0);
-    this.bg.setStrokeStyle(1, 0xDAA520, 0.5);
+    this.bg.setStrokeStyle(2, 0xDAA520, 0.4);
     this.container.add(this.bg);
 
     this.rt = scene.add.renderTexture(1, 1, MINIMAP_SIZE, MINIMAP_SIZE);
     this.rt.setOrigin(0, 0);
     this.container.add(this.rt);
 
-    this.playerDot = scene.add.rectangle(0, 0, 3, 3, 0xFFFFFF);
+    this.playerDot = scene.add.rectangle(0, 0, 2, 2, 0xFFFFFF);
     this.playerDot.setOrigin(0.5);
     this.container.add(this.playerDot);
 
-    this.agentDot = scene.add.rectangle(0, 0, 3, 3, 0x00BCD4);
+    this.agentDot = scene.add.rectangle(0, 0, 2, 2, 0x00BCD4);
     this.agentDot.setOrigin(0.5);
     this.agentDot.setVisible(false);
     this.container.add(this.agentDot);

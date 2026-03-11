@@ -28,8 +28,8 @@ export class EquipmentPanel extends Phaser.Scene {
     this.backdrop.on('pointerdown', () => this._closeTooltip());
 
     // Panel
-    const panelW = w * 0.95;
-    const panelH = h * 0.9;
+    const panelW = Math.min(w - 20, 370);
+    const panelH = Math.min(h * 0.85, h - 40);
     const panelX = (w - panelW) / 2;
     const panelY = (h - panelH) / 2;
     this.panelX = panelX;
@@ -37,7 +37,8 @@ export class EquipmentPanel extends Phaser.Scene {
     this.panelW = panelW;
     this.panelH = panelH;
 
-    this.panel = this.add.rectangle(w / 2, h / 2, panelW, panelH, COLORS.UI_PANEL, 0.97);
+    this.panel = this.add.rectangle(w / 2, h / 2, panelW, panelH, COLORS.UI_PANEL, 0.92);
+    this.panel.setStrokeStyle(2, COLORS.UI_GOLD, 0.6);
     this.panel.setInteractive();
 
     // Slide in
@@ -54,12 +55,12 @@ export class EquipmentPanel extends Phaser.Scene {
       fontSize: '20px', fontFamily: 'monospace', color: '#F5E6C8',
     });
     this.closeBtn.setOrigin(0.5, 0);
-    this.closeBtn.setInteractive({ useHandCursor: true });
+    this.closeBtn.setInteractive({ useHandCursor: true, hitArea: new Phaser.Geom.Rectangle(-22, -22, 44, 44), hitAreaCallback: Phaser.Geom.Rectangle.Contains });
     this.closeBtn.on('pointerdown', () => this._close());
 
     // Title
     this.add.text(w / 2, panelY + 10, '🛡️ Equipment', {
-      fontSize: '15px', fontFamily: 'monospace', color: '#F5E6C8',
+      fontSize: '18px', fontFamily: 'monospace', color: '#F5E6C8', fontStyle: 'bold',
     }).setOrigin(0.5, 0);
 
     // Tabs

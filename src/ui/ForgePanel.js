@@ -58,8 +58,8 @@ export class ForgePanel extends Phaser.Scene {
     this.gameScene = this.scene.get('GameScene');
     const w = this.scale.width;
     const h = this.scale.height;
-    const panelW = w * 0.92;
-    const panelH = h * 0.85;
+    const panelW = Math.min(w - 20, 370);
+    const panelH = Math.min(h * 0.85, h - 40);
     const panelX = (w - panelW) / 2;
     const panelY = (h - panelH) / 2;
     this.panelX = panelX;
@@ -68,11 +68,12 @@ export class ForgePanel extends Phaser.Scene {
     this.panelH = panelH;
     this.elements = [];
 
-    this.backdrop = this.add.rectangle(w / 2, h / 2, w, h, 0x000000, 0.6);
+    this.backdrop = this.add.rectangle(w / 2, h / 2, w, h, 0x000000, 0.7);
     this.backdrop.setInteractive();
     this.backdrop.on('pointerdown', () => this.scene.stop());
 
-    this.panel = this.add.rectangle(w / 2, h / 2, panelW, panelH, COLORS.UI_PANEL, 0.97);
+    this.panel = this.add.rectangle(w / 2, h / 2, panelW, panelH, COLORS.UI_PANEL, 0.92);
+    this.panel.setStrokeStyle(2, COLORS.UI_GOLD, 0.6);
     this.panel.setInteractive();
     this.panel.setAlpha(0);
     this.panel.y = h;
@@ -99,80 +100,71 @@ export class ForgePanel extends Phaser.Scene {
     const w = this.scale.width;
     const materials = this.gameScene.gameState.materials;
 
-    // Title
+    // Header (40px)
     this.elements.push(
       this.add.text(w / 2, panelY + 14, '⚒️ Forge', {
-        fontSize: '15px', fontFamily: 'monospace', color: '#F5E6C8',
+        fontSize: '18px', fontFamily: 'monospace', color: '#F5E6C8', fontStyle: 'bold',
       }).setOrigin(0.5, 0)
     );
 
     const closeBtn = this.add.text(panelX + panelW - 12, panelY + 12, '✕', {
       fontSize: '20px', fontFamily: 'monospace', color: '#F5E6C8',
-    }).setOrigin(0.5, 0).setInteractive({ useHandCursor: true });
+    }).setOrigin(0.5, 0).setInteractive({ useHandCursor: true, hitArea: new Phaser.Geom.Rectangle(-22, -22, 44, 44), hitAreaCallback: Phaser.Geom.Rectangle.Contains });
     closeBtn.on('pointerdown', () => this.scene.stop());
     this.elements.push(closeBtn);
 
+    // Header separator
     this.elements.push(
-      this.add.text(panelX + 12, panelY + 36, 'Craft powerful gear from rare materials', {
-        fontSize: '10px', fontFamily: 'monospace', color: '#FF9800',
+      this.add.rectangle(w / 2, panelY + 40, panelW - 24, 1, COLORS.UI_GOLD, 0.3)
+    );
+
+    this.elements.push(
+      this.add.text(panelX + 12, panelY + 46, 'Craft powerful gear from rare materials', {
+        fontSize: '12px', fontFamily: 'monospace', color: '#DAA520',
       })
     );
 
-    let y = panelY + 54;
+    let y = panelY + 64;
     const lx = panelX + 12;
+    const rightEdge = panelX + panelW - 12;
 
     // Tier header
     this.elements.push(
       this.add.text(lx, y, '── Tier 4 Recipes ──', {
-        fontSize: '11px', fontFamily: 'monospace', color: '#AACCFF',
+        fontSize: '13px', fontFamily: 'monospace', color: '#DAA520', fontStyle: 'bold',
       })
     );
-    y += 16;
+    y += 20;
 
     for (const recipe of Object.values(FORGE_RECIPES)) {
       const canForge = this._canForge(recipe, materials);
       const slotIcon = SLOT_ICONS[recipe.slot] || '⚔️';
 
-      // Recipe name
+      // Recipe name on its own line
       this.elements.push(
         this.add.text(lx + 4, y, `${slotIcon} ${recipe.name}`, {
-          fontSize: '12px', fontFamily: 'monospace', color: '#F5E6C8',
+          fontSize: '13px', fontFamily: 'monospace', color: '#FFFFFF', fontStyle: 'bold',
         })
       );
-      y += 14;
+      y += 18;
 
-      // Stats preview
+      // Stats preview + Forge button on same line
       const statParts = [];
       for (const [stat, [min, max]] of Object.entries(recipe.output.statRanges)) {
         const label = stat === 'atk' ? 'ATK' : stat === 'def' ? 'DEF' : 'HP';
         statParts.push(`${min}-${max} ${label}`);
       }
       this.elements.push(
-        this.add.text(lx + 10, y, `  ${statParts.join(', ')}  (${recipe.minRarity}+)`, {
-          fontSize: '10px', fontFamily: 'monospace', color: '#FFCC44',
+        this.add.text(lx + 10, y, `${statParts.join(', ')}  (${recipe.minRarity}+)`, {
+          fontSize: '11px', fontFamily: 'monospace', color: '#CCCCCC',
         })
       );
-      y += 12;
 
-      // Ingredients
-      const ingChecks = this._checkIngredients(recipe, materials);
-      for (const ing of ingChecks) {
-        const ingDef = ITEMS[ing.id];
-        const color = ing.satisfied ? '#88CC88' : '#CC4444';
-        const ingText = `  ${ingDef?.emoji || '?'} ${ingDef?.name || ing.id} ×${ing.quantity}  (${ing.owned}/${ing.quantity})`;
-        this.elements.push(
-          this.add.text(lx + 10, y, ingText, {
-            fontSize: '10px', fontFamily: 'monospace', color,
-          })
-        );
-        y += 12;
-      }
-
-      // Forge button
+      // Forge button — fixed width, right-aligned with margin
       const forgeBtnColor = canForge ? '#DAA520' : '#555555';
-      const forgeBtn = this.add.text(panelX + panelW - 70, y - ingChecks.length * 12 - 14, '[ ⚒️ Forge ]', {
-        fontSize: '12px', fontFamily: 'monospace', color: forgeBtnColor,
-      });
+      const forgeBtn = this.add.text(rightEdge - 8, y, '[ Forge ]', {
+        fontSize: '12px', fontFamily: 'monospace', color: forgeBtnColor, fontStyle: 'bold',
+      }).setOrigin(1, 0);
       if (canForge) {
         forgeBtn.setInteractive({ useHandCursor: true });
         forgeBtn.on('pointerdown', () => {
@@ -180,7 +172,28 @@ export class ForgePanel extends Phaser.Scene {
         });
       }
       this.elements.push(forgeBtn);
-      y += 8;
+      y += 16;
+
+      // Ingredients with right-aligned counts
+      const ingChecks = this._checkIngredients(recipe, materials);
+      for (const ing of ingChecks) {
+        const ingDef = ITEMS[ing.id];
+        const color = ing.satisfied ? '#4CAF50' : '#FF6B6B';
+        const ingName = `  ${ingDef?.emoji || '?'} ${ingDef?.name || ing.id} ×${ing.quantity}`;
+        this.elements.push(
+          this.add.text(lx + 20, y, ingName, {
+            fontSize: '11px', fontFamily: 'monospace', color,
+          })
+        );
+        // Right-aligned count
+        this.elements.push(
+          this.add.text(rightEdge - 8, y, `(${ing.owned}/${ing.quantity})`, {
+            fontSize: '11px', fontFamily: 'monospace', color,
+          }).setOrigin(1, 0)
+        );
+        y += 16;
+      }
+      y += 8; // spacing between recipes
     }
   }
 
