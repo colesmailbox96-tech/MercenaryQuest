@@ -50,10 +50,12 @@ export class InventoryPanel {
 
     // Close button
     const closeBtn = this.scene.add.text(panelX + panelW - 15, panelY + 10, '✕', {
-      fontSize: '20px', fontFamily: 'monospace', color: '#F5E6C8',
+      fontSize: '20px', fontFamily: 'monospace', color: '#F5E6C8', fontStyle: 'bold',
     });
-    closeBtn.setOrigin(0.5, 0).setScrollFactor(0).setInteractive({ useHandCursor: true });
+    closeBtn.setOrigin(0.5, 0).setScrollFactor(0).setInteractive({ useHandCursor: true, hitArea: new Phaser.Geom.Rectangle(-24, -24, 48, 48), hitAreaCallback: Phaser.Geom.Rectangle.Contains });
     closeBtn.on('pointerdown', () => this.hide());
+    closeBtn.on('pointerover', () => closeBtn.setColor('#FF6B6B'));
+    closeBtn.on('pointerout', () => closeBtn.setColor('#F5E6C8'));
     this.container.add(closeBtn);
 
     // Filter tabs
@@ -94,6 +96,7 @@ export class InventoryPanel {
         const row = this.scene.add.text(panelX + 16, yOffset,
           `${item.emoji} ${item.name} ×${item.quantity}  —  ${item.sellValue}g`, {
           fontSize: '12px', fontFamily: 'monospace', color: '#F5E6C8',
+          wordWrap: { width: panelW - 110 },
         });
         row.setScrollFactor(0);
         this.container.add(row);

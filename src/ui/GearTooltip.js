@@ -33,10 +33,12 @@ export class GearTooltip {
     this.elements.push(bg);
 
     const closeBtn = this.scene.add.text(tx + tw - 10, ty + 4, '✕', {
-      fontSize: '14px', fontFamily: 'monospace', color: '#888888',
+      fontSize: '20px', fontFamily: 'monospace', color: '#F5E6C8', fontStyle: 'bold',
     }).setOrigin(0.5, 0).setScrollFactor(0).setDepth(601);
-    closeBtn.setInteractive({ useHandCursor: true });
+    closeBtn.setInteractive({ useHandCursor: true, hitArea: new Phaser.Geom.Rectangle(-24, -24, 48, 48), hitAreaCallback: Phaser.Geom.Rectangle.Contains });
     closeBtn.on('pointerdown', () => this.hide());
+    closeBtn.on('pointerover', () => closeBtn.setColor('#FF6B6B'));
+    closeBtn.on('pointerout', () => closeBtn.setColor('#F5E6C8'));
     this.elements.push(closeBtn);
 
     let curY = ty + 8;

@@ -42,11 +42,6 @@ export class BootScene extends Phaser.Scene {
     }
   }
 
-  outline(ctx, w, h) {
-    ctx.strokeStyle = '#000000';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(0.5, 0.5, w - 1, h - 1);
-  }
 
   // ─── TERRAIN TILES ───────────────────────────────────────────
   generateTerrainTiles() {
@@ -240,7 +235,7 @@ export class BootScene extends Phaser.Scene {
       // Lantern glow
       ctx.fillStyle = '#FFAA00';
       ctx.fillRect(8, 14, 2, 2);
-      this.outline(ctx, 32, 32);
+
     });
 
     // tile_building_shop
@@ -267,7 +262,7 @@ export class BootScene extends Phaser.Scene {
       // Door
       ctx.fillStyle = '#5A3520';
       ctx.fillRect(20, 20, 6, 12);
-      this.outline(ctx, 32, 32);
+
     });
 
     // tile_building_home
@@ -290,7 +285,7 @@ export class BootScene extends Phaser.Scene {
       ctx.fillRect(20, 22, 5, 10);
       ctx.fillStyle = '#DAA520';
       ctx.fillRect(23, 26, 1, 1);
-      this.outline(ctx, 32, 32);
+
     });
 
     // tile_building_kitchen
@@ -317,7 +312,7 @@ export class BootScene extends Phaser.Scene {
       // Door
       ctx.fillStyle = '#5A3520';
       ctx.fillRect(8, 22, 5, 10);
-      this.outline(ctx, 32, 32);
+
     });
   }
 
@@ -567,7 +562,7 @@ export class BootScene extends Phaser.Scene {
       // Shadow
       ctx.fillStyle = '#2A6EB8';
       ctx.fillRect(20, 20, 2, 2);
-      this.outline(ctx, 32, 32);
+
     });
 
     // Player up
@@ -592,7 +587,7 @@ export class BootScene extends Phaser.Scene {
       ctx.fillRect(17, 26, 5, 4);
       ctx.fillStyle = '#5A9EE8';
       ctx.fillRect(10, 12, 2, 2);
-      this.outline(ctx, 32, 32);
+
     });
 
     // Player left
@@ -617,7 +612,7 @@ export class BootScene extends Phaser.Scene {
       ctx.fillStyle = '#3A2510';
       ctx.fillRect(12, 26, 5, 4);
       ctx.fillRect(17, 26, 5, 4);
-      this.outline(ctx, 32, 32);
+
     });
 
     // Player right
@@ -642,7 +637,7 @@ export class BootScene extends Phaser.Scene {
       ctx.fillStyle = '#3A2510';
       ctx.fillRect(10, 26, 5, 4);
       ctx.fillRect(15, 26, 5, 4);
-      this.outline(ctx, 32, 32);
+
     });
 
     // Agent down
@@ -666,7 +661,7 @@ export class BootScene extends Phaser.Scene {
       ctx.fillRect(18, 26, 4, 4);
       ctx.fillStyle = '#A05A23';
       ctx.fillRect(8, 12, 2, 2);
-      this.outline(ctx, 32, 32);
+
     });
 
     // Agent up
@@ -684,7 +679,7 @@ export class BootScene extends Phaser.Scene {
       ctx.fillRect(18, 26, 4, 4);
       ctx.fillStyle = '#A05A23';
       ctx.fillRect(8, 12, 2, 2);
-      this.outline(ctx, 32, 32);
+
     });
 
     // Agent left
@@ -703,7 +698,7 @@ export class BootScene extends Phaser.Scene {
       ctx.fillStyle = '#4A3520';
       ctx.fillRect(12, 26, 4, 4);
       ctx.fillRect(18, 26, 4, 4);
-      this.outline(ctx, 32, 32);
+
     });
 
     // Agent right
@@ -722,7 +717,7 @@ export class BootScene extends Phaser.Scene {
       ctx.fillStyle = '#4A3520';
       ctx.fillRect(12, 26, 4, 4);
       ctx.fillRect(18, 26, 4, 4);
-      this.outline(ctx, 32, 32);
+
     });
 
     // npc_merchant
@@ -750,7 +745,7 @@ export class BootScene extends Phaser.Scene {
       ctx.fillStyle = '#4A3520';
       ctx.fillRect(12, 26, 4, 4);
       ctx.fillRect(18, 26, 4, 4);
-      this.outline(ctx, 32, 32);
+
     });
   }
 
@@ -774,7 +769,7 @@ export class BootScene extends Phaser.Scene {
       ctx.fillStyle = '#000000';
       ctx.fillRect(13, 17, 2, 2);
       ctx.fillRect(19, 17, 2, 2);
-      this.outline(ctx, 32, 32);
+
     });
 
     // mob_wolf
@@ -809,7 +804,7 @@ export class BootScene extends Phaser.Scene {
       ctx.fillRect(14, 22, 3, 6);
       ctx.fillRect(20, 22, 3, 6);
       ctx.fillRect(24, 22, 3, 6);
-      this.outline(ctx, 32, 32);
+
     });
 
     // mob_bat
@@ -835,7 +830,7 @@ export class BootScene extends Phaser.Scene {
       ctx.fillStyle = '#4A4458';
       ctx.fillRect(14, 10, 2, 4);
       ctx.fillRect(18, 10, 2, 4);
-      this.outline(ctx, 32, 32);
+
     });
 
     // mob_shadow_wisp
@@ -853,7 +848,7 @@ export class BootScene extends Phaser.Scene {
       ctx.fillRect(10, 24, 2, 4);
       ctx.fillRect(16, 26, 2, 4);
       ctx.fillRect(20, 24, 2, 3);
-      this.outline(ctx, 32, 32);
+
     });
 
     // mob_night_stalker
@@ -877,7 +872,7 @@ export class BootScene extends Phaser.Scene {
       ctx.fillStyle = '#1A1A1A';
       ctx.fillRect(10, 24, 4, 6);
       ctx.fillRect(18, 24, 4, 6);
-      this.outline(ctx, 32, 32);
+
     });
 
     // mob_moon_beetle
@@ -909,7 +904,7 @@ export class BootScene extends Phaser.Scene {
       ctx.fillRect(22, 14, 4, 2);
       ctx.fillRect(6, 20, 4, 2);
       ctx.fillRect(22, 20, 4, 2);
-      this.outline(ctx, 32, 32);
+
     });
 
     // mob_ember_wraith
@@ -931,7 +926,7 @@ export class BootScene extends Phaser.Scene {
       ctx.fillRect(12, 4, 2, 4);
       ctx.fillRect(18, 4, 2, 4);
       ctx.fillRect(15, 2, 2, 4);
-      this.outline(ctx, 32, 32);
+
     });
   }
 
@@ -965,7 +960,7 @@ export class BootScene extends Phaser.Scene {
       ctx.fillStyle = '#AA4400';
       ctx.fillRect(12, 22, 3, 6);
       ctx.fillRect(19, 22, 3, 6);
-      this.outline(ctx, 32, 32);
+
     });
 
     // companion_owl
@@ -997,7 +992,7 @@ export class BootScene extends Phaser.Scene {
       ctx.fillStyle = '#DAA520';
       ctx.fillRect(12, 24, 3, 2);
       ctx.fillRect(18, 24, 3, 2);
-      this.outline(ctx, 32, 32);
+
     });
 
     // companion_frog
@@ -1024,7 +1019,7 @@ export class BootScene extends Phaser.Scene {
       // Back legs
       ctx.fillRect(8, 24, 6, 4);
       ctx.fillRect(18, 24, 6, 4);
-      this.outline(ctx, 32, 32);
+
     });
 
     // companion_mole
@@ -1054,7 +1049,7 @@ export class BootScene extends Phaser.Scene {
       ctx.fillStyle = '#4A3020';
       ctx.fillRect(12, 24, 3, 4);
       ctx.fillRect(18, 24, 3, 4);
-      this.outline(ctx, 32, 32);
+
     });
 
     // companion_wolf
@@ -1085,7 +1080,7 @@ export class BootScene extends Phaser.Scene {
       ctx.fillRect(10, 22, 3, 6);
       ctx.fillRect(16, 22, 3, 6);
       ctx.fillRect(22, 22, 3, 6);
-      this.outline(ctx, 32, 32);
+
     });
 
     // companion_toad
@@ -1113,7 +1108,7 @@ export class BootScene extends Phaser.Scene {
       ctx.fillRect(22, 22, 4, 4);
       ctx.fillRect(10, 26, 4, 4);
       ctx.fillRect(18, 26, 4, 4);
-      this.outline(ctx, 32, 32);
+
     });
 
     // Eggs
@@ -1143,7 +1138,7 @@ export class BootScene extends Phaser.Scene {
         ctx.fillRect(14, 19, 2, 1);
         ctx.fillRect(16, 18, 2, 1);
         ctx.fillRect(18, 19, 2, 1);
-        this.outline(ctx, 32, 32);
+  
       });
     }
   }

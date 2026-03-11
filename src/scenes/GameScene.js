@@ -469,6 +469,17 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
+    // Check for adjacent mobs — move player onto mob tile to initiate combat
+    for (const pos of adjacent) {
+      for (const mob of this.spawner.getMobs()) {
+        if (!mob.active || mob.inCombat) continue;
+        if (mob.tileX === pos.x && mob.tileY === pos.y) {
+          this.player.moveTo(pos.x, pos.y, this.mapData);
+          return;
+        }
+      }
+    }
+
     // Check merchant interaction
     if (this.wanderingMerchant && this.wanderingMerchant.isActive && this.wanderingMerchant.entity) {
       if (this.wanderingMerchant.entity.isPlayerInRange(this.player)) {
@@ -669,6 +680,20 @@ export class GameScene extends Phaser.Scene {
       if (pos.x === EGG_HATCH_CONFIG.nestPosition.tileX && pos.y === EGG_HATCH_CONFIG.nestPosition.tileY) {
         contextAction = { type: 'nest', name: 'Companion Nest', icon: '🥚' };
         break;
+      }
+    }
+
+    // Check for adjacent mobs
+    if (!contextAction && !this.player.inCombat) {
+      for (const mob of this.spawner.getMobs()) {
+        if (!mob.active || mob.inCombat) continue;
+        for (const pos of adjacent) {
+          if (mob.tileX === pos.x && mob.tileY === pos.y) {
+            contextAction = { type: 'mob', name: mob.mobName || 'Enemy', icon: '⚔️' };
+            break;
+          }
+        }
+        if (contextAction) break;
       }
     }
 

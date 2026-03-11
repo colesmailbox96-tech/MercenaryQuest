@@ -67,13 +67,15 @@ export class CombatLogPanel extends Phaser.Scene {
     this.titleText.setDepth(302);
 
     this.closeBtn = this.add.text(w - 12, panelY + 6, '✕', {
-      fontSize: '16px', fontFamily: 'monospace', color: '#F5E6C8',
+      fontSize: '20px', fontFamily: 'monospace', color: '#F5E6C8', fontStyle: 'bold',
     });
     this.closeBtn.setOrigin(1, 0);
     this.closeBtn.setScrollFactor(0);
     this.closeBtn.setDepth(302);
-    this.closeBtn.setInteractive({ useHandCursor: true, hitArea: new Phaser.Geom.Rectangle(-22, -22, 44, 44), hitAreaCallback: Phaser.Geom.Rectangle.Contains });
+    this.closeBtn.setInteractive({ useHandCursor: true, hitArea: new Phaser.Geom.Rectangle(-24, -24, 48, 48), hitAreaCallback: Phaser.Geom.Rectangle.Contains });
     this.closeBtn.on('pointerdown', () => this.scene.stop());
+    this.closeBtn.on('pointerover', () => this.closeBtn.setColor('#FF6B6B'));
+    this.closeBtn.on('pointerout', () => this.closeBtn.setColor('#F5E6C8'));
 
     // Log entries area
     this.logStartY = panelY + 30;

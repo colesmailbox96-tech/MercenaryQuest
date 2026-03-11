@@ -63,9 +63,11 @@ export class CookingPanel extends Phaser.Scene {
     );
 
     const closeBtn = this.add.text(panelX + panelW - 12, panelY + 12, '✕', {
-      fontSize: '20px', fontFamily: 'monospace', color: '#F5E6C8',
-    }).setOrigin(0.5, 0).setInteractive({ useHandCursor: true, hitArea: new Phaser.Geom.Rectangle(-22, -22, 44, 44), hitAreaCallback: Phaser.Geom.Rectangle.Contains });
+      fontSize: '20px', fontFamily: 'monospace', color: '#F5E6C8', fontStyle: 'bold',
+    }).setOrigin(0.5, 0).setInteractive({ useHandCursor: true, hitArea: new Phaser.Geom.Rectangle(-24, -24, 48, 48), hitAreaCallback: Phaser.Geom.Rectangle.Contains });
     closeBtn.on('pointerdown', () => this.scene.stop());
+    closeBtn.on('pointerover', () => closeBtn.setColor('#FF6B6B'));
+    closeBtn.on('pointerout', () => closeBtn.setColor('#F5E6C8'));
     this.elements.push(closeBtn);
 
     // Header separator
@@ -140,6 +142,7 @@ export class CookingPanel extends Phaser.Scene {
         this.elements.push(
           this.add.text(lx + 4, y, `${foodDef?.emoji || '🍽'} ${recipe.name}`, {
             fontSize: '13px', fontFamily: 'monospace', color: '#FFFFFF', fontStyle: 'bold',
+            wordWrap: { width: panelW - 24 },
           })
         );
         y += 18;
@@ -158,11 +161,19 @@ export class CookingPanel extends Phaser.Scene {
         for (const ing of ingChecks) {
           const ingDef = ITEMS[ing.id];
           const color = ing.satisfied ? '#4CAF50' : '#FF6B6B';
-          const ingText = `  ${ingDef?.emoji || '?'} ${ingDef?.name || ing.id} ×${ing.quantity}  (${ing.owned}/${ing.quantity})`;
+          const rightEdge = panelX + panelW - 12;
+          const ingName = `  ${ingDef?.emoji || '?'} ${ingDef?.name || ing.id} ×${ing.quantity}`;
+          const maxIngW = rightEdge - (lx + 10) - 60;
           this.elements.push(
-            this.add.text(lx + 10, y, ingText, {
+            this.add.text(lx + 10, y, ingName, {
               fontSize: '11px', fontFamily: 'monospace', color,
+              wordWrap: { width: maxIngW },
             })
+          );
+          this.elements.push(
+            this.add.text(rightEdge - 8, y, `(${ing.owned}/${ing.quantity})`, {
+              fontSize: '11px', fontFamily: 'monospace', color,
+            }).setOrigin(1, 0)
           );
           y += 16;
         }

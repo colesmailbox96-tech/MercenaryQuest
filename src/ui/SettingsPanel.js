@@ -40,13 +40,16 @@ export class SettingsPanel extends Phaser.Scene {
 
     // Close button
     this.closeBtn = this.add.text(panelX + panelW / 2 - 20, panelY - panelH / 2 + 10, '✕', {
-      fontSize: '22px',
+      fontSize: '20px',
       fontFamily: 'monospace',
       color: '#F5E6C8',
+      fontStyle: 'bold',
     });
     this.closeBtn.setOrigin(0.5);
-    this.closeBtn.setInteractive({ useHandCursor: true, hitArea: new Phaser.Geom.Rectangle(-22, -22, 44, 44), hitAreaCallback: Phaser.Geom.Rectangle.Contains });
+    this.closeBtn.setInteractive({ useHandCursor: true, hitArea: new Phaser.Geom.Rectangle(-24, -24, 48, 48), hitAreaCallback: Phaser.Geom.Rectangle.Contains });
     this.closeBtn.on('pointerdown', () => this.closePanel());
+    this.closeBtn.on('pointerover', () => this.closeBtn.setColor('#FF6B6B'));
+    this.closeBtn.on('pointerout', () => this.closeBtn.setColor('#F5E6C8'));
 
     // Title
     this.titleText = this.add.text(panelX, panelY - panelH / 2 + 35, '⚙️ Settings', {
