@@ -43,46 +43,6 @@ export class BootScene extends Phaser.Scene {
     }
   }
 
-  // Add a 1px dark outline around all non-transparent pixels for crisp pixel art
-  drawOutline(ctx, w, h, color = 'rgba(0,0,0,0.7)') {
-    const imageData = ctx.getImageData(0, 0, w, h);
-    const data = imageData.data;
-    const outlinePixels = [];
-    for (let y = 0; y < h; y++) {
-      for (let x = 0; x < w; x++) {
-        const idx = (y * w + x) * 4;
-        if (data[idx + 3] === 0) {
-          const neighbors = [[x-1,y],[x+1,y],[x,y-1],[x,y+1]];
-          for (const [nx, ny] of neighbors) {
-            if (nx >= 0 && nx < w && ny >= 0 && ny < h) {
-              const nIdx = (ny * w + nx) * 4;
-              if (data[nIdx + 3] > 0) { outlinePixels.push([x, y]); break; }
-            }
-          }
-        }
-      }
-    }
-    ctx.fillStyle = color;
-    for (const [x, y] of outlinePixels) ctx.fillRect(x, y, 1, 1);
-  }
-
-  // Draw a rounded rectangle
-  drawRoundedRect(ctx, x, y, w, h, r, fill, stroke) {
-    ctx.beginPath();
-    ctx.moveTo(x + r, y);
-    ctx.lineTo(x + w - r, y);
-    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-    ctx.lineTo(x + w, y + h - r);
-    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-    ctx.lineTo(x + r, y + h);
-    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-    ctx.lineTo(x, y + r);
-    ctx.quadraticCurveTo(x, y, x + r, y);
-    ctx.closePath();
-    if (fill) { ctx.fillStyle = fill; ctx.fill(); }
-    if (stroke) { ctx.strokeStyle = stroke; ctx.stroke(); }
-  }
-
 
   // ─── TERRAIN TILES ───────────────────────────────────────────
   generateTerrainTiles() {
@@ -709,7 +669,6 @@ export class BootScene extends Phaser.Scene {
       ctx.fillRect(11, 26, 5, 1); // boot top highlight
       ctx.fillRect(17, 26, 5, 1);
       // Outline
-      this.drawOutline(ctx, 32, 32);
     });
 
     // Player up
@@ -743,7 +702,6 @@ export class BootScene extends Phaser.Scene {
       ctx.fillStyle = '#4A3520';
       ctx.fillRect(11, 26, 5, 1);
       ctx.fillRect(17, 26, 5, 1);
-      this.drawOutline(ctx, 32, 32);
     });
 
     // Player left
@@ -770,7 +728,6 @@ export class BootScene extends Phaser.Scene {
       ctx.fillStyle = '#3A2510';
       ctx.fillRect(12, 26, 5, 4);
       ctx.fillRect(17, 26, 5, 4);
-      this.drawOutline(ctx, 32, 32);
     });
 
     // Player right
@@ -803,7 +760,6 @@ export class BootScene extends Phaser.Scene {
       ctx.fillStyle = '#3A2510';
       ctx.fillRect(10, 26, 5, 4);
       ctx.fillRect(15, 26, 5, 4);
-      this.drawOutline(ctx, 32, 32);
     });
 
     // Agent down
@@ -838,7 +794,6 @@ export class BootScene extends Phaser.Scene {
       ctx.fillStyle = '#4A3520';
       ctx.fillRect(12, 26, 4, 4);
       ctx.fillRect(18, 26, 4, 4);
-      this.drawOutline(ctx, 32, 32);
     });
 
     // Agent up
@@ -858,7 +813,6 @@ export class BootScene extends Phaser.Scene {
       ctx.fillStyle = '#4A3520';
       ctx.fillRect(12, 26, 4, 4);
       ctx.fillRect(18, 26, 4, 4);
-      this.drawOutline(ctx, 32, 32);
     });
 
     // Agent left
@@ -881,7 +835,6 @@ export class BootScene extends Phaser.Scene {
       ctx.fillStyle = '#4A3520';
       ctx.fillRect(12, 26, 4, 4);
       ctx.fillRect(18, 26, 4, 4);
-      this.drawOutline(ctx, 32, 32);
     });
 
     // Agent right
@@ -904,7 +857,6 @@ export class BootScene extends Phaser.Scene {
       ctx.fillStyle = '#4A3520';
       ctx.fillRect(12, 26, 4, 4);
       ctx.fillRect(18, 26, 4, 4);
-      this.drawOutline(ctx, 32, 32);
     });
 
     // npc_merchant
@@ -932,7 +884,6 @@ export class BootScene extends Phaser.Scene {
       ctx.fillStyle = '#4A3520';
       ctx.fillRect(12, 26, 4, 4);
       ctx.fillRect(18, 26, 4, 4);
-      this.drawOutline(ctx, 32, 32);
     });
   }
 
@@ -962,7 +913,6 @@ export class BootScene extends Phaser.Scene {
       ctx.fillStyle = '#000000';
       ctx.fillRect(13, 17, 2, 2);
       ctx.fillRect(19, 17, 2, 2);
-      this.drawOutline(ctx, 32, 32);
     });
 
     // mob_wolf
@@ -997,7 +947,6 @@ export class BootScene extends Phaser.Scene {
       ctx.fillRect(14, 22, 3, 6);
       ctx.fillRect(20, 22, 3, 6);
       ctx.fillRect(24, 22, 3, 6);
-      this.drawOutline(ctx, 32, 32);
     });
 
     // mob_bat
@@ -1023,7 +972,6 @@ export class BootScene extends Phaser.Scene {
       ctx.fillStyle = '#4A4458';
       ctx.fillRect(14, 10, 2, 4);
       ctx.fillRect(18, 10, 2, 4);
-      this.drawOutline(ctx, 32, 32);
     });
 
     // mob_shadow_wisp
@@ -1041,7 +989,6 @@ export class BootScene extends Phaser.Scene {
       ctx.fillRect(10, 24, 2, 4);
       ctx.fillRect(16, 26, 2, 4);
       ctx.fillRect(20, 24, 2, 3);
-      this.drawOutline(ctx, 32, 32, 'rgba(100,50,150,0.5)');
     });
 
     // mob_night_stalker
@@ -1065,7 +1012,6 @@ export class BootScene extends Phaser.Scene {
       ctx.fillStyle = '#1A1A1A';
       ctx.fillRect(10, 24, 4, 6);
       ctx.fillRect(18, 24, 4, 6);
-      this.drawOutline(ctx, 32, 32);
     });
 
     // mob_moon_beetle
@@ -1097,7 +1043,6 @@ export class BootScene extends Phaser.Scene {
       ctx.fillRect(22, 14, 4, 2);
       ctx.fillRect(6, 20, 4, 2);
       ctx.fillRect(22, 20, 4, 2);
-      this.drawOutline(ctx, 32, 32);
     });
 
     // mob_ember_wraith
@@ -1119,7 +1064,6 @@ export class BootScene extends Phaser.Scene {
       ctx.fillRect(12, 4, 2, 4);
       ctx.fillRect(18, 4, 2, 4);
       ctx.fillRect(15, 2, 2, 4);
-      this.drawOutline(ctx, 32, 32, 'rgba(200,80,0,0.5)');
     });
   }
 
@@ -1153,7 +1097,6 @@ export class BootScene extends Phaser.Scene {
       ctx.fillStyle = '#AA4400';
       ctx.fillRect(12, 22, 3, 6);
       ctx.fillRect(19, 22, 3, 6);
-      this.drawOutline(ctx, 32, 32);
     });
 
     // companion_owl
@@ -1185,7 +1128,6 @@ export class BootScene extends Phaser.Scene {
       ctx.fillStyle = '#DAA520';
       ctx.fillRect(12, 24, 3, 2);
       ctx.fillRect(18, 24, 3, 2);
-      this.drawOutline(ctx, 32, 32);
     });
 
     // companion_frog
@@ -1212,7 +1154,6 @@ export class BootScene extends Phaser.Scene {
       // Back legs
       ctx.fillRect(8, 24, 6, 4);
       ctx.fillRect(18, 24, 6, 4);
-      this.drawOutline(ctx, 32, 32);
     });
 
     // companion_mole
@@ -1242,7 +1183,6 @@ export class BootScene extends Phaser.Scene {
       ctx.fillStyle = '#4A3020';
       ctx.fillRect(12, 24, 3, 4);
       ctx.fillRect(18, 24, 3, 4);
-      this.drawOutline(ctx, 32, 32);
     });
 
     // companion_wolf
@@ -1273,7 +1213,6 @@ export class BootScene extends Phaser.Scene {
       ctx.fillRect(10, 22, 3, 6);
       ctx.fillRect(16, 22, 3, 6);
       ctx.fillRect(22, 22, 3, 6);
-      this.drawOutline(ctx, 32, 32);
     });
 
     // companion_toad
@@ -1301,7 +1240,6 @@ export class BootScene extends Phaser.Scene {
       ctx.fillRect(22, 22, 4, 4);
       ctx.fillRect(10, 26, 4, 4);
       ctx.fillRect(18, 26, 4, 4);
-      this.drawOutline(ctx, 32, 32);
     });
 
     // Eggs
@@ -1403,12 +1341,10 @@ export class BootScene extends Phaser.Scene {
 
     // ui_hp_bg
     this.makeTexture('ui_hp_bg', 64, 8, (ctx) => {
-      ctx.fillStyle = '#1A1A1A';
+      ctx.fillStyle = '#222222';
       ctx.fillRect(0, 0, 64, 8);
-      ctx.fillStyle = '#B71C1C';
+      ctx.fillStyle = '#2A2A2A';
       ctx.fillRect(1, 1, 62, 6);
-      ctx.fillStyle = '#8B1111';
-      ctx.fillRect(1, 4, 62, 3);
       ctx.strokeStyle = '#111111';
       ctx.lineWidth = 1;
       ctx.strokeRect(0, 0, 64, 8);
