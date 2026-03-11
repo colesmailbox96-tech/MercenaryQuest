@@ -14,8 +14,8 @@ export class ShopScene extends Phaser.Scene {
     this.activeTab = 'materials'; // 'materials' | 'gear' | 'seeds' | 'food'
     const w = this.scale.width;
     const h = this.scale.height;
-    const panelW = w * 0.9;
-    const panelH = h * 0.78;
+    const panelW = Math.min(w - 20, 370);
+    const panelH = Math.min(h * 0.85, h - 40);
     const panelX = (w - panelW) / 2;
     const panelY = (h - panelH) / 2;
     this.panelX = panelX;
@@ -24,12 +24,13 @@ export class ShopScene extends Phaser.Scene {
     this.panelH = panelH;
 
     // Backdrop
-    this.backdrop = this.add.rectangle(w / 2, h / 2, w, h, 0x000000, 0.6);
+    this.backdrop = this.add.rectangle(w / 2, h / 2, w, h, 0x000000, 0.7);
     this.backdrop.setInteractive();
     this.backdrop.on('pointerdown', () => this.closeShop());
 
     // Panel
-    this.panel = this.add.rectangle(w / 2, h / 2, panelW, panelH, COLORS.UI_PANEL, 0.95);
+    this.panel = this.add.rectangle(w / 2, h / 2, panelW, panelH, COLORS.UI_PANEL, 0.92);
+    this.panel.setStrokeStyle(2, COLORS.UI_GOLD, 0.6);
     this.panel.setInteractive();
 
     this.panel.setAlpha(0);
@@ -38,7 +39,7 @@ export class ShopScene extends Phaser.Scene {
 
     // Title
     this.titleText = this.add.text(w / 2, panelY + 12, '🏪 Shop', {
-      fontSize: '16px', fontFamily: 'monospace', color: '#F5E6C8',
+      fontSize: '18px', fontFamily: 'monospace', color: '#F5E6C8', fontStyle: 'bold',
     });
     this.titleText.setOrigin(0.5, 0);
 
@@ -47,7 +48,7 @@ export class ShopScene extends Phaser.Scene {
       fontSize: '20px', fontFamily: 'monospace', color: '#F5E6C8',
     });
     this.closeBtn.setOrigin(0.5, 0);
-    this.closeBtn.setInteractive({ useHandCursor: true });
+    this.closeBtn.setInteractive({ useHandCursor: true, hitArea: new Phaser.Geom.Rectangle(-22, -22, 44, 44), hitAreaCallback: Phaser.Geom.Rectangle.Contains });
     this.closeBtn.on('pointerdown', () => this.closeShop());
 
     // Gold display

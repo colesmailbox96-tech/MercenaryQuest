@@ -13,8 +13,8 @@ export class CookingPanel extends Phaser.Scene {
     this.gameScene = this.scene.get('GameScene');
     const w = this.scale.width;
     const h = this.scale.height;
-    const panelW = w * 0.92;
-    const panelH = h * 0.85;
+    const panelW = Math.min(w - 20, 370);
+    const panelH = Math.min(h * 0.85, h - 40);
     const panelX = (w - panelW) / 2;
     const panelY = (h - panelH) / 2;
     this.panelX = panelX;
@@ -23,11 +23,12 @@ export class CookingPanel extends Phaser.Scene {
     this.panelH = panelH;
     this.elements = [];
 
-    this.backdrop = this.add.rectangle(w / 2, h / 2, w, h, 0x000000, 0.6);
+    this.backdrop = this.add.rectangle(w / 2, h / 2, w, h, 0x000000, 0.7);
     this.backdrop.setInteractive();
     this.backdrop.on('pointerdown', () => this.scene.stop());
 
-    this.panel = this.add.rectangle(w / 2, h / 2, panelW, panelH, COLORS.UI_PANEL, 0.97);
+    this.panel = this.add.rectangle(w / 2, h / 2, panelW, panelH, COLORS.UI_PANEL, 0.92);
+    this.panel.setStrokeStyle(2, COLORS.UI_GOLD, 0.6);
     this.panel.setInteractive();
     this.panel.setAlpha(0);
     this.panel.y = h;
@@ -57,26 +58,31 @@ export class CookingPanel extends Phaser.Scene {
     // Title
     this.elements.push(
       this.add.text(w / 2, panelY + 14, '🍳 Kitchen', {
-        fontSize: '15px', fontFamily: 'monospace', color: '#F5E6C8',
+        fontSize: '18px', fontFamily: 'monospace', color: '#F5E6C8', fontStyle: 'bold',
       }).setOrigin(0.5, 0)
     );
 
     const closeBtn = this.add.text(panelX + panelW - 12, panelY + 12, '✕', {
       fontSize: '20px', fontFamily: 'monospace', color: '#F5E6C8',
-    }).setOrigin(0.5, 0).setInteractive({ useHandCursor: true });
+    }).setOrigin(0.5, 0).setInteractive({ useHandCursor: true, hitArea: new Phaser.Geom.Rectangle(-22, -22, 44, 44), hitAreaCallback: Phaser.Geom.Rectangle.Contains });
     closeBtn.on('pointerdown', () => this.scene.stop());
     this.elements.push(closeBtn);
+
+    // Header separator
+    this.elements.push(
+      this.add.rectangle(w / 2, panelY + 40, panelW - 24, 1, COLORS.UI_GOLD, 0.3)
+    );
 
     const cookLevel = skillSys.getLevel('cooking');
     const prog = skillSys.getSkillProgress('cooking');
     const xpStr = prog.isMax ? 'MAX' : `${prog.progressXP}/${prog.neededXP} XP`;
     this.elements.push(
-      this.add.text(panelX + 12, panelY + 36, `Cooking Level: ${cookLevel}  (${xpStr})`, {
-        fontSize: '11px', fontFamily: 'monospace', color: '#FF9800',
+      this.add.text(panelX + 12, panelY + 46, `Cooking Level: ${cookLevel}  (${xpStr})`, {
+        fontSize: '12px', fontFamily: 'monospace', color: '#DAA520',
       })
     );
 
-    let y = panelY + 54;
+    let y = panelY + 64;
     const lx = panelX + 12;
 
     // Active buff
@@ -110,10 +116,10 @@ export class CookingPanel extends Phaser.Scene {
         : `── Tier ${tier} (🔒 Cooking Lv.${unlockLevel}) ──`;
       this.elements.push(
         this.add.text(lx, y, tierLabel, {
-          fontSize: '11px', fontFamily: 'monospace', color: tierUnlocked ? '#AACCFF' : '#555577',
+          fontSize: '13px', fontFamily: 'monospace', color: tierUnlocked ? '#DAA520' : '#555577', fontStyle: 'bold',
         })
       );
-      y += 16;
+      y += 20;
 
       for (const recipe of recipes) {
         if (!tierUnlocked) {
@@ -133,39 +139,39 @@ export class CookingPanel extends Phaser.Scene {
         // Recipe name + buff
         this.elements.push(
           this.add.text(lx + 4, y, `${foodDef?.emoji || '🍽'} ${recipe.name}`, {
-            fontSize: '12px', fontFamily: 'monospace', color: '#F5E6C8',
+            fontSize: '13px', fontFamily: 'monospace', color: '#FFFFFF', fontStyle: 'bold',
           })
         );
-        y += 14;
+        y += 18;
 
         if (buffDesc) {
           this.elements.push(
             this.add.text(lx + 10, y, `  ${buffDesc}`, {
-              fontSize: '10px', fontFamily: 'monospace', color: '#FFCC44',
+              fontSize: '11px', fontFamily: 'monospace', color: '#CCCCCC',
             })
           );
-          y += 12;
+          y += 16;
         }
 
         // Ingredients
         const ingChecks = cookSys.checkIngredients(recipe.id, materials);
         for (const ing of ingChecks) {
           const ingDef = ITEMS[ing.id];
-          const color = ing.satisfied ? '#88CC88' : '#CC4444';
+          const color = ing.satisfied ? '#4CAF50' : '#FF6B6B';
           const ingText = `  ${ingDef?.emoji || '?'} ${ingDef?.name || ing.id} ×${ing.quantity}  (${ing.owned}/${ing.quantity})`;
           this.elements.push(
             this.add.text(lx + 10, y, ingText, {
-              fontSize: '10px', fontFamily: 'monospace', color,
+              fontSize: '11px', fontFamily: 'monospace', color,
             })
           );
-          y += 12;
+          y += 16;
         }
 
-        // Cook button
+        // Cook button — right-aligned
         const cookBtnColor = canCook ? '#DAA520' : '#555555';
-        const cookBtn = this.add.text(panelX + panelW - 70, y - ingChecks.length * 12 - 14, '[ 🍳 Cook ]', {
-          fontSize: '12px', fontFamily: 'monospace', color: cookBtnColor,
-        });
+        const cookBtn = this.add.text(panelX + panelW - 20, y - ingChecks.length * 16 - 18, '[ Cook ]', {
+          fontSize: '12px', fontFamily: 'monospace', color: cookBtnColor, fontStyle: 'bold',
+        }).setOrigin(1, 0);
         if (canCook) {
           cookBtn.setInteractive({ useHandCursor: true });
           cookBtn.on('pointerdown', () => {
@@ -180,9 +186,9 @@ export class CookingPanel extends Phaser.Scene {
         // Cook Max button
         const maxCount = cookSys.getMaxCookCount(recipe.id, materials);
         const cookMaxColor = maxCount > 0 ? '#FF9800' : '#555555';
-        const cookMaxBtn = this.add.text(panelX + panelW - 70, y - ingChecks.length * 12 - 14 + 18, `[Max ×${maxCount}]`, {
+        const cookMaxBtn = this.add.text(panelX + panelW - 20, y - ingChecks.length * 16 - 18 + 18, `[Max ×${maxCount}]`, {
           fontSize: '11px', fontFamily: 'monospace', color: cookMaxColor,
-        });
+        }).setOrigin(1, 0);
         if (maxCount > 0) {
           cookMaxBtn.setInteractive({ useHandCursor: true });
           cookMaxBtn.on('pointerdown', () => {

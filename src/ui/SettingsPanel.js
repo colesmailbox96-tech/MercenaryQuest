@@ -19,13 +19,13 @@ export class SettingsPanel extends Phaser.Scene {
     this.backdrop.on('pointerdown', () => {});
 
     // Panel
-    const panelW = w * 0.9;
-    const panelH = h * 0.85;
+    const panelW = Math.min(w - 20, 370);
+    const panelH = Math.min(h * 0.85, h - 40);
     const panelX = w / 2;
     const panelY = h / 2;
 
-    this.panel = this.add.rectangle(panelX, panelY, panelW, panelH, COLORS.UI_PANEL, 0.97);
-    this.panel.setStrokeStyle(2, COLORS.UI_GOLD);
+    this.panel = this.add.rectangle(panelX, panelY, panelW, panelH, COLORS.UI_PANEL, 0.92);
+    this.panel.setStrokeStyle(2, COLORS.UI_GOLD, 0.6);
 
     // Slide-in animation
     this.panel.setAlpha(0);
@@ -45,14 +45,14 @@ export class SettingsPanel extends Phaser.Scene {
       color: '#F5E6C8',
     });
     this.closeBtn.setOrigin(0.5);
-    this.closeBtn.setInteractive({ useHandCursor: true });
+    this.closeBtn.setInteractive({ useHandCursor: true, hitArea: new Phaser.Geom.Rectangle(-22, -22, 44, 44), hitAreaCallback: Phaser.Geom.Rectangle.Contains });
     this.closeBtn.on('pointerdown', () => this.closePanel());
 
     // Title
     this.titleText = this.add.text(panelX, panelY - panelH / 2 + 35, '⚙️ Settings', {
-      fontSize: '20px',
+      fontSize: '18px',
       fontFamily: 'monospace',
-      color: '#DAA520',
+      color: '#F5E6C8',
       fontStyle: 'bold',
     });
     this.titleText.setOrigin(0.5);

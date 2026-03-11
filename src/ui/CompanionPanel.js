@@ -12,25 +12,27 @@ export class CompanionPanel extends Phaser.Scene {
     const w = this.scale.width;
     const h = this.scale.height;
 
-    this.add.rectangle(w / 2, h / 2, w, h, 0x000000, 0.6).setInteractive();
+    const backdrop = this.add.rectangle(w / 2, h / 2, w, h, 0x000000, 0.7);
+    backdrop.setInteractive();
+    backdrop.on('pointerdown', () => this.scene.stop());
 
-    const panelW = w - 40;
-    const panelH = h * 0.75;
+    const panelW = Math.min(w - 20, 370);
+    const panelH = Math.min(h * 0.85, h - 40);
     const panelX = w / 2;
     const panelY = h / 2;
 
-    this.add.rectangle(panelX, panelY, panelW, panelH, COLORS.UI_PANEL, 0.95)
-      .setStrokeStyle(2, 0x4CAF50);
+    this.add.rectangle(panelX, panelY, panelW, panelH, COLORS.UI_PANEL, 0.92)
+      .setStrokeStyle(2, COLORS.UI_GOLD, 0.6);
 
     // Title
     this.add.text(panelX, panelY - panelH / 2 + 20, '🐾 Companions', {
-      fontSize: '16px', fontFamily: 'monospace', color: '#DAA520',
+      fontSize: '18px', fontFamily: 'monospace', color: '#F5E6C8', fontStyle: 'bold',
     }).setOrigin(0.5);
 
     // Close
     const closeBtn = this.add.text(panelX + panelW / 2 - 15, panelY - panelH / 2 + 10, '✕', {
-      fontSize: '20px', color: '#FF4444',
-    }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+      fontSize: '20px', color: '#F5E6C8',
+    }).setOrigin(0.5).setInteractive({ useHandCursor: true, hitArea: new Phaser.Geom.Rectangle(-22, -22, 44, 44), hitAreaCallback: Phaser.Geom.Rectangle.Contains });
     closeBtn.on('pointerdown', () => this.scene.stop());
 
     const cs = this.gameScene.companionSystem;

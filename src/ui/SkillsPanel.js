@@ -11,18 +11,19 @@ export class SkillsPanel extends Phaser.Scene {
     this.gameScene = this.scene.get('GameScene');
     const w = this.scale.width;
     const h = this.scale.height;
-    const panelW = w * 0.92;
-    const panelH = h * 0.82;
+    const panelW = Math.min(w - 20, 370);
+    const panelH = Math.min(h * 0.85, h - 40);
     const panelX = (w - panelW) / 2;
     const panelY = (h - panelH) / 2;
 
     // Backdrop
-    this.backdrop = this.add.rectangle(w / 2, h / 2, w, h, 0x000000, 0.6);
+    this.backdrop = this.add.rectangle(w / 2, h / 2, w, h, 0x000000, 0.7);
     this.backdrop.setInteractive();
     this.backdrop.on('pointerdown', () => this.scene.stop());
 
     // Panel
-    this.panel = this.add.rectangle(w / 2, h / 2, panelW, panelH, COLORS.UI_PANEL, 0.97);
+    this.panel = this.add.rectangle(w / 2, h / 2, panelW, panelH, COLORS.UI_PANEL, 0.92);
+    this.panel.setStrokeStyle(2, COLORS.UI_GOLD, 0.6);
     this.panel.setInteractive();
 
     // Slide in
@@ -32,14 +33,17 @@ export class SkillsPanel extends Phaser.Scene {
 
     // Title
     this.add.text(w / 2, panelY + 14, '📊 Skills', {
-      fontSize: '16px', fontFamily: 'monospace', color: '#F5E6C8',
+      fontSize: '18px', fontFamily: 'monospace', color: '#F5E6C8', fontStyle: 'bold',
     }).setOrigin(0.5, 0);
+
+    // Header separator
+    this.add.rectangle(w / 2, panelY + 40, panelW - 24, 1, COLORS.UI_GOLD, 0.3);
 
     // Close button
     const closeBtn = this.add.text(panelX + panelW - 12, panelY + 12, '✕', {
       fontSize: '20px', fontFamily: 'monospace', color: '#F5E6C8',
     });
-    closeBtn.setOrigin(0.5, 0).setInteractive({ useHandCursor: true });
+    closeBtn.setOrigin(0.5, 0).setInteractive({ useHandCursor: true, hitArea: new Phaser.Geom.Rectangle(-22, -22, 44, 44), hitAreaCallback: Phaser.Geom.Rectangle.Contains });
     closeBtn.on('pointerdown', () => this.scene.stop());
 
     this._renderSkills(panelX, panelY, panelW, panelH);
@@ -47,7 +51,7 @@ export class SkillsPanel extends Phaser.Scene {
 
   _renderSkills(panelX, panelY, panelW) {
     const skillSystem = this.gameScene.skillSystem;
-    let y = panelY + 40;
+    let y = panelY + 48;
     const lx = panelX + 14;
     const barW = panelW - 28;
 
