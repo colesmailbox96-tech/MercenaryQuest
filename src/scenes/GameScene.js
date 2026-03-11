@@ -31,6 +31,8 @@ const DISPLAY_TILE = TILE_SIZE * TILE_SCALE;
 const TAP_DRAG_THRESHOLD = 10;
 const HUD_TOP_ZONE_HEIGHT = 100;
 const HUD_BOTTOM_ZONE_RATIO = 0.75;
+const ZONE_GROUND = { town: 'tile_town_ground', forest: 'tile_forest_ground', caves: 'tile_cave_ground' };
+const OVERLAY_TILE_TYPES = new Set(['tree', 'building', 'mining_node']);
 
 export class GameScene extends Phaser.Scene {
   constructor() {
@@ -232,9 +234,6 @@ export class GameScene extends Phaser.Scene {
     this.waterSprites = [];
     this.lanternSprites = [];
 
-    const ZONE_GROUND = { town: 'tile_town_ground', forest: 'tile_forest_ground', caves: 'tile_cave_ground' };
-    const OVERLAY_TYPES = new Set(['tree', 'building', 'mining_node']);
-
     for (let y = 0; y < MAP_HEIGHT; y++) {
       for (let x = 0; x < MAP_WIDTH; x++) {
         const tile = this.mapData[y][x];
@@ -242,7 +241,7 @@ export class GameScene extends Phaser.Scene {
         const py = y * DISPLAY_TILE + DISPLAY_TILE / 2;
 
         // For overlay tiles, render the zone ground tile first
-        if (OVERLAY_TYPES.has(tile.type)) {
+        if (OVERLAY_TILE_TYPES.has(tile.type)) {
           const groundKey = ZONE_GROUND[tile.zone] || 'tile_town_ground';
           const groundImg = this.add.image(px, py, groundKey);
           groundImg.setDisplaySize(DISPLAY_TILE, DISPLAY_TILE);
@@ -251,7 +250,7 @@ export class GameScene extends Phaser.Scene {
 
         const img = this.add.image(px, py, tile.textureKey);
         img.setDisplaySize(DISPLAY_TILE, DISPLAY_TILE);
-        img.setDepth(OVERLAY_TYPES.has(tile.type) ? 1 : 0);
+        img.setDepth(OVERLAY_TILE_TYPES.has(tile.type) ? 1 : 0);
 
         if (tile.type === 'tree') {
           img._baseY = img.y;
