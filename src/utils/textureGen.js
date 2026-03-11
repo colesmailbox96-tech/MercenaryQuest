@@ -17,7 +17,7 @@ function makeTex(scene, key, w, h, drawFn) {
   const ct = scene.textures.createCanvas(key, w, h);
   const ctx = ct.getContext();
   ctx.clearRect(0, 0, w, h);
-  // Shim that mimics Phaser Graphics fillStyle/fillRect API on Canvas 2D
+  // Shim that mimics Phaser Graphics API on Canvas 2D
   const g = {
     fillStyle(color, alpha) {
       const a = (alpha !== undefined) ? alpha : 1;
@@ -28,6 +28,27 @@ function makeTex(scene, key, w, h, drawFn) {
     },
     fillRect(x, y, rw, rh) {
       ctx.fillRect(x, y, rw, rh);
+    },
+    fillCircle(cx, cy, radius) {
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+      ctx.fill();
+    },
+    lineStyle(width, color, alpha) {
+      const a = (alpha !== undefined) ? alpha : 1;
+      const r = (color >> 16) & 0xFF;
+      const gv = (color >> 8) & 0xFF;
+      const b = color & 0xFF;
+      ctx.lineWidth = width;
+      ctx.strokeStyle = `rgba(${r},${gv},${b},${a})`;
+    },
+    strokeCircle(cx, cy, radius) {
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+      ctx.stroke();
+    },
+    strokeRect(x, y, rw, rh) {
+      ctx.strokeRect(x, y, rw, rh);
     },
   };
   drawFn(g);
