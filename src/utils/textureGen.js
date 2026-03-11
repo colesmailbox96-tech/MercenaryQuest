@@ -11,13 +11,27 @@ export function generateTextures(scene) {
 }
 
 // ---------------------------------------------------------------------------
-// Helper: create graphics, draw, generate texture, destroy
+// Helper: create canvas-based texture with proper transparency support
 // ---------------------------------------------------------------------------
 function makeTex(scene, key, w, h, drawFn) {
-  const g = scene.make.graphics({ x: 0, y: 0, add: false });
+  const ct = scene.textures.createCanvas(key, w, h);
+  const ctx = ct.getContext();
+  ctx.clearRect(0, 0, w, h);
+  // Shim that mimics Phaser Graphics fillStyle/fillRect API on Canvas 2D
+  const g = {
+    fillStyle(color, alpha) {
+      const a = (alpha !== undefined) ? alpha : 1;
+      const r = (color >> 16) & 0xFF;
+      const gv = (color >> 8) & 0xFF;
+      const b = color & 0xFF;
+      ctx.fillStyle = `rgba(${r},${gv},${b},${a})`;
+    },
+    fillRect(x, y, rw, rh) {
+      ctx.fillRect(x, y, rw, rh);
+    },
+  };
   drawFn(g);
-  g.generateTexture(key, w, h);
-  g.destroy();
+  ct.refresh();
 }
 
 function tex32(scene, key, drawFn) {
@@ -81,8 +95,6 @@ function generateTileTextures(scene) {
 
   // tile_tree (prompt: tile_tree — key matches)
   tex32(scene, 'tile_tree', (g) => {
-    g.fillStyle(0x1A3A15);
-    g.fillRect(0, 0, 32, 32);
     g.fillStyle(0x4A3220);
     g.fillRect(12, 18, 8, 14);
     g.fillStyle(0x3A2210);
@@ -147,8 +159,6 @@ function generateTileTextures(scene) {
 
   // tile_building_tavern (prompt: tile_tavern)
   tex32(scene, 'tile_building_tavern', (g) => {
-    g.fillStyle(0x8B7355);
-    g.fillRect(0, 0, 32, 32);
     g.fillStyle(0x7A6345);
     g.fillRect(2, 6, 28, 24);
     g.fillStyle(0x4A3220);
@@ -177,8 +187,6 @@ function generateTileTextures(scene) {
 
   // tile_building_shop (prompt: tile_shop)
   tex32(scene, 'tile_building_shop', (g) => {
-    g.fillStyle(0x8B7355);
-    g.fillRect(0, 0, 32, 32);
     g.fillStyle(0x7A6345);
     g.fillRect(2, 6, 28, 24);
     g.fillStyle(0x2D5A27);
@@ -206,8 +214,6 @@ function generateTileTextures(scene) {
 
   // tile_building_home (prompt: tile_home)
   tex32(scene, 'tile_building_home', (g) => {
-    g.fillStyle(0x8B7355);
-    g.fillRect(0, 0, 32, 32);
     g.fillStyle(0x7A6345);
     g.fillRect(2, 6, 28, 24);
     g.fillStyle(0x6B4226);
@@ -270,9 +276,6 @@ function generateTileTextures(scene) {
 
   // tile_mining_node_copper (prompt: tile_mining_copper)
   tex32(scene, 'tile_mining_node_copper', (g) => {
-    g.fillStyle(0x36393F);
-    g.fillRect(0, 0, 32, 32);
-    dither(g, 0x2A2D33, 0.15);
     g.fillStyle(0x4A4A4A);
     g.fillRect(6, 10, 20, 18);
     g.fillRect(8, 8, 16, 4);
@@ -287,9 +290,6 @@ function generateTileTextures(scene) {
 
   // tile_mining_node_iron (prompt: tile_mining_iron)
   tex32(scene, 'tile_mining_node_iron', (g) => {
-    g.fillStyle(0x36393F);
-    g.fillRect(0, 0, 32, 32);
-    dither(g, 0x2A2D33, 0.15);
     g.fillStyle(0x4A4A4A);
     g.fillRect(6, 10, 20, 18);
     g.fillRect(8, 8, 16, 4);
@@ -304,9 +304,6 @@ function generateTileTextures(scene) {
 
   // tile_mining_node_crystal (prompt: tile_mining_crystal)
   tex32(scene, 'tile_mining_node_crystal', (g) => {
-    g.fillStyle(0x36393F);
-    g.fillRect(0, 0, 32, 32);
-    dither(g, 0x2A2D33, 0.15);
     g.fillStyle(0x4A4A4A);
     g.fillRect(6, 12, 20, 16);
     g.fillRect(8, 10, 16, 4);
@@ -325,9 +322,6 @@ function generateTileTextures(scene) {
 
   // tile_mining_node_depleted (prompt: tile_mining_depleted)
   tex32(scene, 'tile_mining_node_depleted', (g) => {
-    g.fillStyle(0x36393F);
-    g.fillRect(0, 0, 32, 32);
-    dither(g, 0x2A2D33, 0.15);
     g.fillStyle(0x3A3A3A);
     g.fillRect(8, 14, 16, 12);
     g.fillRect(10, 12, 12, 4);
@@ -338,8 +332,6 @@ function generateTileTextures(scene) {
 
   // tile_building_kitchen (prompt: tile_kitchen)
   tex32(scene, 'tile_building_kitchen', (g) => {
-    g.fillStyle(0x7A6548);
-    g.fillRect(0, 0, 32, 32);
     g.fillStyle(0x6A5538);
     g.fillRect(2, 6, 28, 24);
     g.fillStyle(0x5A4528);
@@ -772,19 +764,26 @@ function generateUITextures(scene) {
   btnSm.generateTexture('ui_btn_small', 44, 44);
   btnSm.destroy();
 
-  // Joystick ring (80×80 — screen-space UI, keep same)
-  const joyOuter = scene.make.graphics({ x: 0, y: 0, add: false });
-  joyOuter.lineStyle(3, 0x555577, 0.5);
-  joyOuter.strokeCircle(40, 40, 38);
-  joyOuter.generateTexture('ui_joystick_ring', 80, 80);
-  joyOuter.destroy();
+  // Joystick ring (80×80 — canvas-based for proper transparency)
+  const joyRingCT = scene.textures.createCanvas('ui_joystick_ring', 80, 80);
+  const joyRingCtx = joyRingCT.getContext();
+  joyRingCtx.clearRect(0, 0, 80, 80);
+  joyRingCtx.strokeStyle = 'rgba(85,85,119,0.5)';
+  joyRingCtx.lineWidth = 3;
+  joyRingCtx.beginPath();
+  joyRingCtx.arc(40, 40, 38, 0, Math.PI * 2);
+  joyRingCtx.stroke();
+  joyRingCT.refresh();
 
-  // Joystick nub (30×30 — screen-space UI, keep same)
-  const joyNub = scene.make.graphics({ x: 0, y: 0, add: false });
-  joyNub.fillStyle(0x888899, 0.7);
-  joyNub.fillCircle(15, 15, 15);
-  joyNub.generateTexture('ui_joystick_nub', 30, 30);
-  joyNub.destroy();
+  // Joystick nub (30×30 — canvas-based for proper transparency)
+  const joyNubCT = scene.textures.createCanvas('ui_joystick_nub', 30, 30);
+  const joyNubCtx = joyNubCT.getContext();
+  joyNubCtx.clearRect(0, 0, 30, 30);
+  joyNubCtx.fillStyle = 'rgba(136,136,153,0.7)';
+  joyNubCtx.beginPath();
+  joyNubCtx.arc(15, 15, 15, 0, Math.PI * 2);
+  joyNubCtx.fill();
+  joyNubCT.refresh();
 
   // HP bar background (scaled 32×4 → 64×8)
   const hpBg = scene.make.graphics({ x: 0, y: 0, add: false });

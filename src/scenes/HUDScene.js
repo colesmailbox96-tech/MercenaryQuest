@@ -39,6 +39,11 @@ export class HUDScene extends Phaser.Scene {
 
     this.setupListeners();
 
+    // Sync joystick visibility with movement mode
+    if (this.joystick && this.gameScene.movementMode === 'tap') {
+      this.joystick.setVisible(false);
+    }
+
     this.activityHUD = new ActivityHUD(this);
     this.activityHUD.create();
 
@@ -197,9 +202,13 @@ export class HUDScene extends Phaser.Scene {
   }
 
   createBottomControls(w, h) {
-    // Joystick
+    // Floating joystick — covers left half of viewport between HUD top bar and button row
     if (this.hasTouchSupport) {
-      this.joystick = new Joystick(this, 80, h - 120);
+      const zoneTop = 100;                // below HUD bars
+      const zoneBottom = h - 140;         // above secondary button row
+      const zoneH = zoneBottom - zoneTop;
+      const zoneW = w * 0.5;             // left half of screen
+      this.joystick = new Joystick(this, zoneW / 2, zoneTop + zoneH / 2, zoneW, zoneH);
     } else {
       this.joystick = null;
     }

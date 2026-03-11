@@ -1,34 +1,47 @@
 import Phaser from 'phaser';
 
+/**
+ * Floating joystick that appears at the touch point within a dedicated zone.
+ * The ring/nub are hidden until the user touches inside the zone, then they
+ * appear at the touch origin and track finger movement to determine direction.
+ */
 export class Joystick {
-  constructor(scene, x, y) {
+  constructor(scene, zoneX, zoneY, zoneW, zoneH) {
     this.scene = scene;
-    this.baseX = x;
-    this.baseY = y;
+    this.baseX = 0;
+    this.baseY = 0;
     this.direction = null;
     this.isActive = false;
     this.pointerId = null;
 
-    this.ring = scene.add.image(x, y, 'ui_joystick_ring');
-    this.ring.setAlpha(0.5);
+    // Ring and nub start hidden
+    this.ring = scene.add.image(0, 0, 'ui_joystick_ring');
+    this.ring.setAlpha(0);
     this.ring.setScrollFactor(0);
     this.ring.setDepth(200);
 
-    this.nub = scene.add.image(x, y, 'ui_joystick_nub');
-    this.nub.setAlpha(0.7);
+    this.nub = scene.add.image(0, 0, 'ui_joystick_nub');
+    this.nub.setAlpha(0);
     this.nub.setScrollFactor(0);
     this.nub.setDepth(201);
 
-    // Create interactive zone
-    this.zone = scene.add.zone(x, y, 120, 120);
+    // Create a large invisible touch zone covering the designated screen area
+    this.zone = scene.add.zone(zoneX, zoneY, zoneW, zoneH);
     this.zone.setScrollFactor(0);
-    this.zone.setDepth(202);
+    this.zone.setDepth(150);
     this.zone.setInteractive();
 
     this.zone.on('pointerdown', (pointer) => {
       this.isActive = true;
       this.pointerId = pointer.id;
-      this.updateDirection(pointer);
+      this.baseX = pointer.x;
+      this.baseY = pointer.y;
+
+      // Show ring/nub at touch point
+      this.ring.setPosition(this.baseX, this.baseY);
+      this.ring.setAlpha(0.5);
+      this.nub.setPosition(this.baseX, this.baseY);
+      this.nub.setAlpha(0.7);
     });
 
     scene.input.on('pointermove', (pointer) => {
@@ -77,12 +90,12 @@ export class Joystick {
     this.direction = null;
     this.pointerId = null;
 
+    // Fade out ring and nub
     this.scene.tweens.add({
-      targets: this.nub,
-      x: this.baseX,
-      y: this.baseY,
-      duration: 100,
-      ease: 'Back.easeOut',
+      targets: [this.ring, this.nub],
+      alpha: 0,
+      duration: 150,
+      ease: 'Power2',
     });
   }
 
@@ -91,8 +104,10 @@ export class Joystick {
   }
 
   setVisible(visible) {
-    this.ring.setVisible(visible);
-    this.nub.setVisible(visible);
     this.zone.setVisible(visible);
+    if (!visible) {
+      this.ring.setAlpha(0);
+      this.nub.setAlpha(0);
+    }
   }
 }
